@@ -19,3 +19,6 @@ export { selectFramework, routeToDomain } from './frameworks.js';
 
 export { createAntiSlopChecker } from './anti-slop.js';
 export type { AntiSlopChecker } from './anti-slop.js';
+
+export { createAssembler } from './assembler.js';
+export type { Assembler } from './assembler.js';
