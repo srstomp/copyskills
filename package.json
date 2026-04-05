@@ -1,0 +1,12 @@
+{
+  "name": "copyskills",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "test": "bun run --filter '*' test",
+    "dev:mcp": "bun run --filter @copydoc/mcp dev",
+    "dev:cli": "bun run --filter @copydoc/cli dev",
+    "typecheck": "bun run --filter '*' typecheck"
+  }
+}

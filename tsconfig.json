@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@copydoc/core": ["./packages/core/src/index.ts"],
+      "@copydoc/mcp": ["./packages/mcp-server/src/index.ts"],
+      "@copydoc/cli": ["./packages/cli/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
