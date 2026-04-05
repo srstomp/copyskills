@@ -16,3 +16,6 @@ export { createLoader } from './loader.js';
 export type { SkillLoader } from './loader.js';
 
 export { selectFramework, routeToDomain } from './frameworks.js';
+
+export { createAntiSlopChecker } from './anti-slop.js';
+export type { AntiSlopChecker } from './anti-slop.js';
