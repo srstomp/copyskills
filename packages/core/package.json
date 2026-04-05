@@ -10,8 +10,12 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": [
+    "dist",
+    "../../skills"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun",
+    "build": "bun build src/index.ts --outdir dist --format esm --target bun && tsc -p tsconfig.build.json",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   }
