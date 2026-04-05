@@ -14,3 +14,5 @@ export type {
 
 export { createLoader } from './loader.js';
 export type { SkillLoader } from './loader.js';
+
+export { selectFramework, routeToDomain } from './frameworks.js';
