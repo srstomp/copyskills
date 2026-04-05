@@ -11,3 +11,6 @@ export type {
   SkillMetadata,
   SkillContent,
 } from './types.js';
+
+export { createLoader } from './loader.js';
+export type { SkillLoader } from './loader.js';
