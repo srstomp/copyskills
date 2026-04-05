@@ -1,0 +1,5 @@
+*.skill
+.ohno/
+node_modules/
+dist/
+bun.lock
