@@ -20,6 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@copydoc/core": "workspace:*"
   }
 }
