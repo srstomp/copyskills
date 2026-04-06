@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@copydoc/core": "workspace:*",
-    "@modelcontextprotocol/sdk": "latest"
+    "@modelcontextprotocol/sdk": "latest",
+    "zod": "^4.3.6"
   }
 }

@@ -4,6 +4,7 @@ import { createLoader } from '@copydoc/core';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { registerResources } from './resources.js';
+import { registerTools } from './tools.js';
 
 // Resolve skills directory relative to this package's location.
 // The skills/ directory is at the repo root, which is three levels up from
@@ -25,6 +26,7 @@ const server = new McpServer(
 const loader = createLoader(SKILLS_DIR);
 
 registerResources(server, loader);
+registerTools(server, loader);
 
 // Start the server using stdio transport
 const transport = new StdioServerTransport();
