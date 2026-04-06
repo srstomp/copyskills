@@ -1,5 +1,7 @@
 import type { CopydocConfig } from '../config';
 import { createAnthropicProvider } from './anthropic';
+import { createOpenAIProvider } from './openai';
+import { createGeminiProvider } from './gemini';
 
 export interface CopyProvider {
   generate(system: string, prompt: string): Promise<string>;
@@ -11,12 +13,14 @@ export function createProvider(config: CopydocConfig): CopyProvider {
     case 'anthropic':
       return createAnthropicProvider(config);
     case 'openai':
-      throw new Error('Provider not yet implemented: openai');
+      return createOpenAIProvider(config);
     case 'gemini':
-      throw new Error('Provider not yet implemented: gemini');
+      return createGeminiProvider(config);
     default: {
       const _exhaustive: never = config.provider;
-      throw new Error(`Provider not yet implemented: ${_exhaustive}`);
+      throw new Error(
+        `Unknown provider: ${_exhaustive}. Supported: anthropic, openai, gemini`
+      );
     }
   }
 }
