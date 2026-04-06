@@ -4,6 +4,9 @@
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "copydoc-mcp": "dist/index.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
