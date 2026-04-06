@@ -3,6 +3,10 @@
 import type { SkillLoader } from '@copydoc/core';
 import { listCommand } from './commands/list';
 import { infoCommand } from './commands/info';
+import { initCommand } from './commands/init';
+import { writeCommand } from './commands/write';
+import { critiqueCommand } from './commands/critique';
+import { adaptCommand } from './commands/adapt';
 
 export interface ParsedArgs {
   command: string;
@@ -74,20 +78,27 @@ export async function runCli(argv: string[], loader: SkillLoader): Promise<void>
     }
 
     case 'init':
-      console.log('Not yet implemented: init');
+      await initCommand();
       break;
 
-    case 'write':
-      console.log('Not yet implemented: write');
+    case 'write': {
+      const description = args.join(' ');
+      await writeCommand(loader, description);
       break;
+    }
 
-    case 'critique':
-      console.log('Not yet implemented: critique');
+    case 'critique': {
+      const input = args.join(' ');
+      await critiqueCommand(loader, input);
       break;
+    }
 
-    case 'adapt':
-      console.log('Not yet implemented: adapt');
+    case 'adapt': {
+      const source = args.join(' ');
+      const targetFormat = (parsed.flags['to'] as string) ?? '';
+      await adaptCommand(loader, source, targetFormat);
       break;
+    }
 
     case '':
     case 'help':

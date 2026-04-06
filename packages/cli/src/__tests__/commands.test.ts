@@ -445,32 +445,41 @@ describe('cli routing - command parsing', () => {
     expect(combined).toContain('email-copy');
   });
 
-  test('"init" stub prints "Not yet implemented"', async () => {
+  test('"write <description>" throws with missing API key (command is implemented)', async () => {
     const { runCli } = await import('../cli');
-    await runCli(['node', 'copydoc', 'init'], makeLoader());
-    const combined = output.join('\n');
-    expect(combined).toContain('Not yet implemented');
+    // write command is implemented; without a config it throws a missing-key error
+    let threw = false;
+    try {
+      await runCli(['node', 'copydoc', 'write', 'landing page hero'], makeLoader());
+    } catch (e) {
+      threw = true;
+      expect(String(e)).toContain('API key');
+    }
+    expect(threw).toBe(true);
   });
 
-  test('"write <description>" stub prints "Not yet implemented"', async () => {
+  test('"critique <input>" throws with missing API key (command is implemented)', async () => {
     const { runCli } = await import('../cli');
-    await runCli(['node', 'copydoc', 'write', 'landing page hero'], makeLoader());
-    const combined = output.join('\n');
-    expect(combined).toContain('Not yet implemented');
+    let threw = false;
+    try {
+      await runCli(['node', 'copydoc', 'critique', 'some text'], makeLoader());
+    } catch (e) {
+      threw = true;
+      expect(String(e)).toContain('API key');
+    }
+    expect(threw).toBe(true);
   });
 
-  test('"critique <input>" stub prints "Not yet implemented"', async () => {
+  test('"adapt <source>" throws with missing API key (command is implemented)', async () => {
     const { runCli } = await import('../cli');
-    await runCli(['node', 'copydoc', 'critique', 'some text'], makeLoader());
-    const combined = output.join('\n');
-    expect(combined).toContain('Not yet implemented');
-  });
-
-  test('"adapt <source>" stub prints "Not yet implemented"', async () => {
-    const { runCli } = await import('../cli');
-    await runCli(['node', 'copydoc', 'adapt', 'source.md', '--to', 'linkedin'], makeLoader());
-    const combined = output.join('\n');
-    expect(combined).toContain('Not yet implemented');
+    let threw = false;
+    try {
+      await runCli(['node', 'copydoc', 'adapt', 'source.md', '--to', 'linkedin'], makeLoader());
+    } catch (e) {
+      threw = true;
+      expect(String(e)).toContain('API key');
+    }
+    expect(threw).toBe(true);
   });
 });
 
