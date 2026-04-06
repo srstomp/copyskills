@@ -22,6 +22,91 @@ describe('registerResources', () => {
   });
 });
 
+// Helper to list resources via the server's internal request handlers
+async function listResources(server: McpServer) {
+  const underlyingServer = server.server;
+  const response = await (underlyingServer as unknown as {
+    _requestHandlers: Map<string, (req: unknown, extra: unknown) => unknown>;
+  })
+    ._requestHandlers
+    .get('resources/list')?.({ method: 'resources/list', params: {} }, {});
+  return response as {
+    resources: Array<{ uri: string; name: string; description?: string; mimeType?: string }>;
+    resourceTemplates?: Array<{ uriTemplate: string; name: string; description?: string }>;
+  };
+}
+
+describe('resources/list returns all copydoc:// static resources', () => {
+  test('resources/list returns an array of resources', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    expect(Array.isArray(result.resources)).toBe(true);
+    expect(result.resources.length).toBeGreaterThan(0);
+  });
+
+  test('resources/list includes copydoc://skills', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    const uris = result.resources.map((r) => r.uri);
+    expect(uris).toContain('copydoc://skills');
+  });
+
+  test('resources/list includes copydoc://quality/rubric', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    const uris = result.resources.map((r) => r.uri);
+    expect(uris).toContain('copydoc://quality/rubric');
+  });
+
+  test('resources/list includes copydoc://quality/anti-slop', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    const uris = result.resources.map((r) => r.uri);
+    expect(uris).toContain('copydoc://quality/anti-slop');
+  });
+
+  test('resources/list includes copydoc://headlines/patterns', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    const uris = result.resources.map((r) => r.uri);
+    expect(uris).toContain('copydoc://headlines/patterns');
+  });
+
+  test('resources/list includes copydoc://headlines/power-words', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    const uris = result.resources.map((r) => r.uri);
+    expect(uris).toContain('copydoc://headlines/power-words');
+  });
+
+  test('resources/list returns exactly 5 static resources', async () => {
+    const server = makeServer();
+    const loader = createLoader(SKILLS_DIR);
+    registerResources(server, loader);
+
+    const result = await listResources(server);
+    expect(result.resources).toHaveLength(5);
+  });
+});
+
 describe('copydoc://skills resource', () => {
   test('copydoc://skills returns JSON with 15 skills', async () => {
     const server = makeServer();

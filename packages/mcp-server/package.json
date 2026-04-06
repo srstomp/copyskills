@@ -2,6 +2,16 @@
   "name": "@copydoc/mcp",
   "version": "0.1.0",
   "private": false,
+  "description": "MCP server exposing copydoc copywriting skills, tools, and prompts to AI assistants",
+  "author": "Steve Stomp",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srstomp/copyskills"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -13,8 +23,11 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun",
+    "build": "bun build src/index.ts --outdir dist --format esm --target bun",
     "test": "bun test",
     "dev": "bun run src/index.ts",
     "typecheck": "tsc --noEmit"

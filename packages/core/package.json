@@ -2,6 +2,16 @@
   "name": "@copydoc/core",
   "version": "0.1.0",
   "private": false,
+  "description": "Core skill loader, assembler, and copy analysis tools for the copydoc copywriting AI toolkit",
+  "author": "Steve Stomp",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srstomp/copyskills"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
