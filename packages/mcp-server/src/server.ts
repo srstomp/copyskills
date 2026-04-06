@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { registerResources } from './resources.js';
 import { registerTools } from './tools.js';
+import { registerPrompts } from './prompts.js';
 
 // Resolve skills directory relative to this package's location.
 // The skills/ directory is at the repo root, which is three levels up from
@@ -27,6 +28,7 @@ const loader = createLoader(SKILLS_DIR);
 
 registerResources(server, loader);
 registerTools(server, loader);
+registerPrompts(server, loader);
 
 // Start the server using stdio transport
 const transport = new StdioServerTransport();
