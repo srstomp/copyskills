@@ -3,8 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
+    "types": ["bun", "node"],
     "paths": {
-      "@copydoc/core": ["../core/src/index.ts"]
+      "@copydoc/core": ["../core/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*"],

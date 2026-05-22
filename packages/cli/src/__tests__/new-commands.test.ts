@@ -79,7 +79,7 @@ const mockGenerate = mock(async (_system: string, _prompt: string): Promise<stri
   return 'Generated critique response';
 });
 
-const mockStream = mock(async function* (_system: string, _prompt: string) {
+const mockStream = mock(async function* (_system: string, _prompt: string): AsyncGenerator<string, void, unknown> {
   yield 'Streamed ';
   yield 'copy ';
   yield 'output.';

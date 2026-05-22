@@ -374,7 +374,7 @@ describe('cli routing - command parsing', () => {
     });
     console.log = consoleLogMock as typeof console.log;
     console.error = consoleErrorMock as typeof console.error;
-    process.exit = processExitMock as typeof process.exit;
+    process.exit = processExitMock as unknown as typeof process.exit;
   });
 
   test('parseArgs() extracts command from argv', async () => {

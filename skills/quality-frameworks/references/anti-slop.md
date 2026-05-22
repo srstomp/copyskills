@@ -70,6 +70,10 @@ These are the fingerprints of AI-generated marketing copy. If you wrote one, rew
 - "We're excited to announce..." (you're always excited; cut it)
 - "Now more than ever..." (meaningless filler)
 - "It goes without saying..." (then don't say it)
+- "Let's dive in..." (and the variants "let's get into it", "without further ado")
+- "Here's the thing..." (and "here's the kicker", "here's the truth")
+- "Let me be clear..." (false intimacy; just say the thing)
+- "I hope this finds you well..." (email opener tell; cut it)
 
 ### Filler phrases
 
@@ -82,6 +86,10 @@ These are the fingerprints of AI-generated marketing copy. If you wrote one, rew
 - "driving results"
 - "value-add"
 - "thought leader" (about yourself)
+- "it's not just [X], it's [Y]" (the strongest current AI tell; rebuild without the rhetorical reversal)
+- "more than just [X]" (same shape, same problem)
+- "feel free to" (filler in transactional copy; delete it)
+- "I'd be happy to" (delete; just do the thing)
 
 ---
 

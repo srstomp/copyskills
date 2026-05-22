@@ -22,7 +22,7 @@ Quick-reference for writing headlines that stop readers. Covers pattern selectio
 
 Load these files when writing headlines:
 
-- **proven-patterns.md** - 20+ fill-in templates organized by type, each with a concrete example. Load when you need a structural pattern to work from.
+- **proven-patterns.md** - 26 fill-in templates organized by type, each with a concrete example. Load when you need a structural pattern to work from.
 - **power-words.md** - Words categorized by emotional effect: urgency, exclusivity, trust, curiosity, fear/loss, desire/gain. Load when a headline needs more pull.
 
 ## Quick Tip

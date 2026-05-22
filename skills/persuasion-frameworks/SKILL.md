@@ -38,18 +38,13 @@ When uncertain, default to AIDA. It is the most broadly applicable framework.
 
 ## Framework Index
 
-Ten frameworks are available. The first five have reference files in this skill. The remaining five will be added in a future update.
-
-**Available now:**
+Ten frameworks are available. Each has a reference file in `references/`. Load on demand.
 
 - **aida.md** -- Attention-Interest-Desire-Action. The general-purpose default. Works for landing pages, ads, and most marketing copy.
 - **pas.md** -- Problem-Agitate-Solve. Built for cold outreach and direct response. Strong when the audience has a clear pain point.
 - **bab.md** -- Before-After-Bridge. Shows transformation. Best for case studies, testimonials, and narratives built around change.
 - **fab.md** -- Features-Advantages-Benefits. Connects product attributes to reader value. Best for product copy and technical audiences.
 - **acca.md** -- Awareness-Comprehension-Conviction-Action. Longer persuasion arc for considered purchases and B2B sales copy.
-
-**Coming in next update:**
-
 - **pastor.md** -- Problem-Amplify-Story-Testimony-Offer-Response. Full persuasion arc for sales pages and long-form direct response.
 - **quest.md** -- Qualify-Understand-Educate-Stimulate-Transition. Educational pacing for nurture sequences and webinars.
 - **four-ps.md** -- Promise-Picture-Proof-Push. Structured persuasion with evidence. Pairs well with landing pages and sales pages.

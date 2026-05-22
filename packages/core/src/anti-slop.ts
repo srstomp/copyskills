@@ -1,8 +1,17 @@
 import type { SkillLoader } from './loader.js';
 import type { AntiSlopResult, AntiSlopIssue } from './types.js';
 
+export interface AntiSlopCheckOptions {
+  /**
+   * Additional banned words/phrases to flag alongside the doc's patterns.
+   * Typically sourced from brief.brand_voice.avoids.
+   * Matched case-insensitive, with word boundaries when the term is purely word characters.
+   */
+  extraBannedWords?: string[];
+}
+
 export interface AntiSlopChecker {
-  check(text: string): AntiSlopResult;
+  check(text: string, options?: AntiSlopCheckOptions): AntiSlopResult;
   getBannedPatterns(): string[];
 }
 
@@ -13,6 +22,49 @@ export interface AntiSlopChecker {
 interface PatternEntry {
   pattern: string;
   suggestion?: string;
+}
+
+/**
+ * Normalize a string for matching: lowercase, collapse smart quotes/dashes
+ * to ASCII equivalents, collapse whitespace.
+ */
+function normalize(text: string): string {
+  return text
+    .replace(/[‘’‚‛]/g, "'")
+    .replace(/[“”„‟]/g, '"')
+    .replace(/—/g, '--')
+    .replace(/–/g, '-')
+    .replace(/…/g, '...');
+}
+
+/**
+ * Convert a parsed pattern string into a regex source.
+ *
+ * - Strips trailing ellipsis (".." or "..." or "…") -- patterns end at the
+ *   characteristic phrase, not at the doc-writer's elision.
+ * - Replaces [Placeholder] tokens with a non-greedy wildcard so
+ *   "In today's [X]..." matches "In today's fast-paced world".
+ * - Otherwise escapes regex metacharacters.
+ * - Adds word boundaries when the pattern begins and ends with word chars.
+ */
+function patternToRegexSource(rawPattern: string): string {
+  let pattern = rawPattern.replace(/(\.{2,}|…)$/u, '').trim();
+  if (pattern.length === 0) return '';
+
+  const PLACEHOLDER = '\x01PH\x01';
+  const placeholderRegex = '[\\w\'\\s-]{1,40}';
+
+  pattern = pattern.replace(/\[[^\]]+\]/g, PLACEHOLDER);
+
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const withPlaceholders = escaped.replaceAll(PLACEHOLDER, placeholderRegex);
+
+  const startsWithWord = /^\w/.test(rawPattern);
+  const endsWithWord = /\w$/.test(pattern);
+  const prefix = startsWithWord ? '\\b' : '';
+  const suffix = endsWithWord ? '\\b' : '';
+
+  return `${prefix}${withPlaceholders}${suffix}`;
 }
 
 /**
@@ -140,6 +192,73 @@ function wordCount(text: string): number {
 }
 
 /**
+ * Heuristic for the tricolon trap.
+ *
+ * Three items form a jingle when they share grammatical shape: same suffix
+ * (-ly / -ed / -ing / -ble / -ic / -ive), or near-identical lengths, or all
+ * end with the same final letter cluster.
+ *
+ * Returns false for mixed-form trios like "fast, reliable, and built for scale",
+ * which is the human pattern the doc encourages.
+ */
+function isJingleTricolon(a: string, b: string, c: string): boolean {
+  const items = [a, b, c].map(s => s.toLowerCase());
+
+  if (items.some(s => s.length < 3)) return false;
+
+  // All three share an identical 2- to 4-char suffix
+  for (const n of [2, 3, 4]) {
+    if (items.every(s => s.length > n)) {
+      const last = items[0].slice(-n);
+      if (items.every(s => s.slice(-n) === last)) return true;
+    }
+  }
+
+  // At least two share a common adjective/adverb suffix family.
+  // Catches "fast, reliable, scalable" via shared -ble suffix on 2 of 3.
+  const adjFamilies = ['able', 'ible', 'ive', 'ous', 'less', 'ful', 'ish', 'ic', 'ant', 'ent', 'ed', 'ing', 'ly'];
+  for (const fam of adjFamilies) {
+    const matches = items.filter(s => s.length > fam.length && s.endsWith(fam)).length;
+    if (matches >= 2) return true;
+  }
+
+  // Near-identical lengths (max - min <= 2)
+  const lengths = items.map(s => s.length);
+  if (Math.max(...lengths) - Math.min(...lengths) <= 2) return true;
+
+  return false;
+}
+
+/**
+ * Count specificity markers in text: numbers, percentages, dollar amounts,
+ * time durations, version numbers, and capitalized multi-word proper nouns.
+ *
+ * Deliberately conservative -- favors precision over recall so a flag means
+ * the text really does lack concrete details.
+ */
+function countSpecifics(text: string): number {
+  let count = 0;
+
+  // Numbers, percentages, dollar amounts, multipliers
+  count += (text.match(/\b\d+(?:[.,]\d+)?%?/g) ?? []).length;
+  count += (text.match(/\$\d+(?:[.,]\d+)?[kKmMbB]?/g) ?? []).length;
+  count += (text.match(/\b\d+x\b/gi) ?? []).length;
+
+  // Time durations / dates
+  count += (text.match(/\b\d+\s*(?:second|minute|hour|day|week|month|year|sec|min|hr|mo|yr)s?\b/gi) ?? []).length;
+  count += (text.match(/\b(?:19|20)\d{2}\b/g) ?? []).length;
+
+  // Capitalized proper nouns of 2+ words (likely product/company/customer names)
+  count += (text.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}\b/g) ?? []).length;
+
+  // Hyphenated specifics like "v2.1", "Q3", "H1"
+  count += (text.match(/\b[QH][1-4]\b/g) ?? []).length;
+  count += (text.match(/\bv\d+(?:\.\d+)*\b/gi) ?? []).length;
+
+  return count;
+}
+
+/**
  * Calculate standard deviation of an array of numbers.
  */
 function stdDev(values: number[]): number {
@@ -158,31 +277,40 @@ export function createAntiSlopChecker(loader: SkillLoader): AntiSlopChecker {
     return patternEntries.map(e => e.pattern);
   }
 
-  function check(text: string): AntiSlopResult {
+  function check(text: string, options?: AntiSlopCheckOptions): AntiSlopResult {
     if (!text || text.trim().length === 0) {
       return { score: 0, issues: [] };
     }
 
     const issues: AntiSlopIssue[] = [];
-    const lines = text.split('\n');
+    const rawLines = text.split('\n');
+    const normalizedLines = rawLines.map(normalize);
 
-    // --- 1. Word/phrase scan (case-insensitive) ---
-    for (const entry of patternEntries) {
-      const pattern = entry.pattern;
-      // Escape special regex characters in pattern
-      const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Merge doc patterns with caller-supplied brand-voice avoids
+    const extras = (options?.extraBannedWords ?? [])
+      .map(w => (typeof w === 'string' ? w.trim() : ''))
+      .filter(w => w.length > 0);
+    const allEntries: PatternEntry[] = [
+      ...patternEntries,
+      ...extras.map(w => ({
+        pattern: w,
+        suggestion: 'Brand voice excludes this term',
+      })),
+    ];
 
-      // Use word boundary where possible; patterns with non-word chars use lookahead/lookbehind
-      const hasWordChars = /^\w/.test(pattern) && /\w$/.test(pattern);
-      const regexStr = hasWordChars ? `\\b${escaped}\\b` : escaped;
+    // --- 1. Word/phrase scan (case-insensitive, normalized) ---
+    for (const entry of allEntries) {
+      const normalizedPattern = normalize(entry.pattern);
+      const regexStr = patternToRegexSource(normalizedPattern);
+      if (!regexStr) continue;
 
       try {
         const regex = new RegExp(regexStr, 'i');
 
-        for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-          if (regex.test(lines[lineIdx])) {
+        for (let lineIdx = 0; lineIdx < normalizedLines.length; lineIdx++) {
+          if (regex.test(normalizedLines[lineIdx])) {
             issues.push({
-              pattern,
+              pattern: entry.pattern,
               line: lineIdx + 1,
               suggestion: entry.suggestion,
             });
@@ -195,13 +323,17 @@ export function createAntiSlopChecker(loader: SkillLoader): AntiSlopChecker {
     }
 
     // --- 2. Em dash and en dash detection ---
+    // Catches Unicode em dash (U+2014), Unicode en dash (U+2013),
+    // and the ASCII double-hyphen "--" surrogate commonly emitted by LLMs.
     const EM_DASH = '\u2014';
     const EN_DASH = '\u2013';
+    const DOUBLE_HYPHEN = /(^|[^-])--($|[^-])/;
 
-    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-      if (lines[lineIdx].includes(EM_DASH)) {
+    for (let lineIdx = 0; lineIdx < rawLines.length; lineIdx++) {
+      const line = rawLines[lineIdx];
+      if (line.includes(EM_DASH) || DOUBLE_HYPHEN.test(line)) {
         issues.push({
-          pattern: 'Em dash (--)',
+          pattern: 'Em dash',
           line: lineIdx + 1,
           suggestion: 'Use a comma, period, or restructure the sentence',
         });
@@ -209,8 +341,8 @@ export function createAntiSlopChecker(loader: SkillLoader): AntiSlopChecker {
       }
     }
 
-    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-      if (lines[lineIdx].includes(EN_DASH)) {
+    for (let lineIdx = 0; lineIdx < rawLines.length; lineIdx++) {
+      if (rawLines[lineIdx].includes(EN_DASH)) {
         issues.push({
           pattern: 'En dash',
           line: lineIdx + 1,
@@ -260,7 +392,45 @@ export function createAntiSlopChecker(loader: SkillLoader): AntiSlopChecker {
       }
     }
 
-    // --- 5. Score calculation ---
+    // --- 5. Tricolon detection (jingle-rhythm 3-item lists) ---
+    // Catches "fast, reliable, and scalable", "design, build, and deploy" style lists
+    // where all three items share the same shape (same suffix family or near-equal length).
+    const tricolonRegex = /\b([\w-]+),\s+([\w-]+),?\s+(?:and|or)\s+([\w-]+)\b/gi;
+    let tricolonFlagged = false;
+    for (let lineIdx = 0; lineIdx < normalizedLines.length && !tricolonFlagged; lineIdx++) {
+      for (const m of normalizedLines[lineIdx].matchAll(tricolonRegex)) {
+        const [, a, b, c] = m;
+        if (isJingleTricolon(a, b, c)) {
+          issues.push({
+            pattern: `Tricolon trap: "${a}, ${b}, and ${c}"`,
+            line: lineIdx + 1,
+            suggestion: 'Break the rhythm: add a fourth item, drop one, or mix grammatical forms',
+          });
+          tricolonFlagged = true;
+          break;
+        }
+      }
+    }
+
+    // --- 6. Specificity heuristic ---
+    // Counts concrete markers (numbers, percentages, dollar amounts, time
+    // durations, named entities) per 200 words. Below 1 specific per 200 words
+    // signals high slop risk per the reference doc. Only fires above 80 words
+    // to avoid flagging short ad copy that's specific by other means.
+    const totalWords = wordCount(text);
+    if (totalWords >= 80) {
+      const specificCount = countSpecifics(text);
+      const expected = totalWords / 200;
+      if (specificCount < Math.max(1, expected)) {
+        issues.push({
+          pattern: `Low specificity: ${specificCount} concrete details across ${totalWords} words`,
+          line: 1,
+          suggestion: 'Add numbers, names, timeframes, or specific behaviors -- vague claims read as slop',
+        });
+      }
+    }
+
+    // --- 7. Score calculation ---
     // Count distinct pattern types found
     // Each unique pattern name contributes 1; structural issues (variance, openings) also contribute 1 each
     const uniquePatterns = new Set(issues.map(i => i.pattern));

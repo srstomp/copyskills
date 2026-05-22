@@ -4,6 +4,8 @@ Professional copywriting skills for AI agents and humans. 15 skills covering 8 d
 
 Works as a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript library.
 
+**New here?** Read [USAGE.md](./USAGE.md) for a walkthrough with concrete recipes for each interface. The rest of this README is reference material.
+
 ## Quick Start
 
 ### Claude Code Plugin

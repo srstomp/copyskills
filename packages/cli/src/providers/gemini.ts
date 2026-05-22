@@ -21,7 +21,7 @@ export function createGeminiProvider(config: CopydocConfig): CopyProvider {
     async *stream(system: string, prompt: string): AsyncIterable<string> {
       const model = client.getGenerativeModel({ model: modelName, systemInstruction: system });
       const streamResult = await model.generateContentStream(prompt);
-      for await (const chunk of streamResult) {
+      for await (const chunk of streamResult.stream) {
         const text = chunk.text();
         if (text) {
           yield text;

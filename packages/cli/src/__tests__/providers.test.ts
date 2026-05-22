@@ -71,7 +71,8 @@ const mockOpenAIStreamCreate = mock(async function* (_params: unknown) {
 let lastOpenAIConstructorOpts: { apiKey?: string; baseURL?: string } | undefined;
 
 class MockOpenAIClient {
-  chat: { completions: { create: typeof mockOpenAICreate | typeof mockOpenAIStreamCreate } };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  chat: { completions: { create: any } };
 
   constructor(opts?: { apiKey?: string; baseURL?: string }) {
     lastOpenAIConstructorOpts = opts;
@@ -106,10 +107,16 @@ const mockGenerateContent = mock(async (_prompt: unknown) => {
   };
 });
 
-const mockGenerateContentStream = mock(async function* (_prompt: unknown) {
-  for (const t of mockGeminiStreamChunks) {
-    yield { text: () => t };
+const mockGenerateContentStream = mock(async (_prompt: unknown) => {
+  async function* streamGen() {
+    for (const t of mockGeminiStreamChunks) {
+      yield { text: () => t };
+    }
   }
+  return {
+    stream: streamGen(),
+    response: Promise.resolve({ text: () => mockGeminiStreamChunks.join('') }),
+  };
 });
 
 const mockGetGenerativeModel = mock((_opts: { model?: string; systemInstruction?: string }) => {

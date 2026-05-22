@@ -44,13 +44,17 @@ export function registerTools(server: McpServer, loader: SkillLoader): void {
           audience: z.string().optional(),
           goal: z.string().optional(),
           brand_voice: z.string().optional(),
+          avoids: z
+            .array(z.string())
+            .optional()
+            .describe('Extra banned words/phrases from brand voice. Flagged alongside the doc patterns.'),
         })
         .optional()
         .describe('Optional context about the copy'),
     },
-    ({ text }) => {
+    ({ text, context }) => {
       const checker = createAntiSlopChecker(loader);
-      const antiSlopResult = checker.check(text);
+      const antiSlopResult = checker.check(text, { extraBannedWords: context?.avoids });
 
       const scores: QualityScores = {
         clarity: -1,
@@ -87,10 +91,14 @@ export function registerTools(server: McpServer, loader: SkillLoader): void {
     'Check copy text for AI writing patterns (slop). Returns a score and list of detected issues.',
     {
       text: z.string().describe('The copy text to check for AI patterns'),
+      avoids: z
+        .array(z.string())
+        .optional()
+        .describe('Extra banned words/phrases from brand voice. Flagged alongside the doc patterns.'),
     },
-    ({ text }) => {
+    ({ text, avoids }) => {
       const checker = createAntiSlopChecker(loader);
-      const result = checker.check(text);
+      const result = checker.check(text, { extraBannedWords: avoids });
       return {
         content: [
           {

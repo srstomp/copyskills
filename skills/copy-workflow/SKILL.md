@@ -33,9 +33,14 @@ Match the brief's `type` field to a domain skill using keyword matching.
 
 | Keywords in `type` field | Route to |
 |--------------------------|----------|
-| "landing page", "lander", "ad", "advertisement", "CTA", "value prop", "value proposition", "hero", "banner", "homepage", "sales page" | `marketing-copy` |
-| "email", "subject line", "newsletter", "drip", "sequence", "outreach", "cold email", "cold outreach", "nurture", "campaign" | `email-copy` |
+| "landing page", "lander", "ad", "advertisement", "CTA", "value prop", "value proposition", "hero", "banner", "homepage" | `marketing-copy` |
+| "email", "subject line", "newsletter", "drip", "sequence", "outreach", "cold email", "cold outreach", "nurture", "campaign", "re-engagement", "transactional" | `email-copy` |
 | "microcopy", "button", "button label", "error message", "error state", "onboarding", "empty state", "tooltip", "UX", "UI copy", "notification", "dialog", "confirmation", "placeholder", "helper text" | `ux-copy` |
+| "blog", "blog post", "article", "SEO", "seo content", "thought leadership", "whitepaper", "opinion piece", "long-form content" | `editorial-copy` |
+| "brand voice", "voice profile", "tone guide", "messaging hierarchy", "style guide", "tagline", "elevator pitch", "brand guidelines" | `brand-copy` |
+| "proposal", "case study", "pitch deck", "one-pager", "sales email", "sales letter", "sales page" | `sales-copy` |
+| "LinkedIn", "Twitter", "X post", "tweet", "Instagram", "TikTok", "social", "social post", "thread", "carousel", "caption" | `social-copy` |
+| "pricing", "pricing page", "signup", "sign-up", "checkout", "A/B", "variant", "trial", "conversion" | `conversion-copy` |
 
 Match is case-insensitive. A match on any keyword routes to that skill.
 

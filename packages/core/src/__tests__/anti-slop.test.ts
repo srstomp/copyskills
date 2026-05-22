@@ -305,3 +305,190 @@ describe('check() - abbreviation handling in sentence splitter', () => {
     expect(() => checker.check(textWithEg)).not.toThrow();
   });
 });
+
+// AC: placeholder-bearing patterns from anti-slop.md actually match real-world text
+describe('check() - placeholder patterns ([X], [A], [B]) match real text', () => {
+  test('check() flags "In today\'s fast-paced world" via "In today\'s [X]..." pattern', () => {
+    const result = checker.check("In today's fast-paced world, business moves fast.");
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes("in today's"))).toBe(true);
+  });
+
+  test('check() flags "Whether you\'re a startup or an enterprise" via "Whether you\'re [A] or [B]..."', () => {
+    const result = checker.check("Whether you're a startup or an enterprise, this fits.");
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes("whether you're"))).toBe(true);
+  });
+
+  test('check() flags "At Acme, we believe" via "At [Company], we believe..."', () => {
+    const result = checker.check('At Acme, we believe in great copy.');
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes("at [company]"))).toBe(true);
+  });
+
+  test('check() flags "take your business to the next level" via filler placeholder', () => {
+    const result = checker.check('We help you take your business to the next level today.');
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('next level'))).toBe(true);
+  });
+});
+
+// AC: double-hyphen "--" detected as em dash
+describe('check() - ASCII double-hyphen em dash', () => {
+  test('check() flags "We built this -- for you" as em dash', () => {
+    const result = checker.check('We built this -- for you.');
+    const hasDash = result.issues.some(i => i.pattern.toLowerCase().includes('em dash'));
+    expect(hasDash).toBe(true);
+  });
+
+  test('check() does NOT flag a date range "2020-2024" as em dash', () => {
+    // Force enough content to avoid sentence-variance false flag interfering
+    const result = checker.check('We shipped between 2020-2024. Users loved it. Growth accelerated. Revenue doubled.');
+    const hasDash = result.issues.some(i => i.pattern.toLowerCase().includes('em dash'));
+    expect(hasDash).toBe(false);
+  });
+
+  test('check() does NOT flag a single hyphen in "cutting-edge" as em dash', () => {
+    const result = checker.check('The hyphenated word is here.');
+    const hasDash = result.issues.some(i => i.pattern.toLowerCase().includes('em dash'));
+    expect(hasDash).toBe(false);
+  });
+});
+
+// AC: smart-quote variants normalized so patterns containing straight quotes still match
+describe('check() - smart quote normalization', () => {
+  test("check() flags \"we're passionate about\" when text uses curly apostrophe", () => {
+    const result = checker.check('We’re passionate about your success.');
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('passionate'))).toBe(true);
+  });
+
+  test("check() flags \"In today's\" opener when text uses curly apostrophe", () => {
+    const result = checker.check('In today’s world, things move fast.');
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes("today's"))).toBe(true);
+  });
+});
+
+// AC: extraBannedWords option flags brand-voice specific avoids
+describe('check() - extraBannedWords option', () => {
+  test('check() with extraBannedWords flags brand-voice avoids', () => {
+    const result = checker.check('Our artisanal coffee is brewed by hand.', {
+      extraBannedWords: ['artisanal'],
+    });
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('artisanal'))).toBe(true);
+  });
+
+  test('check() without extraBannedWords does not flag those words', () => {
+    const result = checker.check('Our artisanal coffee is brewed by hand.');
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('artisanal'))).toBe(false);
+  });
+
+  test('check() extraBannedWords is case-insensitive', () => {
+    const result = checker.check('Our ARTISANAL coffee.', {
+      extraBannedWords: ['artisanal'],
+    });
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('artisanal'))).toBe(true);
+  });
+
+  test('check() extraBannedWords with empty array behaves like no option', () => {
+    const a = checker.check('Our seamless platform.', { extraBannedWords: [] });
+    const b = checker.check('Our seamless platform.');
+    expect(a.issues.length).toBe(b.issues.length);
+  });
+
+  test('check() extraBannedWords ignores empty strings and whitespace', () => {
+    const result = checker.check('Our coffee is great.', {
+      extraBannedWords: ['', '   ', 'great'],
+    });
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p === 'great')).toBe(true);
+  });
+});
+
+// AC: tricolon detection flags jingle-style 3-item lists, not mixed-form lists
+describe('check() - tricolon detection', () => {
+  test('check() flags "fast, reliable, and scalable" tricolon', () => {
+    const result = checker.check('Our platform is fast, reliable, and scalable.');
+    const hasTricolon = result.issues.some(i => i.pattern.toLowerCase().includes('tricolon'));
+    expect(hasTricolon).toBe(true);
+  });
+
+  test('check() flags "design, build, and deploy" tricolon', () => {
+    const result = checker.check('We design, build, and deploy at speed.');
+    const hasTricolon = result.issues.some(i => i.pattern.toLowerCase().includes('tricolon'));
+    expect(hasTricolon).toBe(true);
+  });
+
+  test('check() does NOT flag mixed-form list "fast, reliable, and built for scale"', () => {
+    const result = checker.check('Our platform is fast, reliable, and built for scale teams in 2026.');
+    const hasTricolon = result.issues.some(i => i.pattern.toLowerCase().includes('tricolon'));
+    expect(hasTricolon).toBe(false);
+  });
+
+  test('check() does not flag two-item lists', () => {
+    const result = checker.check('Fast and reliable. Built for users.');
+    const hasTricolon = result.issues.some(i => i.pattern.toLowerCase().includes('tricolon'));
+    expect(hasTricolon).toBe(false);
+  });
+});
+
+// AC: specificity heuristic flags vague long-form copy, passes when concrete details present
+describe('check() - specificity heuristic', () => {
+  test('check() flags vague 80+ word copy with no concrete specifics', () => {
+    const vague = 'Our platform helps growing businesses achieve their goals faster than before. ' +
+      'We work with teams who want to do more with less and ship better outcomes for their customers. ' +
+      'The product is built for modern companies that care about quality work and long-term craft. ' +
+      'Every feature is designed with the user in mind from day one. ' +
+      'Whether you are early stage or large established, the tool fits and grows with you over time as your work evolves and your team scales to meet new challenges and ongoing customer demands across the year.';
+    const result = checker.check(vague);
+    const hasSpecificity = result.issues.some(i => i.pattern.toLowerCase().includes('specificity'));
+    expect(hasSpecificity).toBe(true);
+  });
+
+  test('check() does NOT flag specific copy with numbers, names, and timeframes', () => {
+    const specific = 'In 2024, Maria cut her reporting time from 3 hours to 20 minutes using Acme Reporter v2.1. ' +
+      'She handles 47 weekly reports for her 12-person ops team at ShopRight Foods. ' +
+      'The tool replaced 3 separate Google Sheets workflows that took 18 hours of manual cleanup every Q4 quarter for the past 2 years.';
+    const result = checker.check(specific);
+    const hasSpecificity = result.issues.some(i => i.pattern.toLowerCase().includes('specificity'));
+    expect(hasSpecificity).toBe(false);
+  });
+
+  test('check() does NOT flag short text below the 80-word threshold', () => {
+    const shortText = 'Our platform helps growing businesses do more with less.';
+    const result = checker.check(shortText);
+    const hasSpecificity = result.issues.some(i => i.pattern.toLowerCase().includes('specificity'));
+    expect(hasSpecificity).toBe(false);
+  });
+});
+
+// AC: 2026-era modern AI tells in anti-slop.md are detected
+describe('check() - modern AI tells', () => {
+  test('check() flags "Let\'s dive in"', () => {
+    const result = checker.check("Let's dive in to the next section.");
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('dive in'))).toBe(true);
+  });
+
+  test('check() flags "Here\'s the thing"', () => {
+    const result = checker.check("Here's the thing: nobody reads these.");
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes("here's the thing"))).toBe(true);
+  });
+
+  test('check() flags "it\'s not just X, it\'s Y" reversal pattern', () => {
+    const result = checker.check("It's not just software, it's a movement.");
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('not just'))).toBe(true);
+  });
+
+  test('check() flags "more than just"', () => {
+    const result = checker.check('We are more than just a CRM tool.');
+    const patternNames = result.issues.map(i => i.pattern.toLowerCase());
+    expect(patternNames.some(p => p.includes('more than just'))).toBe(true);
+  });
+});
