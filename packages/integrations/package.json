@@ -1,0 +1,37 @@
+{
+  "name": "@copydoc/integrations",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Tool integration installer for copydoc copywriting skills (Cursor, Codex, and more)",
+  "author": "Steve Stomp",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srstomp/copyskills"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "copydoc-integrations": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target bun",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@copydoc/core": "workspace:*"
+  }
+}
