@@ -42,8 +42,13 @@ const detectors: ToolDetector[] = [
   },
   {
     name: 'opencode',
-    async detect(_projectDir: string): Promise<boolean> {
-      return false;
+    async detect(projectDir: string): Promise<boolean> {
+      try {
+        fs.statSync(path.join(projectDir, '.opencode.json'));
+        return true;
+      } catch {
+        return false;
+      }
     },
   },
   {
