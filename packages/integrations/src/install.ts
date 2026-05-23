@@ -1,5 +1,6 @@
 import { detectAll } from './detect';
 import type { ToolName, ToolInstaller, InstallContext, InstallResult, UninstallContext } from './types';
+import { codexInstaller } from './tools/codex';
 
 function makeStubInstaller(toolName: ToolName): ToolInstaller {
   return {
@@ -18,7 +19,7 @@ function makeStubInstaller(toolName: ToolName): ToolInstaller {
 
 export const installerRegistry: Record<ToolName, ToolInstaller> = {
   cursor: makeStubInstaller('cursor'),
-  codex: makeStubInstaller('codex'),
+  codex: codexInstaller,
   opencode: makeStubInstaller('opencode'),
   hermes: makeStubInstaller('hermes'),
   openclaw: makeStubInstaller('openclaw'),
