@@ -74,6 +74,52 @@ const checker = createAntiSlopChecker(loader);
 const { score, issues } = checker.check(copy);
 ```
 
+## Integrations
+
+Copyskills works with any tool that supports MCP or the SKILL.md standard.
+
+### One-Command Setup
+
+```bash
+npx @copydoc/integrations install
+```
+
+Auto-detects and configures: **Cursor**, **Codex**, **OpenCode**, **Hermes**, **OpenClaw**, **Pi**.
+
+Each tool gets the integration that fits it best:
+
+| Tool | What it gets |
+|------|-------------|
+| Cursor | MCP server config + `.mdc` rule files for each domain skill |
+| Codex | MCP server config + skills directory symlink |
+| OpenCode | MCP server config in `.opencode.json` |
+| Hermes | MCP server config in `~/.hermes/config.yaml` + skills symlink |
+| OpenClaw | MCP server + skills directory in `~/.openclaw/openclaw.json` |
+| Pi | Skills symlink + TypeScript extension stub wrapping `@copydoc/core` |
+
+### Manual MCP Setup (any MCP client)
+
+Add to your tool's MCP config:
+
+```json
+{
+  "mcpServers": {
+    "copydoc": {
+      "command": "npx",
+      "args": ["@copydoc/mcp"]
+    }
+  }
+}
+```
+
+### Other Commands
+
+```bash
+npx @copydoc/integrations status      # Check which tools are detected and configured
+npx @copydoc/integrations uninstall   # Remove all copydoc integrations
+npx @copydoc/integrations install --tool cursor  # Configure only one tool
+```
+
 ## What's Inside
 
 ### 15 Skills Across 3 Layers

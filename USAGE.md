@@ -232,6 +232,102 @@ If your agent has its own LLM and just needs the methodology, call the resources
 
 ---
 
+## Recipe 7: Cursor Integration
+
+Install:
+
+```bash
+npx @copydoc/integrations install --tool cursor
+```
+
+What happens: MCP config added to `.cursor/mcp.json`, 8 `.mdc` rule files generated in `.cursor/rules/`.
+
+Cursor's agent sees the rules automatically when relevant. Ask it to write copy and it uses the copywriting knowledge. MCP tools are available for framework selection and anti-slop scoring.
+
+Example: In Cursor chat, type `Write a cold outreach email for SyncRail targeting Heads of Ops`. The agent picks up the rules without any extra configuration.
+
+---
+
+## Recipe 8: Codex Integration
+
+Install:
+
+```bash
+npx @copydoc/integrations install --tool codex
+```
+
+What happens: MCP config added to `.codex/config.toml`, skills directory symlinked to `.codex/skills/copydoc`.
+
+Codex reads SKILL.md files natively. MCP server provides tools for framework selection and anti-slop checking.
+
+Example:
+
+```bash
+codex "write a pricing page hero for SyncRail"
+```
+
+---
+
+## Recipe 9: OpenCode Integration
+
+Install:
+
+```bash
+npx @copydoc/integrations install --tool opencode
+```
+
+What happens: MCP config added to `.opencode.json` under `mcpServers`.
+
+MCP tools and resources are available to OpenCode's agent. Note: OpenCode has been archived and succeeded by Crush. The integration still works for existing OpenCode users.
+
+---
+
+## Recipe 10: Hermes Integration
+
+Install:
+
+```bash
+npx @copydoc/integrations install --tool hermes
+```
+
+What happens: MCP config added to `~/.hermes/config.yaml`, skills symlinked to `~/.hermes/skills/copydoc`.
+
+Hermes reads skills natively. MCP server provides tools. Multi-channel: generate copy from Telegram, Slack, or any channel Hermes connects to.
+
+---
+
+## Recipe 11: OpenClaw Integration
+
+Install:
+
+```bash
+npx @copydoc/integrations install --tool openclaw
+```
+
+What happens: MCP server registered in `~/.openclaw/openclaw.json`, skills directory added to `skills.load.extraDirs`.
+
+Skills and MCP tools are available to OpenClaw agents across all channels.
+
+---
+
+## Recipe 12: Pi Integration
+
+Install:
+
+```bash
+npx @copydoc/integrations install --tool pi
+```
+
+What happens: Skills symlinked to `.pi/skills/copydoc`, TypeScript extension generated at `.pi/extensions/copydoc.ts`.
+
+Pi reads skills natively. The extension wraps `@copydoc/core` for prompt assembly and anti-slop checking. Install `@copydoc/core` as a dependency to use the extension:
+
+```bash
+npm install @copydoc/core
+```
+
+---
+
 ## How to Interpret the Output
 
 Every interface returns copy plus a metadata block. The metadata is not decoration. Read it.
