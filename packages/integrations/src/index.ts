@@ -5,3 +5,5 @@ export { installerRegistry, installAll, installTool } from './install';
 export { uninstallAll, uninstallTool } from './uninstall';
 export { getStatusForDir as getStatus, formatStatus } from './status';
 export { parseArgs, runCli } from './cli';
+export { convertSkillToMdc, convertAllSkills } from './converters/mdc';
+export type { SkillInput, Layer2Skill } from './converters/mdc';
