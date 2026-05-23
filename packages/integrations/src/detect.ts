@@ -53,7 +53,10 @@ const detectors: ToolDetector[] = [
   },
   {
     name: 'hermes',
-    async detect(_projectDir: string): Promise<boolean> {
+    async detect(projectDir: string): Promise<boolean> {
+      // Check projectDir first (enables test overrides), then the real home location
+      if (dirExists(path.join(projectDir, '.hermes'))) return true;
+      if (dirExists(path.join(os.homedir(), '.hermes'))) return true;
       return false;
     },
   },
