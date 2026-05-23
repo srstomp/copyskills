@@ -62,13 +62,18 @@ const detectors: ToolDetector[] = [
   },
   {
     name: 'openclaw',
-    async detect(_projectDir: string): Promise<boolean> {
+    async detect(projectDir: string): Promise<boolean> {
+      // Check projectDir first (enables test overrides), then the real home location
+      if (dirExists(path.join(projectDir, '.openclaw'))) return true;
+      if (dirExists(path.join(os.homedir(), '.openclaw'))) return true;
       return false;
     },
   },
   {
     name: 'pi',
-    async detect(_projectDir: string): Promise<boolean> {
+    async detect(projectDir: string): Promise<boolean> {
+      if (dirExists(path.join(projectDir, '.pi'))) return true;
+      if (dirExists(path.join(os.homedir(), '.pi'))) return true;
       return false;
     },
   },

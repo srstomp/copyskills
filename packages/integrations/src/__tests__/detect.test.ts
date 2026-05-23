@@ -128,11 +128,26 @@ describe('detectTool - stub tools', () => {
     }
   });
 
-  test('pi returns detected: false (stub)', async () => {
+  test('pi detected: true when .pi/ directory exists in project dir', async () => {
     const dir = makeTempDir();
     try {
+      fs.mkdirSync(path.join(dir, '.pi'));
       const result = await detectTool('pi', dir);
-      expect(result.detected).toBe(false);
+      expect(result.tool).toBe('pi');
+      expect(result.detected).toBe(true);
+    } finally {
+      cleanup(dir);
+    }
+  });
+
+  test('pi detected: false when .pi/ does not exist in project dir (home dir may vary)', async () => {
+    const dir = makeTempDir();
+    // We cannot guarantee ~/.pi does not exist on the host, so we only
+    // verify the type and shape of the result here.
+    try {
+      const result = await detectTool('pi', dir);
+      expect(result.tool).toBe('pi');
+      expect(typeof result.detected).toBe('boolean');
     } finally {
       cleanup(dir);
     }

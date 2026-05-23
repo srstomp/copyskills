@@ -4,6 +4,7 @@ import { codexInstaller } from './tools/codex';
 import { opencodeInstaller } from './tools/opencode';
 import { hermesInstaller } from './tools/hermes';
 import { cursorInstaller } from './tools/cursor';
+import { piInstaller } from './tools/pi';
 
 function makeStubInstaller(toolName: ToolName): ToolInstaller {
   return {
@@ -26,7 +27,7 @@ export const installerRegistry: Record<ToolName, ToolInstaller> = {
   opencode: opencodeInstaller,
   hermes: hermesInstaller,
   openclaw: makeStubInstaller('openclaw'),
-  pi: makeStubInstaller('pi'),
+  pi: piInstaller,
 };
 
 export async function installAll(ctx: InstallContext): Promise<InstallResult[]> {
