@@ -27,7 +27,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target bun",
+    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target bun && tsc -p tsconfig.build.json",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
