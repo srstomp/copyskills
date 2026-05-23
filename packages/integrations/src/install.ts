@@ -3,6 +3,7 @@ import type { ToolName, ToolInstaller, InstallContext, InstallResult, UninstallC
 import { codexInstaller } from './tools/codex';
 import { opencodeInstaller } from './tools/opencode';
 import { hermesInstaller } from './tools/hermes';
+import { cursorInstaller } from './tools/cursor';
 
 function makeStubInstaller(toolName: ToolName): ToolInstaller {
   return {
@@ -20,7 +21,7 @@ function makeStubInstaller(toolName: ToolName): ToolInstaller {
 }
 
 export const installerRegistry: Record<ToolName, ToolInstaller> = {
-  cursor: makeStubInstaller('cursor'),
+  cursor: cursorInstaller,
   codex: codexInstaller,
   opencode: opencodeInstaller,
   hermes: hermesInstaller,

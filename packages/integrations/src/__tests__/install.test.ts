@@ -7,6 +7,8 @@ import type { ToolName } from '../types';
 
 const ALL_TOOLS: ToolName[] = ['cursor', 'codex', 'opencode', 'hermes', 'openclaw', 'pi'];
 
+const REAL_SKILLS_DIR = path.resolve(__dirname, '../../../..', 'skills');
+
 function makeTempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'copydoc-install-test-'));
 }
@@ -41,7 +43,7 @@ describe('installAll', () => {
       fs.mkdirSync(path.join(dir, '.cursor'));
       const results = await installAll({
         projectDir: dir,
-        skillsDir: dir,
+        skillsDir: REAL_SKILLS_DIR,
         global: false,
         copy: false,
       });
@@ -80,7 +82,7 @@ describe('installTool', () => {
     try {
       const result = await installTool('cursor', {
         projectDir: dir,
-        skillsDir: dir,
+        skillsDir: REAL_SKILLS_DIR,
         global: false,
         copy: false,
       });
