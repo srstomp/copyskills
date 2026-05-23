@@ -4,6 +4,7 @@ import { codexInstaller } from './tools/codex';
 import { opencodeInstaller } from './tools/opencode';
 import { hermesInstaller } from './tools/hermes';
 import { cursorInstaller } from './tools/cursor';
+import { openclawInstaller } from './tools/openclaw';
 import { piInstaller } from './tools/pi';
 
 function makeStubInstaller(toolName: ToolName): ToolInstaller {
@@ -26,7 +27,7 @@ export const installerRegistry: Record<ToolName, ToolInstaller> = {
   codex: codexInstaller,
   opencode: opencodeInstaller,
   hermes: hermesInstaller,
-  openclaw: makeStubInstaller('openclaw'),
+  openclaw: openclawInstaller,
   pi: piInstaller,
 };
 
