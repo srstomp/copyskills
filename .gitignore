@@ -7,3 +7,5 @@ bun.lock
 .mcp.json
 .claude/
 output/
+docs/
+packages/integrations/docs/
