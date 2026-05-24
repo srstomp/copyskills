@@ -11,7 +11,7 @@ Works as a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript librar
 ### Claude Code Plugin
 
 ```bash
-claude plugin add ./path/to/copyskills
+claude plugin add github:srstomp/copyskills
 ```
 
 Then use slash commands:
@@ -55,11 +55,13 @@ npm install @copydoc/core
 
 ```typescript
 import { createLoader, createAssembler, selectFramework, createAntiSlopChecker } from '@copydoc/core';
+import { createRequire } from 'module';
 import path from 'path';
 
 // Skills are bundled inside @copydoc/core at dist/skills/
-const skillsDir = path.join(path.dirname(require.resolve('@copydoc/core/package.json')), 'dist', 'skills');
-const loader = createLoader(skillsDir);
+const require = createRequire(import.meta.url);
+const coreDir = path.dirname(require.resolve('@copydoc/core/package.json'));
+const loader = createLoader(path.join(coreDir, 'dist', 'skills'));
 const assembler = createAssembler(loader, selectFramework);
 
 const { systemPrompt, userPrompt } = assembler.assemble({
