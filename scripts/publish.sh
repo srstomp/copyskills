@@ -12,6 +12,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CORE="$ROOT/packages/core"
 MCP="$ROOT/packages/mcp-server"
 CLI="$ROOT/packages/cli"
+INTEGRATIONS="$ROOT/packages/integrations"
 
 DRY_RUN=true
 BUMP=""
@@ -51,7 +52,7 @@ if [[ -n "$BUMP" ]]; then
   echo "  $CURRENT -> $NEW_VERSION"
 
   # Update all three packages
-  for PKG in "$CORE/package.json" "$MCP/package.json" "$CLI/package.json"; do
+  for PKG in "$CORE/package.json" "$MCP/package.json" "$CLI/package.json" "$INTEGRATIONS/package.json"; do
     jq --arg v "$NEW_VERSION" '.version = $v' "$PKG" > "$PKG.tmp" && mv "$PKG.tmp" "$PKG"
   done
 
@@ -73,7 +74,7 @@ echo ""
 
 # Step 4: Clean dist
 echo "=== Cleaning dist ==="
-rm -rf "$CORE/dist" "$MCP/dist" "$CLI/dist"
+rm -rf "$CORE/dist" "$MCP/dist" "$CLI/dist" "$INTEGRATIONS/dist"
 echo "  Cleaned all dist/ directories"
 echo ""
 
@@ -85,6 +86,8 @@ cd "$MCP" && bun run build
 echo "  @copydoc/mcp built"
 cd "$CLI" && bun run build
 echo "  @copydoc/cli built"
+cd "$INTEGRATIONS" && bun run build
+echo "  @copydoc/integrations built"
 echo ""
 
 # Step 6: Copy skills into core package for publishing
@@ -123,6 +126,7 @@ publish_pkg() {
 publish_pkg "$CORE" "@copydoc/core"
 publish_pkg "$MCP" "@copydoc/mcp"
 publish_pkg "$CLI" "@copydoc/cli"
+publish_pkg "$INTEGRATIONS" "@copydoc/integrations"
 
 # Step 9: Restore core's package.json
 echo "$CORE_PKG_BACKUP" > "$CORE/package.json"

@@ -259,6 +259,12 @@ metadata:
   +-- exposes resources, tools, prompts over MCP protocol
   +-- uses @copydoc/core
 
+@copydoc/integrations (multi-tool installer)
+  |
+  +-- auto-detects Cursor, Codex, OpenCode, Hermes, OpenClaw, Pi
+  +-- writes MCP config, symlinks skills, generates .mdc rules
+  +-- uses @copydoc/core
+
 @copydoc/core (shared library)
   |
   +-- reads 15 skill markdown files at runtime
@@ -272,7 +278,7 @@ Skills are plain markdown files. No compilation, no transformation. The core lib
 
 ```bash
 bun install
-bun test              # 415 tests across all packages
+bun test              # 632 tests across all packages
 bun run build         # Build all packages
 bun run dev:mcp       # Run MCP server locally
 bun run dev:cli       # Run CLI locally
