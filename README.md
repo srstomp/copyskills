@@ -55,8 +55,11 @@ npm install @copydoc/core
 
 ```typescript
 import { createLoader, createAssembler, selectFramework, createAntiSlopChecker } from '@copydoc/core';
+import path from 'path';
 
-const loader = createLoader('./skills');
+// Skills are bundled inside @copydoc/core at dist/skills/
+const skillsDir = path.join(path.dirname(require.resolve('@copydoc/core/package.json')), 'dist', 'skills');
+const loader = createLoader(skillsDir);
 const assembler = createAssembler(loader, selectFramework);
 
 const { systemPrompt, userPrompt } = assembler.assemble({
@@ -171,24 +174,28 @@ The MCP server exposes three types of primitives:
 
 **Resources** (passive context your agent reads):
 ```
-copydoc://frameworks/pas          # Get a specific framework
-copydoc://domains/email-copy/workflow   # Get a domain's workflow
-copydoc://quality/anti-slop       # Get the anti-slop rules
-copydoc://headlines/patterns      # Get headline templates
+copydoc://skills                        # List all skills with descriptions
+copydoc://frameworks/{name}             # Get a specific framework (pas, aida, bab, etc.)
+copydoc://domains/{domain}/workflow     # Get a domain's workflow
+copydoc://domains/{domain}/references   # List references for a domain
+copydoc://quality/anti-slop             # Get the anti-slop rules
+copydoc://quality/rubric                # Get the scoring rubric
+copydoc://headlines/patterns            # Get headline templates
+copydoc://headlines/power-words         # Get power words by emotion
 ```
 
 **Tools** (active logic your agent calls):
 ```
-select_framework  { copy_type, goal }  ->  which framework to use
-check_anti_slop   { text }             ->  AI pattern score + issues
-score_copy        { text, context }    ->  quality scores
+select_framework  { copy_type, goal }       ->  recommended framework + rationale
+check_anti_slop   { text, avoids? }         ->  AI pattern score + issues
+score_copy        { text, context? }        ->  ai_tell_score + issues (LLM dims return -1)
 ```
 
 **Prompts** (workflow templates for MCP clients):
 ```
-write     { type, goal, audience?, product?, brand_voice? }
-critique  { copy_text, audience?, goal? }
-adapt     { source_copy, target_format }
+write     { type, goal, audience?, product?, brand_voice?, constraints? }
+critique  { copy_text, audience?, goal?, brand_voice? }
+adapt     { source_copy, target_format, brand_voice? }
 ```
 
 ## CLI Commands
