@@ -10,6 +10,15 @@ Works as a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript librar
 
 ### Claude Code Plugin
 
+Install from the marketplace:
+
+```bash
+claude plugin marketplace add github:srstomp/copyskills
+claude plugin install copyskills
+```
+
+Or install directly from GitHub:
+
 ```bash
 claude plugin add github:srstomp/copyskills
 ```
