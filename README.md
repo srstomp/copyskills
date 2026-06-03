@@ -13,14 +13,15 @@ Works as a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript librar
 Install from the marketplace:
 
 ```bash
-claude plugin marketplace add github:srstomp/copyskills
-claude plugin install copyskills
+claude plugin marketplace add srstomp/copyskills
+claude plugin install copyskills@copyskills
 ```
 
-Or install directly from GitHub:
+Or from inside a Claude Code session:
 
-```bash
-claude plugin add github:srstomp/copyskills
+```
+/plugin marketplace add srstomp/copyskills
+/plugin install copyskills@copyskills
 ```
 
 Then use slash commands:
