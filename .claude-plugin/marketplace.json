@@ -15,7 +15,7 @@
       "author": {
         "name": "Steve Stomp"
       },
-      "source": ".",
+      "source": "./",
       "category": "productivity",
       "homepage": "https://github.com/srstomp/copyskills"
     }
