@@ -1,6 +1,6 @@
 ---
 name: conversion-copy
-description: Workflow-driven generator for A/B test variants, pricing pages, signup flows, checkout copy, trial-to-paid, and funnel optimization. Use when copy type involves conversion optimization, pricing, registration, checkout, or A/B testing.
+description: Use when writing pricing pages, signup or registration flows, checkout copy, trial-to-paid upgrade prompts, A/B test variants, or funnel optimization copy. Not for landing pages or ads (marketing-copy).
 ---
 
 # Conversion Copy
@@ -26,7 +26,7 @@ When the brief type is ambiguous, ask which conversion goal applies: sign up, pu
 
 ## Framework Reference Paths
 
-Load these files from the Layer 1 skills when the workflow requires them.
+Load these files from the shared framework skills (`persuasion-frameworks`, `quality-frameworks`) when the workflow requires them.
 
 | Framework | File path | When to use |
 |-----------|-----------|-------------|
@@ -155,17 +155,17 @@ Do not consider the draft done until every flag is resolved.
 
 Score the de-slopped draft across these 7 dimensions:
 
-| Dimension | Scale | Threshold |
-|-----------|-------|-----------|
-| Clarity | 1-10 | Must be 7+ |
-| Specificity | 1-10 | Must be 7+ |
-| Voice Match | 1-10 | Must be 7+ |
-| AI-Tell Score | 0-10 | Must be 2 or lower |
-| Persuasion | 1-10 | Must be 7+ |
-| Action | 1-10 | Must be 7+ |
-| Overall | 1-10 | Must be 7+ |
+| Dimension | Scale | Target |
+|-----------|-------|--------|
+| Clarity | 1-10 | 7+ |
+| Specificity | 1-10 | 7+ |
+| Voice Match | 1-10 | 7+ |
+| AI-Tell Score | 0-10 | 2 or lower |
+| Persuasion | 1-10 | 7+ |
+| Action | 1-10 | 7+ |
+| Overall | 1-10 | 7+ |
 
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Do not return copy that fails the threshold.
+If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
 For pricing pages, also check anchoring and decoy principles from `quality-frameworks/references/conversion-principles.md`. If the tier structure violates either principle, flag it before returning copy.
 

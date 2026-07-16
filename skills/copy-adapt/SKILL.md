@@ -1,6 +1,6 @@
 ---
 name: copy-adapt
-description: "Repurpose existing copy for a different channel, format, or audience. Use when transforming copy from one format to another (e.g., landing page to LinkedIn post, blog post to email, long-form to short-form)."
+description: "Use when repurposing, transforming, or adapting existing copy to a different channel, format, or audience (e.g., landing page to LinkedIn post, blog post to email, long-form to short-form). Requires source copy; not for writing new copy from scratch."
 ---
 
 # Copy Adapt
@@ -62,18 +62,20 @@ If source is short-form and target is long-form: expand using existing proof poi
 
 ### Step 4: Load Target Domain Skill
 
-Match the target format to a domain skill using keyword matching. Match is case-insensitive. Route to the first match found.
+Match the target format to a domain skill using keyword matching. Match is case-insensitive; route to the first matching row. One rule is checked before the table: if the target contains "ad", "ads", or "advertisement" as a standalone word, route to `marketing-copy` immediately. Paid ads are marketing copy even when they name a platform.
 
 | Keywords in target format | Route to |
 |---------------------------|----------|
-| "landing page", "ad", "CTA", "value prop", "hero" | `marketing-copy` |
-| "email", "subject line", "newsletter", "drip", "sequence" | `email-copy` |
-| "microcopy", "button", "error message", "onboarding", "tooltip", "UX" | `ux-copy` |
-| "blog", "article", "SEO", "thought leadership", "whitepaper" | `editorial-copy` |
-| "brand voice", "tone guide", "messaging", "style guide" | `brand-copy` |
-| "proposal", "case study", "pitch deck", "one-pager", "sales email" | `sales-copy` |
-| "LinkedIn", "Twitter", "X", "Instagram", "TikTok", "social", "thread", "carousel" | `social-copy` |
-| "pricing", "signup", "checkout", "A/B", "variant", "trial" | `conversion-copy` |
+| "email", "subject line", "newsletter", "drip", "sequence", "outreach", "cold email", "cold outreach", "nurture", "campaign", "re-engagement", "transactional" | `email-copy` |
+| "microcopy", "button", "button label", "error message", "error state", "onboarding", "empty state", "tooltip", "UX", "UI copy", "notification", "dialog", "confirmation", "placeholder", "helper text" | `ux-copy` |
+| "LinkedIn", "Twitter", "X post", "tweet", "Instagram", "TikTok", "social", "social post", "thread", "carousel", "caption" | `social-copy` |
+| "blog", "blog post", "article", "SEO", "seo content", "thought leadership", "whitepaper", "opinion piece", "long-form content" | `editorial-copy` |
+| "proposal", "case study", "pitch deck", "one-pager", "battle card" | `sales-copy` |
+| "brand voice", "voice profile", "tone guide", "messaging hierarchy", "style guide", "tagline", "elevator pitch", "brand guidelines" | `brand-copy` |
+| "pricing", "pricing page", "signup", "sign-up", "checkout", "A/B", "variant", "trial", "conversion", "funnel" | `conversion-copy` |
+| "landing page", "lander", "ad", "advertisement", "CTA", "value prop", "value proposition", "hero", "banner", "homepage", "sales page" | `marketing-copy` |
+
+Row order encodes the tie-breaks (a named social platform beats topic keywords; marketing is checked last because its keywords are the most generic) and matches the copy-workflow routing table and `routeToDomain()` in `@copydoc/core`.
 
 **If no match:** Ask the user which domain skill applies. Do not default silently.
 

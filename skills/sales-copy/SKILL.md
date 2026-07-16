@@ -1,6 +1,6 @@
 ---
 name: sales-copy
-description: Workflow-driven generator for proposals, case studies, pitch decks (text), one-pagers, sales emails, and competitive battle cards. Use when copy type involves B2B sales materials, customer stories, or sales enablement content.
+description: "Use when writing B2B sales materials or sales enablement content: proposals, case studies, customer stories, pitch decks (text), one-pagers, sales emails, or competitive battle cards."
 ---
 
 # Sales Copy
@@ -24,7 +24,7 @@ When the brief type is ambiguous, ask for clarification before proceeding.
 
 ## Framework Reference Paths
 
-Load these files from the Layer 1 skills when the workflow requires them.
+Load these files from the shared framework skills (`persuasion-frameworks`, `quality-frameworks`) when the workflow requires them.
 
 | Framework | File path | Use for |
 |-----------|-----------|---------|
@@ -109,17 +109,17 @@ Do not consider the draft done until every flag is resolved.
 
 Score the de-slopped draft across these 7 dimensions:
 
-| Dimension | Scale | Threshold |
-|-----------|-------|-----------|
-| Clarity | 1-10 | Must be 7+ |
-| Specificity | 1-10 | Must be 7+ |
-| Voice Match | 1-10 | Must be 7+ |
-| AI-Tell Score | 0-10 | Must be 2 or lower |
-| Persuasion | 1-10 | Must be 7+ |
-| Action | 1-10 | Must be 7+ |
-| Overall | 1-10 | Must be 7+ |
+| Dimension | Scale | Target |
+|-----------|-------|--------|
+| Clarity | 1-10 | 7+ |
+| Specificity | 1-10 | 7+ |
+| Voice Match | 1-10 | 7+ |
+| AI-Tell Score | 0-10 | 2 or lower |
+| Persuasion | 1-10 | 7+ |
+| Action | 1-10 | 7+ |
+| Overall | 1-10 | 7+ |
 
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Do not return copy that fails the threshold.
+If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
 For case studies: Specificity must score 8 or higher. Unverified vague outcomes are a disqualifier.
 

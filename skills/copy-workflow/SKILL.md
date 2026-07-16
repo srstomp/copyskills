@@ -1,6 +1,6 @@
 ---
 name: copy-workflow
-description: "Full end-to-end copy generation orchestration. Sequences briefing, domain routing, framework selection, drafting, de-slop, critique, revision, and output. Use when generating copy from scratch through the complete workflow."
+description: "Use when writing or generating new copy from scratch, for any copy type: marketing, email, UX, editorial, brand, sales, social, or conversion. Entry point that runs the complete generation pipeline. Not for critiquing existing copy (copy-critique) or repurposing it (copy-adapt)."
 ---
 
 # Copy Workflow
@@ -29,24 +29,26 @@ Do not proceed to Step 2 until the brief is complete.
 
 Match the brief's `type` field to a domain skill using keyword matching.
 
-**Routing table:**
+**Ad rule (checked before the table):** if the type contains "ad", "ads", or "advertisement" as a standalone word, route to `marketing-copy` immediately. Paid ads are marketing copy even when they name a platform: a LinkedIn ad routes to `marketing-copy`; a LinkedIn post routes to `social-copy`.
+
+**Routing table (checked in row order, first match wins):**
 
 | Keywords in `type` field | Route to |
 |--------------------------|----------|
-| "landing page", "lander", "ad", "advertisement", "CTA", "value prop", "value proposition", "hero", "banner", "homepage" | `marketing-copy` |
 | "email", "subject line", "newsletter", "drip", "sequence", "outreach", "cold email", "cold outreach", "nurture", "campaign", "re-engagement", "transactional" | `email-copy` |
 | "microcopy", "button", "button label", "error message", "error state", "onboarding", "empty state", "tooltip", "UX", "UI copy", "notification", "dialog", "confirmation", "placeholder", "helper text" | `ux-copy` |
-| "blog", "blog post", "article", "SEO", "seo content", "thought leadership", "whitepaper", "opinion piece", "long-form content" | `editorial-copy` |
-| "brand voice", "voice profile", "tone guide", "messaging hierarchy", "style guide", "tagline", "elevator pitch", "brand guidelines" | `brand-copy` |
-| "proposal", "case study", "pitch deck", "one-pager", "sales email", "sales letter", "sales page" | `sales-copy` |
 | "LinkedIn", "Twitter", "X post", "tweet", "Instagram", "TikTok", "social", "social post", "thread", "carousel", "caption" | `social-copy` |
-| "pricing", "pricing page", "signup", "sign-up", "checkout", "A/B", "variant", "trial", "conversion" | `conversion-copy` |
+| "blog", "blog post", "article", "SEO", "seo content", "thought leadership", "whitepaper", "opinion piece", "long-form content" | `editorial-copy` |
+| "proposal", "case study", "pitch deck", "one-pager", "battle card" | `sales-copy` |
+| "brand voice", "voice profile", "tone guide", "messaging hierarchy", "style guide", "tagline", "elevator pitch", "brand guidelines" | `brand-copy` |
+| "pricing", "pricing page", "signup", "sign-up", "checkout", "A/B", "variant", "trial", "conversion", "funnel" | `conversion-copy` |
+| "landing page", "lander", "ad", "advertisement", "CTA", "value prop", "value proposition", "hero", "banner", "homepage", "sales page" | `marketing-copy` |
 
-Match is case-insensitive. A match on any keyword routes to that skill.
+Match is case-insensitive. Row order encodes the tie-breaks: a named social platform beats topic keywords (a LinkedIn thought leadership post is social copy, not editorial), and marketing is checked last because its keywords are the most generic. This table mirrors `routeToDomain()` in `@copydoc/core`; keep the two in sync when editing either.
 
 **If no match:** Ask the user which domain skill to use, or default to `marketing-copy` if in agent mode.
 
-**If multiple matches:** Route to the first match in table order.
+Note that "sales email" matches the email row and routes to `email-copy`, which handles it with PAS and the cold-outreach reference (the same treatment sales-copy would give it).
 
 ### Step 3: Framework Selection
 
@@ -114,7 +116,7 @@ Include the framework used, domain routed to, all 7 quality scores, and any flag
 
 ## Human Checkpoints
 
-Checkpoints are **optional and active by default for human users**. They are **skipped entirely in agent mode**.
+Checkpoints are **on by default for human users** (a user can ask to skip them). They are **skipped entirely in agent mode**.
 
 **Checkpoint A (after Step 1):**
 > "Here's what I understand: [brief summary of type, goal, audience]. Correct?"

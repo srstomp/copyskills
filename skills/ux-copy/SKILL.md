@@ -1,6 +1,6 @@
 ---
 name: ux-copy
-description: Workflow-driven generator for microcopy (buttons, labels, tooltips, placeholders), error messages, onboarding flows, empty states, notifications, and confirmations. Use when copy type involves user interface text, in-product copy, or interaction copy.
+description: "Use when writing user interface or in-product text: microcopy, button labels, error messages, tooltips, placeholders, empty states, onboarding flows, notifications, or confirmation dialogs. Not for marketing or persuasion copy."
 ---
 
 # UX Copy
@@ -135,17 +135,17 @@ Do not consider the draft done until every flag is resolved.
 
 Score the de-slopped draft across these 7 dimensions. Weight Clarity highest for UX copy -- it is the primary quality signal.
 
-| Dimension | Scale | Threshold | UX copy weight |
+| Dimension | Scale | Target | UX copy weight |
 |-----------|-------|-----------|---------------|
-| Clarity | 1-10 | Must be 8+ | Highest |
-| Specificity | 1-10 | Must be 7+ | High |
-| Voice Match | 1-10 | Must be 7+ | Medium |
-| AI-Tell Score | 0-10 | Must be 2 or lower | High |
-| Empathy (errors/onboarding) | 1-10 | Must be 7+ | Context-dependent |
-| Action | 1-10 | Must be 7+ | High |
-| Overall | 1-10 | Must be 7+ | -- |
+| Clarity | 1-10 | 8+ | Highest |
+| Specificity | 1-10 | 7+ | High |
+| Voice Match | 1-10 | 7+ | Medium |
+| AI-Tell Score | 0-10 | 2 or lower | High |
+| Empathy (errors/onboarding) | 1-10 | 7+ | Context-dependent |
+| Action | 1-10 | 7+ | High |
+| Overall | 1-10 | 7+ | -- |
 
-If Clarity is below 8, or AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Do not return copy that fails the threshold.
+If Clarity is below 8, or AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below their targets set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
 ### Step 7: Return structured output
 

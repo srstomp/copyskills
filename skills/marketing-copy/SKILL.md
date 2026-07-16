@@ -1,6 +1,6 @@
 ---
 name: marketing-copy
-description: Workflow-driven generator for landing pages, ad copy, CTAs, value propositions, and hero sections. Use when the copy type involves landing pages, ads (Google, Meta, LinkedIn), calls-to-action, value propositions, or hero sections.
+description: Use when writing landing pages, ad copy (Google, Meta, LinkedIn ads), calls-to-action, value propositions, hero sections, or homepage copy. Not for pricing pages, signup flows, or A/B variants (conversion-copy), and not for organic social posts (social-copy).
 ---
 
 # Marketing Copy
@@ -27,7 +27,7 @@ When the brief type is ambiguous, ask for clarification before proceeding.
 
 ## Framework Reference Paths
 
-Load these files from the Layer 1 skills when the workflow requires them.
+Load these files from the shared framework skills (`persuasion-frameworks`, `quality-frameworks`, `headline-formulas`) when the workflow requires them.
 
 | Framework | File path |
 |-----------|-----------|
@@ -103,17 +103,17 @@ Do not consider the draft done until every flag is resolved.
 
 Score the de-slopped draft across these 7 dimensions:
 
-| Dimension | Scale | Threshold |
-|-----------|-------|-----------|
-| Clarity | 1-10 | Must be 7+ |
-| Specificity | 1-10 | Must be 7+ |
-| Voice Match | 1-10 | Must be 7+ |
-| AI-Tell Score | 0-10 | Must be 2 or lower |
-| Persuasion | 1-10 | Must be 7+ |
-| Action | 1-10 | Must be 7+ |
-| Overall | 1-10 | Must be 7+ |
+| Dimension | Scale | Target |
+|-----------|-------|--------|
+| Clarity | 1-10 | 7+ |
+| Specificity | 1-10 | 7+ |
+| Voice Match | 1-10 | 7+ |
+| AI-Tell Score | 0-10 | 2 or lower |
+| Persuasion | 1-10 | 7+ |
+| Action | 1-10 | 7+ |
+| Overall | 1-10 | 7+ |
 
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Do not return copy that fails the threshold.
+If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
 For headlines and ad copy, also score against the 4Us (from `quality-frameworks/references/four-us.md`). Minimum: 3 out of 4 dimensions score 2 or higher.
 

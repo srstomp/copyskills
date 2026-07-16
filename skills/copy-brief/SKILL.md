@@ -1,6 +1,6 @@
 ---
 name: copy-brief
-description: "Gathers and validates context needed before writing copy. Three modes: interactive interview for humans, agent handshake for multi-agent systems, fast-path for complete briefs. Use before any copy generation to ensure minimum context requirements are met."
+description: "Use before writing any copy, to gather and validate the brief: copy type, goal, audience, product, brand voice, and constraints. Use when the brief is missing, partial, or unvalidated. Gathers context only; writes no copy."
 ---
 
 # Copy Brief

@@ -1,6 +1,6 @@
 ---
 name: quality-frameworks
-description: Copy quality evaluation, scoring, and anti-slop enforcement. Use when evaluating copy quality, running de-slop passes, scoring against quality dimensions, or critiquing existing copy.
+description: Use when scoring copy quality, running a de-slop pass, checking for AI tells or banned words, or applying readability, persuasion, or conversion criteria. Reference library for the rubric and anti-slop rules; for a full structured critique of existing copy, use copy-critique.
 ---
 
 # Quality Frameworks

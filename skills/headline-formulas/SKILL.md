@@ -1,6 +1,6 @@
 ---
 name: headline-formulas
-description: Quick-reference for headline generation with proven patterns and categorized power words. Use when writing headlines, subject lines, hooks, or attention-grabbing first lines for any copy type.
+description: Use when writing headlines, subject lines, hooks, or attention-grabbing first lines for any copy type. Quick-reference with 26 proven fill-in patterns and power words categorized by emotional effect.
 ---
 
 # Headline Formulas

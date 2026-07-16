@@ -1,6 +1,6 @@
 ---
 name: brand-copy
-description: Workflow-driven generator for brand voice definition, tone guides, messaging hierarchies, and style guides. Use when the task involves defining how a brand sounds, creating voice guidelines, building messaging frameworks, or writing style guides.
+description: Use when defining brand voice, tone guides, messaging hierarchies, style guides, taglines, or elevator pitches, or when the task is deciding how a brand should sound. Produces voice and messaging guidelines, not marketing copy.
 ---
 
 # Brand Copy
@@ -110,14 +110,14 @@ Do not consider the draft done until every flag is resolved.
 
 Brand copy uses a different rubric than marketing or UX copy. The primary quality signal is actionability: can someone use this document to produce noticeably different copy?
 
-| Dimension | Scale | Threshold |
-|-----------|-------|-----------|
-| Specificity | 1-10 | Must be 8+ |
-| Actionability | 1-10 | Must be 8+ |
-| Distinctiveness | 1-10 | Must be 7+ |
-| Voice Consistency | 1-10 | Must be 8+ |
-| AI-Tell Score | 0-10 | Must be 2 or lower |
-| Overall | 1-10 | Must be 7+ |
+| Dimension | Scale | Target |
+|-----------|-------|--------|
+| Specificity | 1-10 | 8+ |
+| Actionability | 1-10 | 8+ |
+| Distinctiveness | 1-10 | 7+ |
+| Voice Consistency | 1-10 | 8+ |
+| AI-Tell Score | 0-10 | 2 or lower |
+| Overall | 1-10 | 7+ |
 
 **Specificity** measures whether the document contains details that could only apply to this brand.
 
@@ -127,7 +127,7 @@ Brand copy uses a different rubric than marketing or UX copy. The primary qualit
 
 **Voice Consistency** measures whether the document itself is written in the voice it defines.
 
-If Specificity or Actionability is below 8, return to Step 5. A brand document that cannot guide copywriting has no value.
+If Specificity or Actionability is below 8, return to Step 5. A brand document that cannot guide copywriting has no value. Cap revisions at 2 passes; if the draft still fails after that, return the best version with the failing scores flagged in the output.
 
 ### Step 7: Return structured output
 

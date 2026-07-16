@@ -1,9 +1,15 @@
 import type { FrameworkSelection } from './types.js';
 
 /**
+ * Paid ad keywords. Checked before the routing table: ads are marketing copy
+ * even when they name a social platform ("LinkedIn ad", "Meta ads").
+ */
+const AD_KEYWORDS = ['w:ad', 'w:ads', 'w:advertisement'];
+
+/**
  * Domain routing table.
  * Each entry is [keyword[], domain].
- * Order matters: first match wins. This matches the copy-workflow SKILL.md routing table order.
+ * Order matters: first match wins. The copy-workflow SKILL.md routing table mirrors this order.
  *
  * Keywords prefixed with "w:" require word-boundary matching to avoid substring collisions.
  * e.g. "ad" would match "leadership" without word boundaries.
@@ -12,7 +18,7 @@ import type { FrameworkSelection } from './types.js';
 const DOMAIN_ROUTING: Array<[string[], string]> = [
   // email-copy - check before marketing-copy to catch "sales email" going to email-copy
   [
-    ['w:email', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign'],
+    ['w:email', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign', 're-engagement', 'w:transactional'],
     'email-copy',
   ],
   // ux-copy - check before marketing-copy so "button" and "cta" don't collide
@@ -20,15 +26,16 @@ const DOMAIN_ROUTING: Array<[string[], string]> = [
     ['w:microcopy', 'w:button', 'error message', 'error state', 'w:onboarding', 'empty state', 'w:tooltip', 'w:ux', 'ui copy', 'w:notification', 'w:dialog', 'w:confirmation', 'w:placeholder', 'helper text'],
     'ux-copy',
   ],
+  // social-copy - before editorial-copy so a named platform beats topic keywords
+  // ("LinkedIn thought leadership post" is a social post, not an editorial piece)
+  [
+    ['w:linkedin', 'w:twitter', 'x post', 'w:tweet', 'w:instagram', 'w:tiktok', 'w:social', 'w:thread', 'w:carousel', 'w:caption'],
+    'social-copy',
+  ],
   // editorial-copy - before marketing-copy so "article" and "ad" don't collide
   [
-    ['w:blog', 'w:article', 'w:seo', 'thought leadership', 'w:whitepaper', 'w:editorial'],
+    ['w:blog', 'w:article', 'w:seo', 'thought leadership', 'w:whitepaper', 'w:editorial', 'opinion piece', 'long-form content'],
     'editorial-copy',
-  ],
-  // social-copy - before marketing-copy so "thread"/"carousel"/"ad" don't collide
-  [
-    ['w:linkedin', 'w:twitter', 'x post', 'w:instagram', 'w:tiktok', 'w:social', 'w:thread', 'w:carousel'],
-    'social-copy',
   ],
   // sales-copy - before marketing-copy so "proposal"/"pitch deck" route correctly
   // "sales email" is handled by email-copy (email keyword fires first)
@@ -38,12 +45,12 @@ const DOMAIN_ROUTING: Array<[string[], string]> = [
   ],
   // brand-copy - before marketing-copy to isolate brand keywords
   [
-    ['brand voice', 'tone guide', 'w:messaging', 'style guide', 'w:brand'],
+    ['brand voice', 'voice profile', 'tone guide', 'w:messaging', 'style guide', 'w:tagline', 'elevator pitch', 'w:brand'],
     'brand-copy',
   ],
   // conversion-copy - before marketing-copy so "pricing"/"signup"/"funnel" route correctly
   [
-    ['w:pricing', 'w:signup', 'sign up', 'w:checkout', 'a/b', 'w:variant', 'w:trial', 'w:conversion', 'w:funnel'],
+    ['w:pricing', 'w:signup', 'sign up', 'sign-up', 'w:checkout', 'a/b', 'w:variant', 'w:trial', 'w:conversion', 'w:funnel'],
     'conversion-copy',
   ],
   // marketing-copy - checked last among named domains
@@ -78,6 +85,14 @@ function escapeRegex(str: string): string {
  */
 function routeToDomainOrNull(copyType: string): string | null {
   const lower = copyType.toLowerCase();
+
+  // Paid ads always belong to marketing-copy, even when a platform is named:
+  // "LinkedIn ad" and "Meta ads" are ad copy, not social posts.
+  for (const keyword of AD_KEYWORDS) {
+    if (keywordMatches(keyword, lower)) {
+      return 'marketing-copy';
+    }
+  }
 
   for (const [keywords, domain] of DOMAIN_ROUTING) {
     for (const keyword of keywords) {

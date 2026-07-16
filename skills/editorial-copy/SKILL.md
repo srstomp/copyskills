@@ -1,6 +1,6 @@
 ---
 name: editorial-copy
-description: Workflow-driven generator for blog posts, thought leadership, SEO content, and whitepapers. Use when copy type involves long-form content, articles, SEO pages, opinion pieces, or educational content.
+description: Use when writing blog posts, articles, SEO content, thought leadership, opinion pieces, whitepapers, or other long-form editorial content. Not for social posts, even long ones (social-copy).
 ---
 
 # Editorial Copy
@@ -23,7 +23,7 @@ When the brief type is ambiguous, ask for clarification before proceeding.
 
 ## Framework Reference Paths
 
-Load these files from the Layer 1 skills when the workflow requires them.
+Load these files from the shared framework skills (`persuasion-frameworks`, `quality-frameworks`) when the workflow requires them.
 
 | Framework | File path | Use for |
 |-----------|-----------|---------|
@@ -105,17 +105,17 @@ Do not consider the draft done until every flag is resolved.
 
 Score the de-slopped draft across these 7 dimensions:
 
-| Dimension | Scale | Threshold |
-|-----------|-------|-----------|
-| Clarity | 1-10 | Must be 7+ |
-| Specificity | 1-10 | Must be 7+ |
-| Voice Match | 1-10 | Must be 7+ |
-| AI-Tell Score | 0-10 | Must be 2 or lower |
-| Persuasion | 1-10 | Must be 7+ |
-| Action | 1-10 | Must be 7+ |
-| Overall | 1-10 | Must be 7+ |
+| Dimension | Scale | Target |
+|-----------|-------|--------|
+| Clarity | 1-10 | 7+ |
+| Specificity | 1-10 | 7+ |
+| Voice Match | 1-10 | 7+ |
+| AI-Tell Score | 0-10 | 2 or lower |
+| Persuasion | 1-10 | 7+ |
+| Action | 1-10 | 7+ |
+| Overall | 1-10 | 7+ |
 
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Do not return copy that fails the threshold.
+If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
 For thought leadership: if Specificity is below 8, the piece is too generic. Return to Step 5.
 

@@ -336,6 +336,77 @@ describe('routeToDomain - social routing', () => {
   });
 });
 
+// Paid ads route to marketing-copy even when they name a platform (ad rule
+// fires before the routing table). A platform without "ad" stays social.
+describe('routeToDomain - ad rule beats platform keywords', () => {
+  test("routeToDomain('LinkedIn ad') returns 'marketing-copy'", () => {
+    expect(routeToDomain('LinkedIn ad')).toBe('marketing-copy');
+  });
+
+  test("routeToDomain('Meta ads') returns 'marketing-copy'", () => {
+    expect(routeToDomain('Meta ads')).toBe('marketing-copy');
+  });
+
+  test("routeToDomain('Instagram ad campaign') returns 'marketing-copy'", () => {
+    expect(routeToDomain('Instagram ad campaign')).toBe('marketing-copy');
+  });
+
+  test("routeToDomain('advertisement for TikTok') returns 'marketing-copy'", () => {
+    expect(routeToDomain('advertisement for TikTok')).toBe('marketing-copy');
+  });
+});
+
+// A named social platform beats topic keywords (social-copy row precedes
+// editorial-copy), while the same topics without a platform stay editorial.
+describe('routeToDomain - platform beats topic keywords', () => {
+  test("routeToDomain('LinkedIn thought leadership post') returns 'social-copy'", () => {
+    expect(routeToDomain('LinkedIn thought leadership post')).toBe('social-copy');
+  });
+
+  test("routeToDomain('thought leadership piece') still returns 'editorial-copy'", () => {
+    expect(routeToDomain('thought leadership piece')).toBe('editorial-copy');
+  });
+
+  test("routeToDomain('tweet') returns 'social-copy'", () => {
+    expect(routeToDomain('tweet')).toBe('social-copy');
+  });
+});
+
+// Keywords documented in the copy-workflow routing table
+describe('routeToDomain - documented keyword coverage', () => {
+  test("routeToDomain('sales email') returns 'email-copy'", () => {
+    expect(routeToDomain('sales email')).toBe('email-copy');
+  });
+
+  test("routeToDomain('re-engagement flow') returns 'email-copy'", () => {
+    expect(routeToDomain('re-engagement flow')).toBe('email-copy');
+  });
+
+  test("routeToDomain('transactional receipt') returns 'email-copy'", () => {
+    expect(routeToDomain('transactional receipt')).toBe('email-copy');
+  });
+
+  test("routeToDomain('battle card') returns 'sales-copy'", () => {
+    expect(routeToDomain('battle card')).toBe('sales-copy');
+  });
+
+  test("routeToDomain('sales page') returns 'marketing-copy'", () => {
+    expect(routeToDomain('sales page')).toBe('marketing-copy');
+  });
+
+  test("routeToDomain('tagline') returns 'brand-copy'", () => {
+    expect(routeToDomain('tagline')).toBe('brand-copy');
+  });
+
+  test("routeToDomain('sign-up flow') returns 'conversion-copy'", () => {
+    expect(routeToDomain('sign-up flow')).toBe('conversion-copy');
+  });
+
+  test("routeToDomain('funnel optimization') returns 'conversion-copy'", () => {
+    expect(routeToDomain('funnel optimization')).toBe('conversion-copy');
+  });
+});
+
 describe('routeToDomain - conversion routing', () => {
   test("routeToDomain('pricing page') returns 'conversion-copy'", () => {
     expect(routeToDomain('pricing page')).toBe('conversion-copy');

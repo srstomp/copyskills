@@ -1,6 +1,6 @@
 ---
 name: social-copy
-description: "Workflow-driven generator for platform-specific social content (X/Twitter, LinkedIn, Instagram, TikTok), threads, carousels, and community engagement. Use when copy type involves social media posts, platform-specific content, or community engagement."
+description: "Use when writing social media content: LinkedIn posts, X/Twitter tweets and threads, Instagram captions and carousels, TikTok captions, or engagement replies and comments. Not for paid ads on these platforms (marketing-copy)."
 ---
 
 # Social Copy
@@ -148,17 +148,17 @@ Do not consider the draft done until every flag is resolved.
 
 Score the de-slopped draft across these 7 dimensions:
 
-| Dimension | Scale | Threshold |
-|-----------|-------|-----------|
-| Clarity | 1-10 | Must be 7+ |
-| Specificity | 1-10 | Must be 7+ |
-| Voice Match | 1-10 | Must be 7+ |
-| AI-Tell Score | 0-10 | Must be 2 or lower |
-| Persuasion | 1-10 | Must be 7+ |
-| Action | 1-10 | Must be 7+ |
-| Overall | 1-10 | Must be 7+ |
+| Dimension | Scale | Target |
+|-----------|-------|--------|
+| Clarity | 1-10 | 7+ |
+| Specificity | 1-10 | 7+ |
+| Voice Match | 1-10 | 7+ |
+| AI-Tell Score | 0-10 | 2 or lower |
+| Persuasion | 1-10 | 7+ |
+| Action | 1-10 | 7+ |
+| Overall | 1-10 | 7+ |
 
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Do not return copy that fails the threshold.
+If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
 For hooks and short-form posts, also score against the 4Us (from `quality-frameworks/references/four-us.md`). Minimum: 3 out of 4 dimensions score 2 or higher.
 

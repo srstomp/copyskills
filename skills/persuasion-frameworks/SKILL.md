@@ -1,6 +1,6 @@
 ---
 name: persuasion-frameworks
-description: Persuasion framework selection guidance and reference material for copywriting. Use when selecting a framework for copy generation or evaluating which methodology fits a copy type and goal.
+description: Use when choosing a persuasion framework (AIDA, PAS, BAB, FAB, ACCA, PASTOR, QUEST, 4Ps, PPPP, Star-Story-Solution) for a piece of copy, or deciding which copywriting methodology fits a copy type and goal.
 ---
 
 # Persuasion Frameworks

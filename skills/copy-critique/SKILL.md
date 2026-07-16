@@ -1,6 +1,6 @@
 ---
 name: copy-critique
-description: Evaluates existing copy against quality dimensions, identifies issues, suggests fixes, and optionally rewrites flagged sections. Use when reviewing or evaluating copy that already exists, not when generating new copy.
+description: Use when reviewing, evaluating, scoring, or critiquing copy that already exists, or improving flagged sections of it. Returns 7-dimension scores and line-level fixes. Not for generating new copy.
 ---
 
 # Copy Critique
