@@ -11,7 +11,7 @@
     {
       "name": "copyskills",
       "description": "Professional copywriting skills library for Claude Code: persuasion frameworks, domain patterns, and anti-slop quality enforcement across marketing, email, UX, editorial, brand, sales, social, and conversion copy",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Steve Stomp"
       },

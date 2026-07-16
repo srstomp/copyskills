@@ -1,6 +1,6 @@
 {
   "name": "@copydoc/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Core skill loader, assembler, and copy analysis tools for the copydoc copywriting AI toolkit",
   "author": "Steve Stomp",

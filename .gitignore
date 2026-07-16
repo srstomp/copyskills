@@ -9,3 +9,4 @@ bun.lock
 output/
 docs/
 packages/integrations/docs/
+.DS_Store
