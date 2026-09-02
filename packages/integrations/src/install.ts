@@ -32,7 +32,7 @@ export const installerRegistry: Record<ToolName, ToolInstaller> = {
 };
 
 export async function installAll(ctx: InstallContext): Promise<InstallResult[]> {
-  const detectionResults = await detectAll(ctx.projectDir);
+  const detectionResults = await detectAll(ctx.projectDir, ctx.homeDir);
   const results: InstallResult[] = [];
   for (const detection of detectionResults) {
     if (detection.detected) {

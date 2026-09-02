@@ -5,6 +5,8 @@ export interface InstallContext {
   skillsDir: string;
   global: boolean;
   copy: boolean;
+  /** Test and embedding override for the user's home directory. */
+  homeDir?: string;
 }
 
 export interface InstallResult {
@@ -15,6 +17,8 @@ export interface InstallResult {
 export interface UninstallContext {
   projectDir: string;
   global: boolean;
+  /** Test and embedding override for the user's home directory. */
+  homeDir?: string;
 }
 
 export interface ToolInstaller {

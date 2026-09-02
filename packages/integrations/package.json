@@ -1,6 +1,7 @@
 {
   "name": "@copydoc/integrations",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "type": "module",
   "private": false,
   "description": "Tool integration installer for copydoc copywriting skills (Cursor, Codex, and more)",
   "author": "Steve Stomp",
@@ -11,6 +12,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,11 +31,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target bun && tsc -p tsconfig.build.json",
+    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target node --packages external && tsc -p tsconfig.build.json",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copydoc/core": "workspace:*"
+    "@copydoc/core": "^0.1.1"
   }
 }

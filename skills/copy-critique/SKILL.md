@@ -29,7 +29,7 @@ Take the copy as submitted. Note any optional context provided. Do not modify th
 
 ### Step 2: Anti-slop scan
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Scan the copy for:
 - Every banned word and phrase listed in the Banned Words and Phrases section
@@ -42,7 +42,7 @@ Flag each hit with the specific text and its location in the copy.
 
 ### Step 3: Score against 7-dimension rubric
 
-Load `quality-frameworks/SKILL.md`. Score the copy against all 7 dimensions.
+Load `../quality-frameworks/SKILL.md`. Score the copy against all 7 dimensions.
 
 | Dimension | Scale | What it measures |
 |-----------|-------|-----------------|

@@ -21,12 +21,12 @@ Identify the sub-type from the brief before loading references.
 
 | Copy type | Sub-type | Domain reference |
 |-----------|----------|-----------------|
-| Button labels, form fields, tooltips, placeholders | Microcopy | `ux-copy/references/microcopy-patterns.md` |
-| Notification toasts, banners, inline alerts | Microcopy | `ux-copy/references/microcopy-patterns.md` |
-| Confirmation dialogs | Microcopy | `ux-copy/references/microcopy-patterns.md` |
-| Validation messages, system errors, permission errors | Error messages | `ux-copy/references/error-messages.md` |
-| Welcome screens, setup wizards, coach marks | Onboarding | `ux-copy/references/onboarding.md` |
-| First-use states, no-results states, error states | Empty states | `ux-copy/references/empty-states.md` |
+| Button labels, form fields, tooltips, placeholders | Microcopy | `references/microcopy-patterns.md` |
+| Notification toasts, banners, inline alerts | Microcopy | `references/microcopy-patterns.md` |
+| Confirmation dialogs | Microcopy | `references/microcopy-patterns.md` |
+| Validation messages, system errors, permission errors | Error messages | `references/error-messages.md` |
+| Welcome screens, setup wizards, coach marks | Onboarding | `references/onboarding.md` |
+| First-use states, no-results states, error states | Empty states | `references/empty-states.md` |
 
 When the brief type is ambiguous, ask for clarification before proceeding.
 
@@ -36,7 +36,7 @@ UX copy does not use persuasion frameworks. It uses these four principles instea
 
 ### 1. Clarity over cleverness
 
-Reference: `quality-frameworks/references/four-cs.md` -- weight the "Clear" dimension highest for all UX copy.
+Reference: `../quality-frameworks/references/four-cs.md` -- weight the "Clear" dimension highest for all UX copy.
 
 A clever button label that makes users pause is a broken button label. A tooltip that requires two reads failed on the first. Write to the reading level of someone who is mid-task and slightly impatient.
 
@@ -98,10 +98,10 @@ Re-read the principles for the sub-type you identified:
 
 Load the domain-specific reference file for this copy type:
 
-- Buttons, form fields, tooltips, notifications, confirmations: `ux-copy/references/microcopy-patterns.md`
-- Validation errors, system errors, permission errors, network failures: `ux-copy/references/error-messages.md`
-- Welcome screens, wizards, coach marks, feature tours: `ux-copy/references/onboarding.md`
-- First-use, no-results, error, cleared states: `ux-copy/references/empty-states.md`
+- Buttons, form fields, tooltips, notifications, confirmations: `references/microcopy-patterns.md`
+- Validation errors, system errors, permission errors, network failures: `references/error-messages.md`
+- Welcome screens, wizards, coach marks, feature tours: `references/onboarding.md`
+- First-use, no-results, error, cleared states: `references/empty-states.md`
 
 Read the reference before drafting. It contains before/after examples, structural patterns, and common mistakes to avoid.
 
@@ -118,7 +118,7 @@ Do not invent structure. The principles plus domain reference define the structu
 
 ### Step 5: De-slop pass
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Run this sequence on the draft:
 

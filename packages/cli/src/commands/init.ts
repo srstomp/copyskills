@@ -1,16 +1,13 @@
 import { createInterface } from 'readline/promises';
-import os from 'os';
-import path from 'path';
 import fs from 'fs';
-
-const RC_FILE = path.join(os.homedir(), '.copydocrc.json');
+import { resolveConfigPath } from '../config';
 
 function redactKey(key: string): string {
   if (key.length <= 8) return key.slice(0, 4) + '...';
   return key.slice(0, 8) + '...';
 }
 
-export async function initCommand(): Promise<void> {
+export async function initCommand(rcFile = resolveConfigPath()): Promise<void> {
   console.log('Welcome to Copydoc CLI. Let\'s set up your configuration.');
   console.log('');
 
@@ -36,10 +33,10 @@ export async function initCommand(): Promise<void> {
     if (base_url) config.base_url = base_url;
     if (model) config.model = model;
 
-    fs.writeFileSync(RC_FILE, JSON.stringify(config, null, 2), 'utf-8');
+    fs.writeFileSync(rcFile, JSON.stringify(config, null, 2), 'utf-8');
 
     console.log('');
-    console.log(`Config saved to ~/.copydocrc.json (API key: ${redactKey(api_key)})`);
+    console.log(`Config saved to ${rcFile} (API key: ${redactKey(api_key)})`);
   } finally {
     rl.close();
   }

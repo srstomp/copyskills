@@ -13,11 +13,11 @@ Brand copy is fundamentally different from other copy types. The outputs are not
 
 | Output type | What it is | Reference to load |
 |-------------|-----------|------------------|
-| `voice-profile` | A 1-2 page document defining how a brand sounds across all channels | `brand-copy/references/voice-dimensions.md` |
-| `messaging-hierarchy` | Positioning statement, brand pillars, proof points, and tagline | `brand-copy/references/messaging-hierarchy.md` |
-| `style-guide` | Do/don't pairs, word lists, grammar preferences, and formatting rules | `brand-copy/references/style-guide-template.md` |
-| `tagline` | A single distilled line derived from the messaging hierarchy | `brand-copy/references/messaging-hierarchy.md` |
-| `elevator-pitch` | 30-60 second spoken version of the full messaging hierarchy | `brand-copy/references/messaging-hierarchy.md` |
+| `voice-profile` | A 1-2 page document defining how a brand sounds across all channels | `references/voice-dimensions.md` |
+| `messaging-hierarchy` | Positioning statement, brand pillars, proof points, and tagline | `references/messaging-hierarchy.md` |
+| `style-guide` | Do/don't pairs, word lists, grammar preferences, and formatting rules | `references/style-guide-template.md` |
+| `tagline` | A single distilled line derived from the messaging hierarchy | `references/messaging-hierarchy.md` |
+| `elevator-pitch` | 30-60 second spoken version of the full messaging hierarchy | `references/messaging-hierarchy.md` |
 
 When the brief is ambiguous, ask which output type is needed before proceeding.
 
@@ -63,9 +63,9 @@ If no samples are provided, identify the gap: what voice does this type of brand
 
 Map the brief's output type to the reference table above. Load the corresponding reference file before drafting.
 
-- Voice profile: load `brand-copy/references/voice-dimensions.md`
-- Messaging hierarchy, tagline, or elevator pitch: load `brand-copy/references/messaging-hierarchy.md`
-- Style guide: load `brand-copy/references/style-guide-template.md`
+- Voice profile: load `references/voice-dimensions.md`
+- Messaging hierarchy, tagline, or elevator pitch: load `references/messaging-hierarchy.md`
+- Style guide: load `references/style-guide-template.md`
 
 If the brief asks for a "complete brand guide" or "brand guidelines," load all three references. Produce the outputs in this order: voice profile first, then messaging hierarchy, then style guide. The style guide depends on the voice profile. The tagline depends on the messaging hierarchy.
 
@@ -92,7 +92,7 @@ Style guide drafting rules:
 
 ### Step 5: De-slop pass
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Brand documents are especially prone to buzzword slop. A voice guide that uses "authentic," "empowering," and "customer-centric" in its own prose has failed its own standard.
 

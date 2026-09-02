@@ -66,13 +66,13 @@ describe('Multi-tool auto-detect install (cursor + codex)', () => {
     expect(content).toContain('[mcp_servers.copydoc]');
   });
 
-  test('installAll creates .codex/skills/copydoc symlink', async () => {
+  test('installAll creates .agents/skills/copy-workflow symlink', async () => {
     fs.mkdirSync(path.join(tmpDir, '.cursor'));
     fs.mkdirSync(path.join(tmpDir, '.codex'));
 
     await installAll({ projectDir: tmpDir, skillsDir: SKILLS_DIR, global: false, copy: false });
 
-    const linkPath = path.join(tmpDir, '.codex', 'skills', 'copydoc');
+    const linkPath = path.join(tmpDir, '.agents', 'skills', 'copy-workflow');
     const stat = fs.lstatSync(linkPath);
     expect(stat.isSymbolicLink()).toBe(true);
   });
@@ -104,12 +104,12 @@ describe('Single-tool install (codex only)', () => {
     expect(fs.existsSync(path.join(tmpDir, '.cursor', 'rules'))).toBe(false);
   });
 
-  test('installTool codex creates .codex/skills/copydoc symlink', async () => {
+  test('installTool codex creates .agents/skills/copy-workflow symlink', async () => {
     fs.mkdirSync(path.join(tmpDir, '.codex'));
 
     await installTool('codex', { projectDir: tmpDir, skillsDir: SKILLS_DIR, global: false, copy: false });
 
-    const linkPath = path.join(tmpDir, '.codex', 'skills', 'copydoc');
+    const linkPath = path.join(tmpDir, '.agents', 'skills', 'copy-workflow');
     const stat = fs.lstatSync(linkPath);
     expect(stat.isSymbolicLink()).toBe(true);
   });
@@ -142,6 +142,7 @@ describe('Status output after multi-tool install', () => {
     const codexResult = results.find((r) => r.tool === 'codex');
     expect(codexResult).toBeDefined();
     expect(codexResult!.detected).toBe(true);
+    expect(codexResult!.configured).toBe(true);
   });
 
   test('formatStatus contains "detected" for cursor and codex', async () => {
@@ -224,14 +225,14 @@ describe('Uninstall all after multi-tool install', () => {
     }
   });
 
-  test('uninstallAll removes .codex/skills/copydoc symlink', async () => {
+  test('uninstallAll removes .agents/skills/copy-workflow symlink', async () => {
     fs.mkdirSync(path.join(tmpDir, '.cursor'));
     fs.mkdirSync(path.join(tmpDir, '.codex'));
 
     await installAll({ projectDir: tmpDir, skillsDir: SKILLS_DIR, global: false, copy: false });
     await uninstallAll({ projectDir: tmpDir, global: false });
 
-    const linkPath = path.join(tmpDir, '.codex', 'skills', 'copydoc');
+    const linkPath = path.join(tmpDir, '.agents', 'skills', 'copy-workflow');
     let exists = false;
     try {
       fs.lstatSync(linkPath);

@@ -15,11 +15,11 @@ Identify the sub-type from the brief's `type` field before selecting a framework
 
 | Brief type | Sub-type | Framework | Domain reference |
 |------------|----------|-----------|-----------------|
-| `pricing-page` | Pricing page tiers, feature lists, FAQs | FAB per tier + anchoring/decoy principles | `conversion-copy/references/pricing-pages.md` |
-| `ab-variant` | A/B test variant copy | Isolate one variable; use different framework or angle per variant | `conversion-copy/references/ab-testing.md` |
-| `signup-flow` | Registration, onboarding entry, trial start | Microcopy + Cialdini urgency/scarcity | `conversion-copy/references/signup-flows.md` |
-| `checkout` | Checkout page, purchase confirmation, order summary | Friction reduction + trust signals | `conversion-copy/references/signup-flows.md` |
-| `trial-to-paid` | Upgrade prompts, paywall copy, limit messages | PAS or BAB | `conversion-copy/references/signup-flows.md` |
+| `pricing-page` | Pricing page tiers, feature lists, FAQs | FAB per tier + anchoring/decoy principles | `references/pricing-pages.md` |
+| `ab-variant` | A/B test variant copy | Isolate one variable; use different framework or angle per variant | `references/ab-testing.md` |
+| `signup-flow` | Registration, onboarding entry, trial start | Microcopy + Cialdini urgency/scarcity | `references/signup-flows.md` |
+| `checkout` | Checkout page, purchase confirmation, order summary | Friction reduction + trust signals | `references/signup-flows.md` |
+| `trial-to-paid` | Upgrade prompts, paywall copy, limit messages | PAS or BAB | `references/signup-flows.md` |
 | `funnel-opt` | Any funnel stage copy needing optimization | Framework depends on funnel stage | See Framework Reference Paths below |
 
 When the brief type is ambiguous, ask which conversion goal applies: sign up, purchase, upgrade, or reactivation.
@@ -30,12 +30,12 @@ Load these files from the shared framework skills (`persuasion-frameworks`, `qua
 
 | Framework | File path | When to use |
 |-----------|-----------|-------------|
-| FAB | `persuasion-frameworks/references/fab.md` | Pricing pages: connect tier features to buyer outcomes |
-| PAS | `persuasion-frameworks/references/pas.md` | Trial-to-paid: name the pain of limits before offering upgrade |
-| BAB | `persuasion-frameworks/references/bab.md` | Trial-to-paid: show the before/after of upgrading |
-| Cialdini | `quality-frameworks/references/cialdini.md` | Signup flows: urgency, scarcity, social proof at key moments |
-| Conversion principles | `quality-frameworks/references/conversion-principles.md` | All conversion copy: CTA patterns, friction reduction, social proof placement |
-| Anti-slop | `quality-frameworks/references/anti-slop.md` | Step 5 of every workflow run |
+| FAB | `../persuasion-frameworks/references/fab.md` | Pricing pages: connect tier features to buyer outcomes |
+| PAS | `../persuasion-frameworks/references/pas.md` | Trial-to-paid: name the pain of limits before offering upgrade |
+| BAB | `../persuasion-frameworks/references/bab.md` | Trial-to-paid: show the before/after of upgrading |
+| Cialdini | `../quality-frameworks/references/cialdini.md` | Signup flows: urgency, scarcity, social proof at key moments |
+| Conversion principles | `../quality-frameworks/references/conversion-principles.md` | All conversion copy: CTA patterns, friction reduction, social proof placement |
+| Anti-slop | `../quality-frameworks/references/anti-slop.md` | Step 5 of every workflow run |
 
 Load only the files required for the copy type at hand. Do not preload all frameworks.
 
@@ -47,17 +47,17 @@ Primary framework: FAB applied per tier.
 
 Apply FAB at the tier level, not the page level. Each plan tier gets its own Feature-Advantage-Benefit arc, written for the specific buyer that tier targets.
 
-Also load `quality-frameworks/references/conversion-principles.md` for:
+Also load `../quality-frameworks/references/conversion-principles.md` for:
 - Anchoring: lead with the most expensive tier so lower tiers feel like savings, not costs
 - Decoy: structure the middle tier to be the obvious choice (better value per feature than the tier below, without the complexity of the tier above)
 
-See `conversion-copy/references/pricing-pages.md` for tier naming rules, plan structure, FAQ patterns, and guarantee copy.
+See `references/pricing-pages.md` for tier naming rules, plan structure, FAQ patterns, and guarantee copy.
 
 ### A/B Variants
 
 Primary framework: variable isolation.
 
-Each variant tests one change. Load `conversion-copy/references/ab-testing.md` before generating any variants.
+Each variant tests one change. Load `references/ab-testing.md` before generating any variants.
 
 For headline variants: apply a different headline formula or angle per variant (curiosity vs. benefit vs. social proof vs. urgency).
 For CTA variants: change the verb or ownership frame ("Start your trial" vs. "Start my trial").
@@ -69,11 +69,11 @@ Do not blend two changes into one variant. If you change both the headline and t
 
 Primary framework: microcopy patterns (clarity-first) + Cialdini urgency and scarcity.
 
-Load `quality-frameworks/references/cialdini.md` for:
+Load `../quality-frameworks/references/cialdini.md` for:
 - Scarcity at trial start (real constraints only -- never fake countdown timers)
 - Commitment and consistency in multi-step flows (reference the previous step in the next step's copy)
 
-Load `conversion-copy/references/signup-flows.md` for field microcopy, progress indicators, trial messaging patterns, and friction reduction.
+Load `references/signup-flows.md` for field microcopy, progress indicators, trial messaging patterns, and friction reduction.
 
 ### Trial-to-Paid
 
@@ -83,7 +83,7 @@ Use PAS when the user is actively hitting a limit: name the limit (Problem), sho
 
 Use BAB when the user is engaged but not at a limit yet: paint the before state (current plan's ceiling), show the after state (what unlocks), bridge with the upgrade path.
 
-Load `persuasion-frameworks/references/pas.md` or `persuasion-frameworks/references/bab.md` depending on context. Do not use both in the same piece.
+Load `../persuasion-frameworks/references/pas.md` or `../persuasion-frameworks/references/bab.md` depending on context. Do not use both in the same piece.
 
 ## 7-Step Workflow
 
@@ -104,11 +104,11 @@ When the goal is funnel optimization without a specified stage, ask before proce
 
 Using the Framework Reference Paths table, load the single most relevant framework file for the copy type identified.
 
-- Pricing page: load `persuasion-frameworks/references/fab.md` and `quality-frameworks/references/conversion-principles.md`
-- A/B variant: load `conversion-copy/references/ab-testing.md` (framework selection happens within that reference based on the hypothesis)
-- Signup flow: load `quality-frameworks/references/cialdini.md` and `quality-frameworks/references/conversion-principles.md`
-- Trial-to-paid (pain-driven): load `persuasion-frameworks/references/pas.md`
-- Trial-to-paid (aspiration-driven): load `persuasion-frameworks/references/bab.md`
+- Pricing page: load `../persuasion-frameworks/references/fab.md` and `../quality-frameworks/references/conversion-principles.md`
+- A/B variant: load `references/ab-testing.md` (framework selection happens within that reference based on the hypothesis)
+- Signup flow: load `../quality-frameworks/references/cialdini.md` and `../quality-frameworks/references/conversion-principles.md`
+- Trial-to-paid (pain-driven): load `../persuasion-frameworks/references/pas.md`
+- Trial-to-paid (aspiration-driven): load `../persuasion-frameworks/references/bab.md`
 
 Read the framework before drafting. Note its steps, examples, and common mistakes.
 
@@ -116,9 +116,9 @@ Read the framework before drafting. Note its steps, examples, and common mistake
 
 Load the domain-specific reference file for this copy type:
 
-- Pricing pages: `conversion-copy/references/pricing-pages.md`
-- A/B testing variants: `conversion-copy/references/ab-testing.md`
-- Signup flows, checkout, trial-to-paid: `conversion-copy/references/signup-flows.md`
+- Pricing pages: `references/pricing-pages.md`
+- A/B testing variants: `references/ab-testing.md`
+- Signup flows, checkout, trial-to-paid: `references/signup-flows.md`
 
 Read the domain reference before drafting. It contains patterns, before/after examples, and rules specific to that conversion context.
 
@@ -137,7 +137,7 @@ Write in second person ("you"), use contractions, vary sentence length. Avoid pa
 
 ### Step 5: De-slop pass
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Run this sequence on the draft:
 
@@ -167,7 +167,7 @@ Score the de-slopped draft across these 7 dimensions:
 
 If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
-For pricing pages, also check anchoring and decoy principles from `quality-frameworks/references/conversion-principles.md`. If the tier structure violates either principle, flag it before returning copy.
+For pricing pages, also check anchoring and decoy principles from `../quality-frameworks/references/conversion-principles.md`. If the tier structure violates either principle, flag it before returning copy.
 
 For A/B variants, annotate which quality dimension each variant scores higher on. This becomes part of the hypothesis documentation.
 

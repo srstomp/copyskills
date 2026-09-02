@@ -31,6 +31,6 @@ Strong headlines combine three things:
 
 1. **Pattern** - The structural skeleton (from proven-patterns.md)
 2. **Power word** - One or two words that create emotional pull (from power-words.md)
-3. **4Us check** - Does it score on Urgent, Unique, Ultra-specific, and Useful? (see quality-frameworks/references/four-us.md)
+3. **4Us check** - Does it score on Urgent, Unique, Ultra-specific, and Useful? (see ../quality-frameworks/references/four-us.md)
 
 Pick one power word per headline. Stacking two from the same emotion category kills credibility.

@@ -1,6 +1,7 @@
 {
   "name": "@copydoc/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "type": "module",
   "private": false,
   "description": "MCP server exposing copydoc copywriting skills, tools, and prompts to AI assistants",
   "author": "Steve Stomp",
@@ -11,6 +12,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,14 +31,14 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --format esm --target bun",
+    "build": "bun build src/index.ts --outdir dist --format esm --target node --packages external && tsc -p tsconfig.build.json",
     "test": "bun test",
     "dev": "bun run src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copydoc/core": "workspace:*",
-    "@modelcontextprotocol/sdk": "latest",
+    "@copydoc/core": "^0.1.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "zod": "^4.3.6"
   }
 }

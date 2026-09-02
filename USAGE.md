@@ -12,12 +12,15 @@ Copyskills ships four interfaces against the same knowledge base. Choose by what
 
 | You have... | You want... | Use |
 |-------------|-------------|-----|
-| Claude Code installed | Copy in your editor, conversational flow | **Plugin** (`/write`, `/critique`, `/adapt`) |
+| ChatGPT desktop or Codex CLI | Conversational copywriting workflows | **Codex plugin** |
+| Claude Code installed | Copy in your editor with slash commands | **Claude plugin** (`/write`, `/critique`, `/adapt`) |
 | An agent or LLM app | Copy generation as a callable capability | **MCP server** |
 | A terminal and an API key | Quick one-shot copy, scriptable | **CLI** (`copydoc`) |
 | A TypeScript app | Programmatic prompt assembly, your own model loop | **Library** (`@copydoc/core`) |
 
 Same skills, same brief format, same anti-slop pass. The interface is the only thing that changes.
+
+The Codex and Claude plugins have no runtime prerequisite. The CLI, MCP server, library, and integration installer require Node.js 20 or newer.
 
 ---
 
@@ -154,13 +157,13 @@ You have a TypeScript app, an LLM client of your choice, and you want Copyskills
 
 ```typescript
 import {
-  createLoader,
+  createBundledLoader,
   createAssembler,
   selectFramework,
   createAntiSlopChecker,
 } from '@copydoc/core';
 
-const loader = createLoader('./node_modules/@copydoc/core/skills');
+const loader = createBundledLoader();
 const assembler = createAssembler(loader, selectFramework);
 
 const brief = {
@@ -205,7 +208,7 @@ Add to your MCP client config:
   "mcpServers": {
     "copydoc": {
       "command": "npx",
-      "args": ["@copydoc/mcp"]
+      "args": ["--yes", "@copydoc/mcp@0.1.1"]
     }
   }
 }
@@ -237,7 +240,7 @@ If your agent has its own LLM and just needs the methodology, call the resources
 Install:
 
 ```bash
-npx @copydoc/integrations install --tool cursor
+npx --yes @copydoc/integrations@0.1.1 install --tool cursor
 ```
 
 What happens: MCP config added to `.cursor/mcp.json`, 8 `.mdc` rule files generated in `.cursor/rules/`.
@@ -250,13 +253,22 @@ Example: In Cursor chat, type `Write a cold outreach email for SyncRail targetin
 
 ## Recipe 8: Codex Integration
 
-Install:
+The recommended installation is the native plugin:
 
 ```bash
-npx @copydoc/integrations install --tool codex
+codex plugin marketplace add srstomp/copyskills
+codex plugin add copyskills@copyskills
 ```
 
-What happens: MCP config added to `.codex/config.toml`, skills directory symlinked to `.codex/skills/copydoc`.
+Start a new task after installation. The plugin makes all 15 skills available without requiring an API key or MCP server.
+
+For a project-local MCP configuration plus standalone skill copies instead, use:
+
+```bash
+npx --yes @copydoc/integrations@0.1.1 install --tool codex
+```
+
+That command adds the MCP server to `.codex/config.toml` and copies each skill into `.agents/skills/<skill-name>/`. Add `--global` to use `~/.codex/config.toml` and `~/.agents/skills/`. Copies are the default so an `npx` cache cleanup cannot break the installation; use `--link` only for local development.
 
 Codex reads SKILL.md files natively. MCP server provides tools for framework selection and anti-slop checking.
 
@@ -273,7 +285,7 @@ codex "write a pricing page hero for SyncRail"
 Install:
 
 ```bash
-npx @copydoc/integrations install --tool opencode
+npx --yes @copydoc/integrations@0.1.1 install --tool opencode
 ```
 
 What happens: MCP config added to `.opencode.json` under `mcpServers`.
@@ -287,7 +299,7 @@ MCP tools and resources are available to OpenCode's agent. Note: OpenCode has be
 Install:
 
 ```bash
-npx @copydoc/integrations install --tool hermes
+npx --yes @copydoc/integrations@0.1.1 install --tool hermes
 ```
 
 What happens: MCP config added to `~/.hermes/config.yaml`, skills symlinked to `~/.hermes/skills/copydoc`.
@@ -301,7 +313,7 @@ Hermes reads skills natively. MCP server provides tools. Multi-channel: generate
 Install:
 
 ```bash
-npx @copydoc/integrations install --tool openclaw
+npx --yes @copydoc/integrations@0.1.1 install --tool openclaw
 ```
 
 What happens: MCP server registered in `~/.openclaw/openclaw.json`, skills directory added to `skills.load.extraDirs`.
@@ -315,7 +327,7 @@ Skills and MCP tools are available to OpenClaw agents across all channels.
 Install:
 
 ```bash
-npx @copydoc/integrations install --tool pi
+npx --yes @copydoc/integrations@0.1.1 install --tool pi
 ```
 
 What happens: Skills symlinked to `.pi/skills/copydoc`, TypeScript extension generated at `.pi/extensions/copydoc.ts`.

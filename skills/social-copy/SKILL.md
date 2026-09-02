@@ -13,14 +13,14 @@ Identify the platform and content format from the brief before anything else. Di
 
 | Platform | Content format | Framework | Primary reference |
 |----------|---------------|-----------|------------------|
-| LinkedIn | Single post (thought leadership, announcement, story) | PAS or AIDA | `social-copy/references/platform-specs.md` |
-| LinkedIn | Article preview / teaser | AIDA | `social-copy/references/platform-specs.md` |
-| X/Twitter | Single tweet | 4Us for hooks | `social-copy/references/platform-specs.md` |
-| X/Twitter | Thread | Hook + QUEST | `social-copy/references/hooks-and-threads.md` |
-| Instagram | Caption (product, lifestyle, educational) | BAB or Star-Story-Solution | `social-copy/references/platform-specs.md` |
-| Instagram | Carousel | Hook slide + slide-by-slide flow | `social-copy/references/hooks-and-threads.md` |
-| TikTok | Video description / caption | 4Us for hooks | `social-copy/references/platform-specs.md` |
-| Any platform | Engagement reply / comment | Conversational | `social-copy/references/engagement-patterns.md` |
+| LinkedIn | Single post (thought leadership, announcement, story) | PAS or AIDA | `references/platform-specs.md` |
+| LinkedIn | Article preview / teaser | AIDA | `references/platform-specs.md` |
+| X/Twitter | Single tweet | 4Us for hooks | `references/platform-specs.md` |
+| X/Twitter | Thread | Hook + QUEST | `references/hooks-and-threads.md` |
+| Instagram | Caption (product, lifestyle, educational) | BAB or Star-Story-Solution | `references/platform-specs.md` |
+| Instagram | Carousel | Hook slide + slide-by-slide flow | `references/hooks-and-threads.md` |
+| TikTok | Video description / caption | 4Us for hooks | `references/platform-specs.md` |
+| Any platform | Engagement reply / comment | Conversational | `references/engagement-patterns.md` |
 
 When the brief does not specify a platform, ask before proceeding. Platform determines everything: character budget, tone, structure, and CTA type.
 
@@ -30,14 +30,14 @@ Load these files when the workflow requires them.
 
 | Framework | File path | Use for |
 |-----------|-----------|---------|
-| PAS (Problem-Agitate-Solution) | `persuasion-frameworks/references/pas.md` | LinkedIn posts, problem-led hooks |
-| AIDA | `persuasion-frameworks/references/aida.md` | LinkedIn posts, article teasers |
-| BAB (Before-After-Bridge) | `persuasion-frameworks/references/bab.md` | Instagram captions, transformation content |
-| Star-Story-Solution | `persuasion-frameworks/references/star-story-solution.md` | Instagram narrative captions, long-form posts |
-| QUEST | `persuasion-frameworks/references/quest.md` | X/Twitter threads, multi-part content |
-| 4Us quality check | `quality-frameworks/references/four-us.md` | Hook lines, short-form copy on any platform |
-| Headline patterns | `headline-formulas/references/proven-patterns.md` | Hook formulas, opening lines |
-| Anti-slop | `quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
+| PAS (Problem-Agitate-Solution) | `../persuasion-frameworks/references/pas.md` | LinkedIn posts, problem-led hooks |
+| AIDA | `../persuasion-frameworks/references/aida.md` | LinkedIn posts, article teasers |
+| BAB (Before-After-Bridge) | `../persuasion-frameworks/references/bab.md` | Instagram captions, transformation content |
+| Star-Story-Solution | `../persuasion-frameworks/references/star-story-solution.md` | Instagram narrative captions, long-form posts |
+| QUEST | `../persuasion-frameworks/references/quest.md` | X/Twitter threads, multi-part content |
+| 4Us quality check | `../quality-frameworks/references/four-us.md` | Hook lines, short-form copy on any platform |
+| Headline patterns | `../headline-formulas/references/proven-patterns.md` | Hook formulas, opening lines |
+| Anti-slop | `../quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
 
 Load only the files required for the content type at hand. Do not preload all frameworks.
 
@@ -59,7 +59,7 @@ If platform is still unclear, stop and ask. Wrong platform means wrong constrain
 
 ### Step 2: Load platform-specs.md
 
-Load `social-copy/references/platform-specs.md` before drafting a single word.
+Load `references/platform-specs.md` before drafting a single word.
 
 Check:
 - Character limit for this platform and content type
@@ -73,13 +73,13 @@ Character limits are non-negotiable. A LinkedIn post can run 3000 characters. An
 
 Using the Framework Mapping table, load the single most relevant framework file.
 
-- LinkedIn posts: load `persuasion-frameworks/references/pas.md` or `persuasion-frameworks/references/aida.md`
-- X/Twitter threads: load `persuasion-frameworks/references/quest.md` AND `social-copy/references/hooks-and-threads.md`
-- Instagram captions: load `persuasion-frameworks/references/bab.md` or `persuasion-frameworks/references/star-story-solution.md`
-- Short-form hooks on any platform: load `quality-frameworks/references/four-us.md` AND `headline-formulas/references/proven-patterns.md`
-- Engagement content: load `social-copy/references/engagement-patterns.md`
+- LinkedIn posts: load `../persuasion-frameworks/references/pas.md` or `../persuasion-frameworks/references/aida.md`
+- X/Twitter threads: load `../persuasion-frameworks/references/quest.md` AND `references/hooks-and-threads.md`
+- Instagram captions: load `../persuasion-frameworks/references/bab.md` or `../persuasion-frameworks/references/star-story-solution.md`
+- Short-form hooks on any platform: load `../quality-frameworks/references/four-us.md` AND `../headline-formulas/references/proven-patterns.md`
+- Engagement content: load `references/engagement-patterns.md`
 
-For threads and carousels: also load `social-copy/references/hooks-and-threads.md` for structural patterns.
+For threads and carousels: also load `references/hooks-and-threads.md` for structural patterns.
 
 Read the framework. Note its stages and common mistakes before drafting.
 
@@ -103,7 +103,7 @@ Drafting rules by platform:
 - 1-2 hashtags or none. Never hashtag-spam.
 
 **X/Twitter (thread)**
-- Tweet 1 is the hook and the promise. Load `social-copy/references/hooks-and-threads.md` for thread structures.
+- Tweet 1 is the hook and the promise. Load `references/hooks-and-threads.md` for thread structures.
 - Each tweet stands alone but builds on the previous.
 - Final tweet delivers the payoff and CTA.
 - Number tweets only if the thread benefits from it (tutorials yes, opinion threads usually no).
@@ -123,7 +123,7 @@ Do not invent structure. Platform constraints plus framework define the structur
 
 ### Step 5: De-slop pass
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Social copy is the highest-slop-risk format. Generic openings are common and instantly recognizable as AI output. Run this sequence before considering the draft done:
 
@@ -160,7 +160,7 @@ Score the de-slopped draft across these 7 dimensions:
 
 If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
 
-For hooks and short-form posts, also score against the 4Us (from `quality-frameworks/references/four-us.md`). Minimum: 3 out of 4 dimensions score 2 or higher.
+For hooks and short-form posts, also score against the 4Us (from `../quality-frameworks/references/four-us.md`). Minimum: 3 out of 4 dimensions score 2 or higher.
 
 ### Step 7: Return structured output
 
@@ -191,4 +191,4 @@ For threads and carousels: present each unit (tweet or slide) separately with it
 
 ## Platform Constraints Note
 
-Character limits and algorithm preferences are checked in Step 2 via `social-copy/references/platform-specs.md`. Do not draft without loading that file first. A post that exceeds the character limit is a broken post. A post that ignores the platform's algorithm preferences is a post that performs poorly even when the copy is good.
+Character limits and algorithm preferences are checked in Step 2 via `references/platform-specs.md`. Do not draft without loading that file first. A post that exceeds the character limit is a broken post. A post that ignores the platform's algorithm preferences is a post that performs poorly even when the copy is good.

@@ -1,10 +1,21 @@
 import { detectAll } from './detect';
 import type { DetectionResult } from './detect';
+import { installerRegistry } from './install';
 
 export { detectAll as getStatus };
 
 export async function getStatusForDir(projectDir: string): Promise<DetectionResult[]> {
-  return detectAll(projectDir);
+  const results = await detectAll(projectDir);
+  return Promise.all(
+    results.map(async (result) => {
+      const configured = await installerRegistry[result.tool].isConfigured(projectDir);
+      return {
+        ...result,
+        detected: result.detected || configured,
+        configured,
+      };
+    }),
+  );
 }
 
 const TOOL_LABELS: Record<string, string> = {

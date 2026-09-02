@@ -7,7 +7,7 @@ export type { ToolName };
 
 export interface ToolDetector {
   name: ToolName;
-  detect(projectDir: string): Promise<boolean>;
+  detect(projectDir: string, homeDir: string): Promise<boolean>;
 }
 
 export interface DetectionResult {
@@ -34,9 +34,9 @@ const detectors: ToolDetector[] = [
   },
   {
     name: 'codex',
-    async detect(projectDir: string): Promise<boolean> {
+    async detect(projectDir: string, homeDir: string): Promise<boolean> {
       if (dirExists(path.join(projectDir, '.codex'))) return true;
-      if (dirExists(path.join(os.homedir(), '.codex'))) return true;
+      if (dirExists(path.join(homeDir, '.codex'))) return true;
       return false;
     },
   },
@@ -53,46 +53,50 @@ const detectors: ToolDetector[] = [
   },
   {
     name: 'hermes',
-    async detect(projectDir: string): Promise<boolean> {
+    async detect(projectDir: string, homeDir: string): Promise<boolean> {
       // Check projectDir first (enables test overrides), then the real home location
       if (dirExists(path.join(projectDir, '.hermes'))) return true;
-      if (dirExists(path.join(os.homedir(), '.hermes'))) return true;
+      if (dirExists(path.join(homeDir, '.hermes'))) return true;
       return false;
     },
   },
   {
     name: 'openclaw',
-    async detect(projectDir: string): Promise<boolean> {
+    async detect(projectDir: string, homeDir: string): Promise<boolean> {
       // Check projectDir first (enables test overrides), then the real home location
       if (dirExists(path.join(projectDir, '.openclaw'))) return true;
-      if (dirExists(path.join(os.homedir(), '.openclaw'))) return true;
+      if (dirExists(path.join(homeDir, '.openclaw'))) return true;
       return false;
     },
   },
   {
     name: 'pi',
-    async detect(projectDir: string): Promise<boolean> {
+    async detect(projectDir: string, homeDir: string): Promise<boolean> {
       if (dirExists(path.join(projectDir, '.pi'))) return true;
-      if (dirExists(path.join(os.homedir(), '.pi'))) return true;
+      if (dirExists(path.join(homeDir, '.pi'))) return true;
       return false;
     },
   },
 ];
 
-export async function detectAll(projectDir: string): Promise<DetectionResult[]> {
+export async function detectAll(projectDir: string, homeDir = os.homedir()): Promise<DetectionResult[]> {
   const results: DetectionResult[] = [];
   for (const detector of detectors) {
-    const detected = await detector.detect(projectDir);
+    const detected = await detector.detect(projectDir, homeDir);
     results.push({ tool: detector.name, detected, configured: false });
   }
   return results;
 }
 
-export async function detectTool(name: ToolName, projectDir: string): Promise<DetectionResult> {
+export async function detectTool(
+  name: ToolName,
+  projectDir: string,
+  homeDir = os.homedir(),
+): Promise<DetectionResult> {
   const detector = detectors.find((d) => d.name === name);
   if (!detector) {
     throw new Error(`Unknown tool: ${name}`);
   }
-  const detected = await detector.detect(projectDir);
+  const detected = await detector.detect(projectDir, homeDir);
   return { tool: name, detected, configured: false };
 }

@@ -60,7 +60,7 @@ describe('cursorInstaller.install - creates .cursor/mcp.json when file does not 
     expect(parsed.mcpServers).toBeDefined();
     expect(parsed.mcpServers.copydoc).toBeDefined();
     expect(parsed.mcpServers.copydoc.command).toBe('npx');
-    expect(parsed.mcpServers.copydoc.args).toEqual(['@copydoc/mcp']);
+    expect(parsed.mcpServers.copydoc.args).toEqual(['--yes', '@copydoc/mcp@0.1.1']);
   });
 
   test('creates .cursor/ directory if it does not exist', async () => {

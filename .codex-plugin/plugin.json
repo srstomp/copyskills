@@ -1,0 +1,39 @@
+{
+  "name": "copyskills",
+  "version": "0.1.1",
+  "description": "Professional copywriting workflows, persuasion frameworks, domain patterns, and anti-slop quality checks for ChatGPT and Codex.",
+  "author": {
+    "name": "Steve Stomp",
+    "email": "support@copydoc.ai",
+    "url": "https://github.com/srstomp"
+  },
+  "homepage": "https://github.com/srstomp/copyskills",
+  "repository": "https://github.com/srstomp/copyskills",
+  "license": "MIT",
+  "keywords": [
+    "copywriting",
+    "marketing",
+    "email",
+    "ux",
+    "persuasion",
+    "anti-slop"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Copyskills",
+    "shortDescription": "Professional copywriting workflows",
+    "longDescription": "Write, critique, and adapt marketing, email, UX, editorial, brand, sales, social, and conversion copy with structured persuasion and quality checks.",
+    "developerName": "Steve Stomp",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/srstomp/copyskills",
+    "defaultPrompt": [
+      "Write conversion copy from my brief.",
+      "Critique this copy and suggest concrete fixes.",
+      "Adapt this copy for another channel."
+    ]
+  }
+}

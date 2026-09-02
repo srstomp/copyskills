@@ -2,11 +2,32 @@
 
 Professional copywriting skills for AI agents and humans. 15 skills covering 8 domains, 10 persuasion frameworks, and a built-in anti-slop system that catches AI writing patterns before they ship.
 
-Works as a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript library.
+Works as a ChatGPT and Codex plugin, a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript library.
 
 **New here?** Read [USAGE.md](./USAGE.md) for a walkthrough with concrete recipes for each interface. The rest of this README is reference material.
 
+The Codex and Claude plugins have no runtime prerequisite. The CLI, MCP server, library, and integration installer require Node.js 20 or newer.
+
 ## Quick Start
+
+### ChatGPT and Codex Plugin
+
+Add the repository marketplace and install the plugin:
+
+```bash
+codex plugin marketplace add srstomp/copyskills
+codex plugin add copyskills@copyskills
+```
+
+Start a new Codex task after installation, then ask naturally:
+
+```text
+Write a cold outreach email for SakeBox targeting restaurant owners.
+Critique the copy in ./landing-page-copy.md.
+Adapt this case study into a LinkedIn post.
+```
+
+The plugin bundles all 15 skills directly, so it does not require the MCP server or an API key.
 
 ### Claude Code Plugin
 
@@ -41,7 +62,7 @@ Add to your MCP client config:
   "mcpServers": {
     "copydoc": {
       "command": "npx",
-      "args": ["@copydoc/mcp"]
+      "args": ["--yes", "@copydoc/mcp@0.1.1"]
     }
   }
 }
@@ -64,14 +85,14 @@ npm install @copydoc/core
 ```
 
 ```typescript
-import { createLoader, createAssembler, selectFramework, createAntiSlopChecker } from '@copydoc/core';
-import { createRequire } from 'module';
-import path from 'path';
+import {
+  createBundledLoader,
+  createAssembler,
+  selectFramework,
+  createAntiSlopChecker,
+} from '@copydoc/core';
 
-// Skills are bundled inside @copydoc/core at dist/skills/
-const require = createRequire(import.meta.url);
-const coreDir = path.dirname(require.resolve('@copydoc/core/package.json'));
-const loader = createLoader(path.join(coreDir, 'dist', 'skills'));
+const loader = createBundledLoader();
 const assembler = createAssembler(loader, selectFramework);
 
 const { systemPrompt, userPrompt } = assembler.assemble({
@@ -96,7 +117,7 @@ Copyskills works with any tool that supports MCP or the SKILL.md standard.
 ### One-Command Setup
 
 ```bash
-npx @copydoc/integrations install
+npx --yes @copydoc/integrations@0.1.1 install
 ```
 
 Auto-detects and configures: **Cursor**, **Codex**, **OpenCode**, **Hermes**, **OpenClaw**, **Pi**.
@@ -106,7 +127,7 @@ Each tool gets the integration that fits it best:
 | Tool | What it gets |
 |------|-------------|
 | Cursor | MCP server config + `.mdc` rule files for each domain skill |
-| Codex | MCP server config + skills directory symlink |
+| Codex | MCP server config + individual skills in `.agents/skills/` |
 | OpenCode | MCP server config in `.opencode.json` |
 | Hermes | MCP server config in `~/.hermes/config.yaml` + skills symlink |
 | OpenClaw | MCP server + skills directory in `~/.openclaw/openclaw.json` |
@@ -121,7 +142,7 @@ Add to your tool's MCP config:
   "mcpServers": {
     "copydoc": {
       "command": "npx",
-      "args": ["@copydoc/mcp"]
+      "args": ["--yes", "@copydoc/mcp@0.1.1"]
     }
   }
 }
@@ -130,9 +151,10 @@ Add to your tool's MCP config:
 ### Other Commands
 
 ```bash
-npx @copydoc/integrations status      # Check which tools are detected and configured
-npx @copydoc/integrations uninstall   # Remove all copydoc integrations
-npx @copydoc/integrations install --tool cursor  # Configure only one tool
+npx --yes @copydoc/integrations@0.1.1 status
+npx --yes @copydoc/integrations@0.1.1 uninstall
+npx --yes @copydoc/integrations@0.1.1 install --tool cursor
+npx --yes @copydoc/integrations@0.1.1 install --tool codex --global
 ```
 
 ## What's Inside
@@ -297,8 +319,10 @@ Skills are plain markdown files. No compilation, no transformation. The core lib
 
 ```bash
 bun install
-bun test              # 632 tests across all packages
+bun run test          # Build core, then run all package tests
+bun run validate:skills
 bun run build         # Build all packages
+bun run test:packages # Verify clean npm tarball installation after building
 bun run dev:mcp       # Run MCP server locally
 bun run dev:cli       # Run CLI locally
 ```

@@ -8,10 +8,10 @@ Thanks for your interest in contributing. This guide covers what you need to get
 git clone git@github.com:srstomp/copyskills.git
 cd copyskills
 bun install
-bun test
+bun run test
 ```
 
-Requires [Bun](https://bun.sh) v1.3+.
+Requires [Bun](https://bun.sh) v1.3+ and Node.js 20+ (the published artifacts run on Node).
 
 ## Project Structure
 
@@ -29,7 +29,10 @@ commands/             Slash commands (write, critique, adapt)
 ## Running Tests
 
 ```bash
-bun test                          # All packages
+bun run test                      # Build core, then run all packages
+bun run validate:plugin           # Validate Codex plugin and marketplace metadata
+bun run validate:skills           # Validate skill frontmatter and local references
+bun run test:packages             # Pack and install every npm artifact under Node
 bun test packages/core/           # One package
 bun test --watch packages/core/   # Watch mode
 ```

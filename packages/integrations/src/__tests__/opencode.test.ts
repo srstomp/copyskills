@@ -60,7 +60,7 @@ describe('opencodeInstaller.install - creates .opencode.json when file does not 
     expect(parsed.mcpServers).toBeDefined();
     expect(parsed.mcpServers.copydoc).toBeDefined();
     expect(parsed.mcpServers.copydoc.command).toBe('npx');
-    expect(parsed.mcpServers.copydoc.args).toEqual(['@copydoc/mcp']);
+    expect(parsed.mcpServers.copydoc.args).toEqual(['--yes', '@copydoc/mcp@0.1.1']);
   });
 
   test('returns InstallResult with tool=opencode and non-empty actions', async () => {

@@ -1,6 +1,7 @@
 {
   "name": "@copydoc/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "type": "module",
   "private": false,
   "description": "CLI for generating, critiquing, and adapting copy using copydoc copywriting skills",
   "author": "Steve Stomp",
@@ -11,6 +12,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,14 +31,14 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target bun",
+    "build": "bun build src/index.ts src/cli.ts --outdir dist --format esm --target node --packages external && tsc -p tsconfig.build.json",
     "test": "bun test",
     "dev": "bun run src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
-    "@copydoc/core": "workspace:*",
+    "@copydoc/core": "^0.1.1",
     "@google/generative-ai": "^0.24.1",
     "openai": "^6.33.0"
   }

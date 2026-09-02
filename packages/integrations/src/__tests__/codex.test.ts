@@ -1,225 +1,163 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { codexInstaller } from '../tools/codex';
 
 const COPYDOC_TOML_SECTION = '[mcp_servers.copydoc]';
+const tempDirs: string[] = [];
 
-function makeTempDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'copydoc-codex-test-'));
+function tempDir(): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'copydoc-codex-test-'));
+  tempDirs.push(dir);
+  return dir;
 }
 
-function cleanup(dir: string): void {
-  fs.rmSync(dir, { recursive: true, force: true });
+function makeSkills(): string {
+  const root = tempDir();
+  for (const name of ['copy-workflow', 'quality-frameworks']) {
+    const skillDir = path.join(root, name);
+    fs.mkdirSync(path.join(skillDir, 'references'), { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `---\nname: ${name}\ndescription: Test\n---\n`);
+    fs.writeFileSync(path.join(skillDir, 'references', 'test.md'), '# Test\n');
+  }
+  return root;
 }
 
-function makeContext(projectDir: string, skillsDir: string, copy = false) {
+function makeContext(projectDir: string, skillsDir: string, copy = true) {
   return { projectDir, skillsDir, global: false, copy };
 }
 
-let tempDirs: string[] = [];
-
-function tempDir(): string {
-  const d = makeTempDir();
-  tempDirs.push(d);
-  return d;
-}
-
 afterEach(() => {
-  for (const d of tempDirs) {
-    cleanup(d);
+  for (const dir of tempDirs.splice(0)) {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
-  tempDirs = [];
 });
 
-describe('codexInstaller.name', () => {
-  test('name is codex', () => {
+describe('codexInstaller', () => {
+  test('uses the codex tool name', () => {
     expect(codexInstaller.name).toBe('codex');
   });
-});
 
-describe('codexInstaller.install - config.toml', () => {
-  test('creates .codex/config.toml with [mcp_servers.copydoc] section when file does not exist', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
+  test('creates project MCP config with a non-interactive, versioned package command', async () => {
+    const projectDir = tempDir();
+    await codexInstaller.install(makeContext(projectDir, makeSkills()));
 
-    await codexInstaller.install(makeContext(dir, skillsDir));
-
-    const tomlPath = path.join(dir, '.codex', 'config.toml');
-    expect(fs.existsSync(tomlPath)).toBe(true);
-    const content = fs.readFileSync(tomlPath, 'utf8');
+    const content = fs.readFileSync(path.join(projectDir, '.codex', 'config.toml'), 'utf8');
     expect(content).toContain(COPYDOC_TOML_SECTION);
     expect(content).toContain('command = "npx"');
-    expect(content).toContain('@copydoc/mcp');
+    expect(content).toContain('args = ["--yes", "@copydoc/mcp@0.1.1"]');
   });
 
-  test('appends copydoc section to existing config.toml without overwriting other content', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-    const tomlPath = path.join(dir, '.codex', 'config.toml');
-    fs.writeFileSync(tomlPath, '[other_section]\nkey = "value"\n');
+  test('preserves existing config and does not duplicate the MCP section', async () => {
+    const projectDir = tempDir();
+    const configPath = path.join(projectDir, '.codex', 'config.toml');
+    fs.mkdirSync(path.dirname(configPath), { recursive: true });
+    fs.writeFileSync(configPath, '[other]\nkey = "value"\n');
+    const context = makeContext(projectDir, makeSkills());
 
-    await codexInstaller.install(makeContext(dir, skillsDir));
+    await codexInstaller.install(context);
+    await codexInstaller.install(context);
 
-    const content = fs.readFileSync(tomlPath, 'utf8');
-    expect(content).toContain('[other_section]');
-    expect(content).toContain('key = "value"');
-    expect(content).toContain(COPYDOC_TOML_SECTION);
-    expect(content).toContain('command = "npx"');
+    const content = fs.readFileSync(configPath, 'utf8');
+    expect(content).toContain('[other]');
+    expect(content.split(COPYDOC_TOML_SECTION)).toHaveLength(2);
   });
 
-  test('running install twice is idempotent (no duplicate TOML sections)', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
+  test('copies every skill into the Codex .agents/skills discovery directory', async () => {
+    const projectDir = tempDir();
+    await codexInstaller.install(makeContext(projectDir, makeSkills()));
 
-    await codexInstaller.install(makeContext(dir, skillsDir));
-    await codexInstaller.install(makeContext(dir, skillsDir));
-
-    const tomlPath = path.join(dir, '.codex', 'config.toml');
-    const content = fs.readFileSync(tomlPath, 'utf8');
-    const occurrences = content.split(COPYDOC_TOML_SECTION).length - 1;
-    expect(occurrences).toBe(1);
+    for (const name of ['copy-workflow', 'quality-frameworks']) {
+      const installed = path.join(projectDir, '.agents', 'skills', name);
+      expect(fs.lstatSync(installed).isSymbolicLink()).toBe(false);
+      expect(fs.existsSync(path.join(installed, 'SKILL.md'))).toBe(true);
+      expect(fs.existsSync(path.join(installed, 'references', 'test.md'))).toBe(true);
+    }
+    expect(fs.existsSync(path.join(projectDir, '.codex', 'skills'))).toBe(false);
   });
 
-  test('creates .codex/skills/ directory if it does not exist', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
+  test('can create per-skill links for local development', async () => {
+    const projectDir = tempDir();
+    const skillsDir = makeSkills();
+    await codexInstaller.install(makeContext(projectDir, skillsDir, false));
 
-    await codexInstaller.install(makeContext(dir, skillsDir));
-
-    expect(fs.existsSync(path.join(dir, '.codex', 'skills'))).toBe(true);
-  });
-});
-
-describe('codexInstaller.install - symlink', () => {
-  test('creates symlink at .codex/skills/copydoc pointing to skills directory', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-
-    await codexInstaller.install(makeContext(dir, skillsDir));
-
-    const symlinkPath = path.join(dir, '.codex', 'skills', 'copydoc');
-    const stat = fs.lstatSync(symlinkPath);
-    expect(stat.isSymbolicLink()).toBe(true);
-    const resolved = fs.realpathSync(symlinkPath);
-    expect(resolved).toBe(fs.realpathSync(skillsDir));
+    const installed = path.join(projectDir, '.agents', 'skills', 'copy-workflow');
+    expect(fs.lstatSync(installed).isSymbolicLink()).toBe(true);
+    expect(fs.realpathSync(installed)).toBe(fs.realpathSync(path.join(skillsDir, 'copy-workflow')));
   });
 
-  test('--copy flag copies files instead of symlinking', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    // Put a file in skillsDir so we can verify it was copied
-    fs.writeFileSync(path.join(skillsDir, 'test-skill.md'), '# Test Skill\n');
-    fs.mkdirSync(path.join(dir, '.codex'));
+  test('does not overwrite a skill directory it does not own', async () => {
+    const projectDir = tempDir();
+    const existing = path.join(projectDir, '.agents', 'skills', 'copy-workflow');
+    fs.mkdirSync(existing, { recursive: true });
+    fs.writeFileSync(path.join(existing, 'SKILL.md'), '# User version\n');
 
-    await codexInstaller.install(makeContext(dir, skillsDir, true));
+    const result = await codexInstaller.install(makeContext(projectDir, makeSkills()));
 
-    const destPath = path.join(dir, '.codex', 'skills', 'copydoc');
-    const stat = fs.lstatSync(destPath);
-    // Should NOT be a symlink when copy mode is used
-    expect(stat.isSymbolicLink()).toBe(false);
-    expect(stat.isDirectory()).toBe(true);
-    // The copied file should exist
-    expect(fs.existsSync(path.join(destPath, 'test-skill.md'))).toBe(true);
-  });
-});
-
-describe('codexInstaller.install - return value', () => {
-  test('returns InstallResult with tool=codex and non-empty actions array', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-
-    const result = await codexInstaller.install(makeContext(dir, skillsDir));
-
-    expect(result.tool).toBe('codex');
-    expect(Array.isArray(result.actions)).toBe(true);
-    expect(result.actions.length).toBeGreaterThan(0);
-  });
-});
-
-describe('codexInstaller.uninstall', () => {
-  test('removes [mcp_servers.copydoc] section from config.toml', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-    await codexInstaller.install(makeContext(dir, skillsDir));
-
-    await codexInstaller.uninstall({ projectDir: dir, global: false });
-
-    const tomlPath = path.join(dir, '.codex', 'config.toml');
-    const content = fs.readFileSync(tomlPath, 'utf8');
-    expect(content).not.toContain(COPYDOC_TOML_SECTION);
-    expect(content).not.toContain('@copydoc/mcp');
+    expect(fs.readFileSync(path.join(existing, 'SKILL.md'), 'utf8')).toBe('# User version\n');
+    expect(result.actions.some((action) => action.includes('was not modified'))).toBe(true);
   });
 
-  test('uninstall preserves other TOML sections', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-    const tomlPath = path.join(dir, '.codex', 'config.toml');
-    fs.writeFileSync(tomlPath, '[other_section]\nkey = "value"\n');
-    await codexInstaller.install(makeContext(dir, skillsDir));
+  test('global mode writes only to the supplied home directory', async () => {
+    const projectDir = tempDir();
+    const fakeHome = tempDir();
+    await codexInstaller.install({
+      projectDir,
+      skillsDir: makeSkills(),
+      global: true,
+      copy: true,
+      homeDir: fakeHome,
+    });
 
-    await codexInstaller.uninstall({ projectDir: dir, global: false });
+    expect(fs.existsSync(path.join(fakeHome, '.codex', 'config.toml'))).toBe(true);
+    expect(fs.existsSync(path.join(fakeHome, '.agents', 'skills', 'copy-workflow', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(projectDir, '.codex'))).toBe(false);
+    expect(fs.existsSync(path.join(projectDir, '.agents'))).toBe(false);
+  });
 
-    const content = fs.readFileSync(tomlPath, 'utf8');
-    expect(content).toContain('[other_section]');
-    expect(content).toContain('key = "value"');
+  test('uninstall removes only installer-owned skills and preserves other config', async () => {
+    const projectDir = tempDir();
+    const configPath = path.join(projectDir, '.codex', 'config.toml');
+    fs.mkdirSync(path.dirname(configPath), { recursive: true });
+    fs.writeFileSync(configPath, '[other]\nkey = "value"\n');
+    const context = makeContext(projectDir, makeSkills());
+    await codexInstaller.install(context);
+
+    const userSkill = path.join(projectDir, '.agents', 'skills', 'user-skill');
+    fs.mkdirSync(userSkill, { recursive: true });
+    fs.writeFileSync(path.join(userSkill, 'SKILL.md'), '# Keep me\n');
+    await codexInstaller.uninstall({ projectDir, global: false });
+
+    expect(fs.existsSync(path.join(projectDir, '.agents', 'skills', 'copy-workflow'))).toBe(false);
+    expect(fs.existsSync(userSkill)).toBe(true);
+    const content = fs.readFileSync(configPath, 'utf8');
+    expect(content).toContain('[other]');
     expect(content).not.toContain(COPYDOC_TOML_SECTION);
   });
 
-  test('removes .codex/skills/copydoc symlink', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-    await codexInstaller.install(makeContext(dir, skillsDir));
+  test('uninstall removes the legacy .codex/skills/copydoc path', async () => {
+    const projectDir = tempDir();
+    const legacyPath = path.join(projectDir, '.codex', 'skills', 'copydoc');
+    fs.mkdirSync(legacyPath, { recursive: true });
+    fs.writeFileSync(path.join(legacyPath, 'old.md'), 'old');
 
-    await codexInstaller.uninstall({ projectDir: dir, global: false });
+    await codexInstaller.uninstall({ projectDir, global: false });
 
-    const symlinkPath = path.join(dir, '.codex', 'skills', 'copydoc');
-    expect(fs.existsSync(symlinkPath)).toBe(false);
+    expect(fs.existsSync(legacyPath)).toBe(false);
   });
 
-  test('uninstall does not throw when config.toml does not exist', async () => {
-    const dir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
+  test('reports configured only when both MCP config and installed skills are present', async () => {
+    const projectDir = tempDir();
+    expect(await codexInstaller.isConfigured(projectDir)).toBe(false);
 
-    await expect(codexInstaller.uninstall({ projectDir: dir, global: false })).resolves.toBeUndefined();
-  });
-});
+    await codexInstaller.install(makeContext(projectDir, makeSkills()));
+    expect(await codexInstaller.isConfigured(projectDir)).toBe(true);
 
-describe('codexInstaller.isConfigured', () => {
-  test('returns true when config.toml exists and contains [mcp_servers.copydoc]', async () => {
-    const dir = tempDir();
-    const skillsDir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-    await codexInstaller.install(makeContext(dir, skillsDir));
-
-    const result = await codexInstaller.isConfigured(dir);
-    expect(result).toBe(true);
-  });
-
-  test('returns false when config.toml does not exist', async () => {
-    const dir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-
-    const result = await codexInstaller.isConfigured(dir);
-    expect(result).toBe(false);
-  });
-
-  test('returns false when config.toml exists but does not contain [mcp_servers.copydoc]', async () => {
-    const dir = tempDir();
-    fs.mkdirSync(path.join(dir, '.codex'));
-    fs.writeFileSync(path.join(dir, '.codex', 'config.toml'), '[other_section]\nkey = "value"\n');
-
-    const result = await codexInstaller.isConfigured(dir);
-    expect(result).toBe(false);
+    fs.rmSync(path.join(projectDir, '.agents', 'skills', 'copy-workflow'), {
+      recursive: true,
+      force: true,
+    });
+    expect(await codexInstaller.isConfigured(projectDir)).toBe(false);
   });
 });

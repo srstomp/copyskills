@@ -99,7 +99,7 @@ Produce a working draft. Pass to Step 6.
 
 **MANDATORY. This step cannot be skipped under any circumstances.**
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Apply the full de-slop pass to the adapted draft:
 

@@ -1,10 +1,14 @@
 {
   "name": "copyskills",
   "private": true,
+  "packageManager": "bun@1.3.3",
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "bun run --filter '*' build",
-    "test": "bun run --filter '*' test",
+    "build": "bun run --cwd packages/core build && bun run --cwd packages/mcp-server build && bun run --cwd packages/cli build && bun run --cwd packages/integrations build",
+    "test": "bun run --cwd packages/core build && bun run --filter '*' test",
+    "test:packages": "bun run build && ./scripts/test-packed-artifacts.sh",
+    "validate:plugin": "bun scripts/validate-plugin.ts",
+    "validate:skills": "bun scripts/validate-skills.ts",
     "dev:mcp": "bun run --filter @copydoc/mcp dev",
     "dev:cli": "bun run --filter @copydoc/cli dev",
     "typecheck": "bun run --filter '*' typecheck"

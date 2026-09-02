@@ -6,7 +6,7 @@ title: The 4Us - Urgent, Unique, Ultra-specific, Useful
 
 Evaluation framework primarily for headlines, subject lines, and hooks. A strong headline hits at least 3 of 4. Hitting all 4 is rare and worth protecting when you find it.
 
-Reference also: `headline-formulas/references/proven-patterns.md` for structural templates.
+Reference also: `../../headline-formulas/references/proven-patterns.md` for structural templates.
 
 ---
 

@@ -16,8 +16,11 @@ type PartialConfig = {
   model?: string;
 };
 
-export function loadConfig(): CopydocConfig {
-  const rcPath = path.join(os.homedir(), '.copydocrc.json');
+export function resolveConfigPath(): string {
+  return path.join(os.homedir(), '.copydocrc.json');
+}
+
+export function loadConfig(rcPath = resolveConfigPath()): CopydocConfig {
   let fileConfig: PartialConfig = {};
 
   // Step 1: read ~/.copydocrc.json if it exists

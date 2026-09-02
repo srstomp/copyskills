@@ -1,5 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { resolveSkillsDir } from '@copydoc/core';
 import { installAll, installTool } from './install';
 import { uninstallAll, uninstallTool } from './uninstall';
 import { getStatusForDir, formatStatus } from './status';
@@ -56,7 +60,8 @@ function printHelp(): void {
   console.log('  Flags:');
   console.log('    --tool <name>   Target a specific tool (cursor, codex, opencode, hermes, openclaw, pi)');
   console.log('    --global        Install globally (home directory) instead of project-local');
-  console.log('    --copy          Copy skills files instead of linking');
+  console.log('    --copy          Copy skill files (default; retained for compatibility)');
+  console.log('    --link          Link skill files instead of copying (local development only)');
   console.log('');
 }
 
@@ -65,7 +70,7 @@ export async function runCli(argv: string[], skillsDir: string): Promise<void> {
   const { command } = parsed;
   const toolFlag = parsed.flags['tool'] as string | undefined;
   const isGlobal = parsed.flags['global'] === true;
-  const isCopy = parsed.flags['copy'] === true;
+  const isCopy = parsed.flags['link'] !== true;
   const projectDir = process.cwd();
 
   switch (command) {
@@ -129,12 +134,18 @@ export async function runCli(argv: string[], skillsDir: string): Promise<void> {
   }
 }
 
-if (import.meta.main) {
-  import('path').then(({ default: path }) => {
-    const skillsDir = path.resolve(import.meta.dir, '../../../../skills');
-    runCli(process.argv, skillsDir).catch((err) => {
-      console.error(String(err));
-      process.exit(1);
-    });
+function isDirectExecution(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+  }
+}
+
+if (isDirectExecution()) {
+  runCli(process.argv, resolveSkillsDir()).catch((err) => {
+    console.error(String(err));
+    process.exit(1);
   });
 }

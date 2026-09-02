@@ -5,7 +5,7 @@ import type { InstallContext, InstallResult, ToolInstaller, UninstallContext } f
 
 const COPYDOC_MCP_ENTRY = {
   command: 'npx',
-  args: ['@copydoc/mcp'],
+  args: ['--yes', '@copydoc/mcp@0.1.1'],
 };
 
 // In production the config lives at ~/.openclaw/openclaw.json.

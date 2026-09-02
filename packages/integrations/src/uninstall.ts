@@ -3,7 +3,7 @@ import { installerRegistry } from './install';
 import type { ToolName, UninstallContext } from './types';
 
 export async function uninstallAll(ctx: UninstallContext): Promise<void> {
-  const detectionResults = await detectAll(ctx.projectDir);
+  const detectionResults = await detectAll(ctx.projectDir, ctx.homeDir);
   for (const detection of detectionResults) {
     if (detection.detected) {
       const installer = installerRegistry[detection.tool];

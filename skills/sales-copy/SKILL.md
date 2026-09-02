@@ -13,12 +13,12 @@ Identify the sub-type from the brief's `type` field before selecting a framework
 
 | Brief type | Sub-type | Framework | Domain reference |
 |------------|----------|-----------|-----------------|
-| `case-study` | Customer case study | BAB | `sales-copy/references/case-studies.md` |
-| `proposal` | Sales or project proposal | ACCA | `sales-copy/references/proposals.md` |
-| `sales-email` | Outbound or nurture sales email | PAS | `email-copy/references/cold-outreach.md` |
-| `one-pager` | Single-page sales doc | FAB | `sales-copy/references/one-pagers.md` |
-| `pitch-deck` | Pitch deck (slide copy, text only) | AIDA per slide | `sales-copy/references/one-pagers.md` |
-| `battle-card` | Competitive battle card | FAB | `sales-copy/references/one-pagers.md` |
+| `case-study` | Customer case study | BAB | `references/case-studies.md` |
+| `proposal` | Sales or project proposal | ACCA | `references/proposals.md` |
+| `sales-email` | Outbound or nurture sales email | PAS | `../email-copy/references/cold-outreach.md` |
+| `one-pager` | Single-page sales doc | FAB | `references/one-pagers.md` |
+| `pitch-deck` | Pitch deck (slide copy, text only) | AIDA per slide | `references/one-pagers.md` |
+| `battle-card` | Competitive battle card | FAB | `references/one-pagers.md` |
 
 When the brief type is ambiguous, ask for clarification before proceeding.
 
@@ -28,12 +28,12 @@ Load these files from the shared framework skills (`persuasion-frameworks`, `qua
 
 | Framework | File path | Use for |
 |-----------|-----------|---------|
-| BAB (Before-After-Bridge) | `persuasion-frameworks/references/bab.md` | Case studies |
-| ACCA (Awareness-Comprehension-Conviction-Action) | `persuasion-frameworks/references/acca.md` | Proposals |
-| PAS (Problem-Agitate-Solution) | `persuasion-frameworks/references/pas.md` | Sales emails |
-| FAB (Features-Advantages-Benefits) | `persuasion-frameworks/references/fab.md` | One-pagers, battle cards |
-| AIDA | `persuasion-frameworks/references/aida.md` | Pitch deck slides |
-| Anti-slop | `quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
+| BAB (Before-After-Bridge) | `../persuasion-frameworks/references/bab.md` | Case studies |
+| ACCA (Awareness-Comprehension-Conviction-Action) | `../persuasion-frameworks/references/acca.md` | Proposals |
+| PAS (Problem-Agitate-Solution) | `../persuasion-frameworks/references/pas.md` | Sales emails |
+| FAB (Features-Advantages-Benefits) | `../persuasion-frameworks/references/fab.md` | One-pagers, battle cards |
+| AIDA | `../persuasion-frameworks/references/aida.md` | Pitch deck slides |
+| Anti-slop | `../quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
 
 Load only the files required for the copy type at hand. Do not preload all frameworks.
 
@@ -55,11 +55,11 @@ If the brief has no `type` field, infer from the copy goal:
 
 Using the Framework Reference Paths table, load the single most relevant framework file.
 
-- Case studies: load `persuasion-frameworks/references/bab.md`
-- Proposals: load `persuasion-frameworks/references/acca.md`
-- Sales emails: load `persuasion-frameworks/references/pas.md`
-- One-pagers and battle cards: load `persuasion-frameworks/references/fab.md`
-- Pitch decks: load `persuasion-frameworks/references/aida.md`
+- Case studies: load `../persuasion-frameworks/references/bab.md`
+- Proposals: load `../persuasion-frameworks/references/acca.md`
+- Sales emails: load `../persuasion-frameworks/references/pas.md`
+- One-pagers and battle cards: load `../persuasion-frameworks/references/fab.md`
+- Pitch decks: load `../persuasion-frameworks/references/aida.md`
 
 Read the framework. Note its stages, examples, and failure modes before drafting.
 
@@ -67,14 +67,14 @@ Read the framework. Note its stages, examples, and failure modes before drafting
 
 Load the domain-specific reference file for this copy type:
 
-- Case studies: `sales-copy/references/case-studies.md`
-- Proposals: `sales-copy/references/proposals.md`
-- One-pagers, pitch decks, battle cards: `sales-copy/references/one-pagers.md`
-- Sales emails: `email-copy/references/cold-outreach.md`
+- Case studies: `references/case-studies.md`
+- Proposals: `references/proposals.md`
+- One-pagers, pitch decks, battle cards: `references/one-pagers.md`
+- Sales emails: `../email-copy/references/cold-outreach.md`
 
-For proposals: check the executive summary guidance in `proposals.md` before writing a single sentence. The most common mistake -- opening with the vendor's company history instead of the client's problem -- is caught here.
+For proposals: check the executive summary guidance in `references/proposals.md` before writing a single sentence. The most common mistake -- opening with the vendor's company history instead of the client's problem -- is caught here.
 
-For case studies: check the metrics guidance in `case-studies.md` before drafting. Vague outcome language ("improved efficiency", "better results") is the dominant failure mode. The reference shows how to surface and present specific numbers.
+For case studies: check the metrics guidance in `references/case-studies.md` before drafting. Vague outcome language ("improved efficiency", "better results") is the dominant failure mode. The reference shows how to surface and present specific numbers.
 
 ### Step 4: Draft using framework structure and domain patterns
 
@@ -91,7 +91,7 @@ Do not invent structure. The framework plus domain reference define the structur
 
 ### Step 5: De-slop pass
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Run this sequence on the draft:
 

@@ -66,7 +66,7 @@ Receive the draft output from the domain skill. Note the framework used and any 
 
 **MANDATORY. This step cannot be skipped under any circumstances.**
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Apply the full de-slop pass to the draft:
 - Scan for every banned word and phrase

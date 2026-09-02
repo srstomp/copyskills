@@ -34,11 +34,11 @@ Score copy against these 7 dimensions. Higher is better for all except AI-Tell.
 
 Run this sequence on every piece of copy before marking it complete:
 
-1. **Anti-slop check** - Load `anti-slop.md`. Scan for banned words, em dash usage, and tricolon patterns. Flag every hit.
+1. **Anti-slop check** - Load `references/anti-slop.md`. Scan for banned words, em dash usage, and tricolon patterns. Flag every hit.
 2. **Score rubric** - Score all 7 dimensions. Note which scored lowest.
 3. **Apply threshold rule** - If AI-Tell Score >= 3 OR Overall < 7, the copy is not done. Return to revision with specific flags.
-4. **Readability check** (optional but recommended) - Verify grade level matches target audience using `readability.md`.
-5. **Conversion check** (for action-oriented copy) - Verify CTA placement and friction reduction using `conversion-principles.md`.
+4. **Readability check** (optional but recommended) - Verify grade level matches target audience using `references/readability.md`.
+5. **Conversion check** (for action-oriented copy) - Verify CTA placement and friction reduction using `references/conversion-principles.md`.
 
 **The threshold rule is non-negotiable.** AI-Tell >= 3 or Overall < 7 means revision required.
 
@@ -48,21 +48,21 @@ Load these files when evaluating or critiquing copy:
 
 | File | When to load |
 |------|-------------|
-| `anti-slop.md` | Every de-slop pass. The most-used file in this skill. |
-| `cialdini.md` | When scoring Persuasion dimension or strengthening CTAs |
-| `four-cs.md` | When scoring Clarity or overall copy quality |
-| `four-us.md` | When evaluating headlines, subject lines, or hooks |
-| `readability.md` | When grade level or sentence length needs evaluation |
-| `conversion-principles.md` | When scoring Action dimension or optimizing CTAs |
+| `references/anti-slop.md` | Every de-slop pass. The most-used file in this skill. |
+| `references/cialdini.md` | When scoring Persuasion dimension or strengthening CTAs |
+| `references/four-cs.md` | When scoring Clarity or overall copy quality |
+| `references/four-us.md` | When evaluating headlines, subject lines, or hooks |
+| `references/readability.md` | When grade level or sentence length needs evaluation |
+| `references/conversion-principles.md` | When scoring Action dimension or optimizing CTAs |
 
 ## Quick Scoring Guide
 
 When a full rubric score is not needed, use these shortcuts:
 
-**De-slop only:** Load `anti-slop.md`. Flag banned words. Rewrite flagged sections with the specificity test.
+**De-slop only:** Load `references/anti-slop.md`. Flag banned words. Rewrite flagged sections with the specificity test.
 
 **Headline check:** Score against 4Us (four-us.md). Must hit at least 3 of 4.
 
-**CTA check:** Load `conversion-principles.md`. Verify placement, friction, and urgency are sound.
+**CTA check:** Load `references/conversion-principles.md`. Verify placement, friction, and urgency are sound.
 
 **Full critique:** Load all references. Score all 7 dimensions. Write up findings with specific line-level examples.

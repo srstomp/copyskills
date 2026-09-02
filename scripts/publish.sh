@@ -51,12 +51,10 @@ if [[ -n "$BUMP" ]]; then
   NEW_VERSION="$MAJOR.$MINOR.$PATCH"
   echo "  $CURRENT -> $NEW_VERSION"
 
-  # Update all three packages
-  for PKG in "$CORE/package.json" "$MCP/package.json" "$CLI/package.json" "$INTEGRATIONS/package.json"; do
-    jq --arg v "$NEW_VERSION" '.version = $v' "$PKG" > "$PKG.tmp" && mv "$PKG.tmp" "$PKG"
-  done
+  node "$ROOT/scripts/set-version.mjs" "$NEW_VERSION"
 
-  git -C "$ROOT" add packages/*/package.json
+  git -C "$ROOT" add packages .codex-plugin .claude-plugin README.md USAGE.md \
+    scripts/test-packed-artifacts.sh
   git -C "$ROOT" commit -m "chore: bump version to $NEW_VERSION"
   echo ""
 fi
@@ -69,7 +67,10 @@ echo ""
 # Step 3: Run tests
 echo "=== Running tests ==="
 cd "$ROOT"
-bun test
+bun run test
+bun run validate:plugin
+bun run validate:skills
+bun run typecheck
 echo ""
 
 # Step 4: Clean dist
@@ -90,20 +91,16 @@ cd "$INTEGRATIONS" && bun run build
 echo "  @copydoc/integrations built"
 echo ""
 
-# Step 6: Copy skills into core package for publishing
-# npm does not support files outside the package root via relative paths.
-# We copy skills/ into core's dist/ so they ship with the package.
-echo "=== Bundling skills ==="
-rm -rf "$CORE/dist/skills"
-cp -r "$ROOT/skills" "$CORE/dist/skills"
-SKILL_COUNT=$(find "$CORE/dist/skills" -name "SKILL.md" | wc -l | tr -d ' ')
-echo "  Copied $SKILL_COUNT skills into @copydoc/core dist/"
-echo ""
+# Step 6: Reject package metadata that npm cannot install.
+if rg -n '"workspace:' "$ROOT"/packages/*/package.json; then
+  echo "ERROR: package manifests still contain workspace: dependencies"
+  exit 1
+fi
 
-# Step 7: Fix core's files field (point to dist/ which now includes skills/)
-# Temporarily update files field for publish, restore after
-CORE_PKG_BACKUP=$(cat "$CORE/package.json")
-jq '.files = ["dist"]' "$CORE/package.json" > "$CORE/package.json.tmp" && mv "$CORE/package.json.tmp" "$CORE/package.json"
+# Step 7: Install and execute the packed artifacts in a clean temporary project.
+echo "=== Testing packed artifacts ==="
+"$ROOT/scripts/test-packed-artifacts.sh"
+echo ""
 
 # Step 8: Publish (or dry run)
 echo "=== $(if $DRY_RUN; then echo 'Dry Run'; else echo 'Publishing'; fi) ==="
@@ -127,12 +124,6 @@ publish_pkg "$CORE" "@copydoc/core"
 publish_pkg "$MCP" "@copydoc/mcp"
 publish_pkg "$CLI" "@copydoc/cli"
 publish_pkg "$INTEGRATIONS" "@copydoc/integrations"
-
-# Step 9: Restore core's package.json
-echo "$CORE_PKG_BACKUP" > "$CORE/package.json"
-
-# Step 10: Clean up copied skills
-rm -rf "$CORE/dist/skills"
 
 echo "=== Done ==="
 if $DRY_RUN; then

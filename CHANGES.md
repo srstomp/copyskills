@@ -1,4 +1,13 @@
-# Skill Review Changes
+# Changes
+
+## Codex installation and package distribution
+
+- Added a native Codex plugin manifest and repository marketplace catalog, so the documented `codex plugin` installation flow has installable metadata.
+- Moved Codex standalone skill installs to `.agents/skills` (or `~/.agents/skills` globally), with copy-by-default behavior, tracked ownership, safe upgrades, and non-destructive uninstall.
+- Made all npm artifacts Node.js 20+ compatible, replaced unpublished `workspace:*` dependency ranges, bundled the 15 skills with `@copydoc/core`, and pinned generated MCP commands to the release version.
+- Added clean-room npm pack/install execution tests, skill/plugin validators, aligned release versioning, and continuous integration.
+
+## Skill review
 
 Review of all 15 SKILL.md files against skill best practices: trigger-optimized descriptions, clear scope boundaries, consistent cross-skill contracts, no contradictions. Reference files, agents, and commands were read and verified but needed no edits (all cross-referenced files exist; the "26 fill-in templates" claim in headline-formulas matches proven-patterns.md; four-us.md scoring matches the "3 of 4 score 2+" rule cited by domain skills).
 

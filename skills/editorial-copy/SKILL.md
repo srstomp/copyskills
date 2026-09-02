@@ -13,11 +13,11 @@ Identify the sub-type from the brief's `type` field before selecting a framework
 
 | Brief type | Sub-type | Framework | Domain reference |
 |------------|----------|-----------|-----------------|
-| `blog-educational` | Educational blog post (how-to, explainer, guide) | QUEST | `editorial-copy/references/blog-structures.md` |
-| `blog-conversion` | Conversion-focused blog post (listicle, comparison, commercial) | AIDA | `editorial-copy/references/blog-structures.md` |
-| `thought-leadership` | Opinion piece, POV article, industry commentary | Star-Story-Solution | `editorial-copy/references/thought-leadership.md` |
-| `seo-content` | SEO-optimized page or article (search-intent driven) | Structure-first (heading hierarchy), then AIDA or QUEST per section | `editorial-copy/references/seo-copy.md` |
-| `whitepaper` | Long-form research document, industry report | ACCA | `editorial-copy/references/blog-structures.md` |
+| `blog-educational` | Educational blog post (how-to, explainer, guide) | QUEST | `references/blog-structures.md` |
+| `blog-conversion` | Conversion-focused blog post (listicle, comparison, commercial) | AIDA | `references/blog-structures.md` |
+| `thought-leadership` | Opinion piece, POV article, industry commentary | Star-Story-Solution | `references/thought-leadership.md` |
+| `seo-content` | SEO-optimized page or article (search-intent driven) | Structure-first (heading hierarchy), then AIDA or QUEST per section | `references/seo-copy.md` |
+| `whitepaper` | Long-form research document, industry report | ACCA | `references/blog-structures.md` |
 
 When the brief type is ambiguous, ask for clarification before proceeding.
 
@@ -27,11 +27,11 @@ Load these files from the shared framework skills (`persuasion-frameworks`, `qua
 
 | Framework | File path | Use for |
 |-----------|-----------|---------|
-| QUEST | `persuasion-frameworks/references/quest.md` | Educational blog posts |
-| AIDA | `persuasion-frameworks/references/aida.md` | Conversion-focused blog posts, SEO sections |
-| Star-Story-Solution | `persuasion-frameworks/references/star-story-solution.md` | Thought leadership |
-| ACCA | `persuasion-frameworks/references/acca.md` | Whitepapers |
-| Anti-slop | `quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
+| QUEST | `../persuasion-frameworks/references/quest.md` | Educational blog posts |
+| AIDA | `../persuasion-frameworks/references/aida.md` | Conversion-focused blog posts, SEO sections |
+| Star-Story-Solution | `../persuasion-frameworks/references/star-story-solution.md` | Thought leadership |
+| ACCA | `../persuasion-frameworks/references/acca.md` | Whitepapers |
+| Anti-slop | `../quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
 
 Load only the files required for the copy type at hand. Do not preload all frameworks.
 
@@ -52,11 +52,11 @@ If the brief has no `type` field, infer from the copy goal:
 
 Using the Framework Reference Paths table, load the single most relevant framework file.
 
-- Educational blog posts: load `persuasion-frameworks/references/quest.md`
-- Conversion-focused blog posts: load `persuasion-frameworks/references/aida.md`
-- Thought leadership: load `persuasion-frameworks/references/star-story-solution.md`
-- SEO content: load `persuasion-frameworks/references/aida.md` (default; switch to QUEST if educational intent)
-- Whitepapers: load `persuasion-frameworks/references/acca.md`
+- Educational blog posts: load `../persuasion-frameworks/references/quest.md`
+- Conversion-focused blog posts: load `../persuasion-frameworks/references/aida.md`
+- Thought leadership: load `../persuasion-frameworks/references/star-story-solution.md`
+- SEO content: load `../persuasion-frameworks/references/aida.md` (default; switch to QUEST if educational intent)
+- Whitepapers: load `../persuasion-frameworks/references/acca.md`
 
 Read the framework. Note its stages, examples, and common mistakes before drafting.
 
@@ -64,13 +64,13 @@ Read the framework. Note its stages, examples, and common mistakes before drafti
 
 Load the domain-specific reference file for this copy type:
 
-- Blog posts (all types) and whitepapers: `editorial-copy/references/blog-structures.md`
-- SEO content: `editorial-copy/references/seo-copy.md`
-- Thought leadership: `editorial-copy/references/thought-leadership.md`
+- Blog posts (all types) and whitepapers: `references/blog-structures.md`
+- SEO content: `references/seo-copy.md`
+- Thought leadership: `references/thought-leadership.md`
 
-For SEO content: check search intent mapping in `seo-copy.md` before drafting a single heading. Writing for the wrong intent (e.g., informational content when the query is transactional) produces content that ranks poorly and converts worse.
+For SEO content: check search intent mapping in `references/seo-copy.md` before drafting a single heading. Writing for the wrong intent (e.g., informational content when the query is transactional) produces content that ranks poorly and converts worse.
 
-For thought leadership: read the opinion-first structure and anti-generic-content rules in `thought-leadership.md` before drafting. Generic "5 tips" content is the primary failure mode.
+For thought leadership: read the opinion-first structure and anti-generic-content rules in `references/thought-leadership.md` before drafting. Generic "5 tips" content is the primary failure mode.
 
 ### Step 4: Draft using framework structure and domain patterns
 
@@ -78,7 +78,7 @@ Apply the framework steps to the brief. Use the domain reference for structural 
 
 - Follow the framework's stage sequence (e.g., Qualify then Understand then Educate then Stimulate then Transition for QUEST)
 - Apply section patterns and examples from the domain reference
-- For blog posts: follow hook patterns and CTA placement guidance in `blog-structures.md`
+- For blog posts: follow hook patterns and CTA placement guidance in `references/blog-structures.md`
 - For SEO content: build heading hierarchy first (H1, H2, H3) then fill sections; respect keyword integration rules
 - For thought leadership: state the specific opinion in paragraph 1; do not save the point of view for the end
 - For whitepapers: follow ACCA's credibility-building structure; data and evidence carry the argument
@@ -87,7 +87,7 @@ Do not invent structure. The framework plus domain reference define the structur
 
 ### Step 5: De-slop pass
 
-Load `quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md`.
 
 Run this sequence on the draft:
 

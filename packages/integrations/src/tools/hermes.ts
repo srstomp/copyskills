@@ -6,7 +6,7 @@ import type { InstallContext, InstallResult, ToolInstaller, UninstallContext } f
 const COPYDOC_ENTRY_LINES = [
   '  copydoc:',
   '    command: npx',
-  '    args: ["@copydoc/mcp"]',
+  '    args: ["--yes", "@copydoc/mcp@0.1.1"]',
 ];
 
 const COPYDOC_ENTRY_BLOCK = COPYDOC_ENTRY_LINES.join('\n') + '\n';

@@ -67,9 +67,9 @@ describe('installAll', () => {
         skillsDir: dir,
         global: false,
         copy: false,
+        homeDir: dir,
       });
-      // With no .cursor or .codex, detected tools depend on env, but result is always an array
-      expect(Array.isArray(results)).toBe(true);
+      expect(results).toEqual([]);
     } finally {
       cleanup(dir);
     }

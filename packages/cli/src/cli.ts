@@ -1,6 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
-import type { SkillLoader } from '@copydoc/core';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createBundledLoader, type SkillLoader } from '@copydoc/core';
 import { listCommand } from './commands/list';
 import { infoCommand } from './commands/info';
 import { initCommand } from './commands/init';
@@ -62,7 +65,7 @@ function printHelp(): void {
   console.log('');
 }
 
-export async function runCli(argv: string[], loader: SkillLoader): Promise<void> {
+export async function runCli(argv: string[], loader: SkillLoader, configPath?: string): Promise<void> {
   const parsed = parseArgs(argv);
   const { command, args } = parsed;
 
@@ -78,7 +81,7 @@ export async function runCli(argv: string[], loader: SkillLoader): Promise<void>
     }
 
     case 'init':
-      await initCommand();
+      await initCommand(configPath);
       break;
 
     case 'write': {
@@ -112,17 +115,19 @@ export async function runCli(argv: string[], loader: SkillLoader): Promise<void>
   }
 }
 
-// Only run when executed directly (not imported in tests)
-if (import.meta.main) {
-  import('@copydoc/core').then(({ createLoader }) => {
-    import('path').then(({ default: path }) => {
-      // Resolve skills dir relative to this file: packages/cli/src/cli.ts -> ../../../../skills
-      const skillsDir = path.resolve(import.meta.dir, '../../../../skills');
-      const loader = createLoader(skillsDir);
-      runCli(process.argv, loader).catch((err) => {
-        console.error(String(err));
-        process.exit(1);
-      });
-    });
+function isDirectExecution(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+  }
+}
+
+if (isDirectExecution()) {
+  const loader = createBundledLoader();
+  runCli(process.argv, loader).catch((err) => {
+    console.error(String(err));
+    process.exit(1);
   });
 }

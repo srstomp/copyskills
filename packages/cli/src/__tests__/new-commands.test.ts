@@ -57,6 +57,8 @@ const mockGetBannedPatterns = mock(() => ['utilize', 'leverage']);
 
 mock.module('@copydoc/core', () => ({
   createLoader: mock(() => makeLoader()),
+  createBundledLoader: mock(() => makeLoader()),
+  resolveSkillsDir: mock(() => path.resolve(__dirname, '../../../../skills')),
   createAssembler: mock(() => ({
     assemble: mockAssemble,
     assembleCritique: mockAssembleCritique,
@@ -94,7 +96,7 @@ mock.module('../providers/adapter', () => ({
 
 // ---- Helpers ----
 
-const RC_FILE = path.join(os.homedir(), '.copydocrc.json');
+const RC_FILE = path.join(os.tmpdir(), `copydoc-new-commands-test-${process.pid}.copydocrc.json`);
 
 function makeSkillContent(name: string, description: string, body: string): SkillContent {
   return { metadata: { name, description }, body };
@@ -152,7 +154,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() prints welcome message', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const combined = output.join('\n');
     expect(combined).toContain('Welcome');
   });
@@ -160,7 +162,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() prompts for provider', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const questions = mockReadlineQuestions.join('\n');
     expect(questions).toContain('Provider');
   });
@@ -168,7 +170,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() prompts for API key', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const questions = mockReadlineQuestions.join('\n');
     expect(questions).toContain('API key');
   });
@@ -176,7 +178,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() creates ~/.copydocrc.json with provider and api_key', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     expect(fs.existsSync(RC_FILE)).toBe(true);
     const content = JSON.parse(fs.readFileSync(RC_FILE, 'utf-8'));
     expect(content.provider).toBe('anthropic');
@@ -187,7 +189,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
     // Empty string = user hit enter -> use default
     mockReadlineAnswers = ['', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const content = JSON.parse(fs.readFileSync(RC_FILE, 'utf-8'));
     expect(content.provider).toBe('anthropic');
   });
@@ -195,7 +197,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() saves optional base_url when provided', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', 'https://my-gateway.example.com', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const content = JSON.parse(fs.readFileSync(RC_FILE, 'utf-8'));
     expect(content.base_url).toBe('https://my-gateway.example.com');
   });
@@ -203,7 +205,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() saves optional model when provided', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', 'claude-3-haiku-20240307'];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const content = JSON.parse(fs.readFileSync(RC_FILE, 'utf-8'));
     expect(content.model).toBe('claude-3-haiku-20240307');
   });
@@ -211,7 +213,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() does not save base_url when empty', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const content = JSON.parse(fs.readFileSync(RC_FILE, 'utf-8'));
     expect(content.base_url).toBeUndefined();
   });
@@ -219,7 +221,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() prints confirmation with redacted API key', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const combined = output.join('\n');
     // Should show partial key but not full key
     expect(combined).toContain('sk-ant');
@@ -229,7 +231,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
   test('initCommand() prints path to config file in confirmation', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key-1234', '', ''];
     const { initCommand } = await import('../commands/init');
-    await initCommand();
+    await initCommand(RC_FILE);
     const combined = output.join('\n');
     expect(combined).toContain('.copydocrc.json');
   });
@@ -553,7 +555,7 @@ describe('cli.ts routing - new commands wired up', () => {
   test('"init" command no longer prints "Not yet implemented"', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key', '', ''];
     const { runCli } = await import('../cli');
-    await runCli(['node', 'copydoc', 'init'], makeLoader());
+    await runCli(['node', 'copydoc', 'init'], makeLoader(), RC_FILE);
     const combined = output.join('\n');
     expect(combined).not.toContain('Not yet implemented');
   });
@@ -561,7 +563,7 @@ describe('cli.ts routing - new commands wired up', () => {
   test('"init" command creates config file', async () => {
     mockReadlineAnswers = ['anthropic', 'sk-ant-test-key', '', ''];
     const { runCli } = await import('../cli');
-    await runCli(['node', 'copydoc', 'init'], makeLoader());
+    await runCli(['node', 'copydoc', 'init'], makeLoader(), RC_FILE);
     expect(fs.existsSync(RC_FILE)).toBe(true);
   });
 

@@ -1,6 +1,7 @@
 {
   "name": "@copydoc/core",
   "version": "0.1.1",
+  "type": "module",
   "private": false,
   "description": "Core skill loader, assembler, and copy analysis tools for the copydoc copywriting AI toolkit",
   "author": "Steve Stomp",
@@ -11,6 +12,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +29,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --format esm --target bun && tsc -p tsconfig.build.json",
+    "build": "bun build src/index.ts --outdir dist --format esm --target node --packages external && tsc -p tsconfig.build.json && node ../../scripts/copy-skills.mjs",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   }

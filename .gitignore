@@ -2,7 +2,6 @@
 .ohno/
 node_modules/
 dist/
-bun.lock
 .idea
 .mcp.json
 .claude/

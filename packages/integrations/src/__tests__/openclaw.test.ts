@@ -65,7 +65,7 @@ describe('openclawInstaller.install - creates openclaw.json when file does not e
     expect(parsed.mcp.servers).toBeDefined();
     expect(parsed.mcp.servers.copydoc).toBeDefined();
     expect(parsed.mcp.servers.copydoc.command).toBe('npx');
-    expect(parsed.mcp.servers.copydoc.args).toEqual(['@copydoc/mcp']);
+    expect(parsed.mcp.servers.copydoc.args).toEqual(['--yes', '@copydoc/mcp@0.1.1']);
   });
 
   test('adds skillsDir to skills.load.extraDirs', async () => {

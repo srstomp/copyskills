@@ -4,7 +4,7 @@ title: Value Propositions Reference
 
 # Value Propositions Reference
 
-Formulas, patterns, and a testing checklist for writing value propositions. Load alongside `persuasion-frameworks/references/fab.md` which provides the Features-Advantages-Benefits structure for building the underlying argument.
+Formulas, patterns, and a testing checklist for writing value propositions. Load alongside `../../persuasion-frameworks/references/fab.md` which provides the Features-Advantages-Benefits structure for building the underlying argument.
 
 ---
 

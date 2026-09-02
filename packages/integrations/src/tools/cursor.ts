@@ -5,7 +5,7 @@ import { convertAllSkills } from '../converters/mdc';
 
 const COPYDOC_ENTRY = {
   command: 'npx',
-  args: ['@copydoc/mcp'],
+  args: ['--yes', '@copydoc/mcp@0.1.1'],
 };
 
 function mcpJsonPath(projectDir: string): string {
