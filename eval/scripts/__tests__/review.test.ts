@@ -63,7 +63,7 @@ test('fact-check bundles preserve deliverables and facts, hide arms and shuffle 
   const text = readText(join(run.dir, 'factcheck/demo-nl.md'));
   expect(text).toContain('## Facts\n\nThe overview has 7 items.');
   expect(text).not.toMatch(/PRIVATE NOTES|arm [AB]|out\//);
-  expect(Object.keys(map)).toEqual(['F1', 'F2', 'F3', 'F4']);
+  expect(Object.keys(map)).toEqual(['O1', 'O2', 'O3', 'O4']);
   expect(Object.values(map).map((v: any) => `${v.arm}${v.n}`).sort()).toEqual(['A1', 'A2', 'B1', 'B2']);
   for (const [label, item] of Object.entries(map) as any) expect(text).toContain(`## ${label}\n\n### title\n\nTitle ${item.arm}${item.n}\n\n### body\n\nUnique ${item.arm}${item.n}.`);
   bundles.factcheckBundles(run, 11);
@@ -81,7 +81,7 @@ test('fact-check scores every output including zero, rejecting unknown, duplicat
   const result = scores.factcheckScore(run, file);
   expect(result.outputs.map(o => [o.task, o.arm, o.n, o.unsupported.length]).sort()).toEqual(run.tasks.flatMap(t => ['A', 'B'].flatMap(arm => [1, 2].map(n => [t.id, arm, n, arm === 'B' ? 2 : 0]))).sort());
   expect(readJSON(join(run.dir, 'factcheck-score.json'))).toEqual(result);
-  for (const change of [{ label: 'F99' }, { task: 'unknown' }, { unsupported: 'bad' }, { unsupported: [1] }]) {
+  for (const change of [{ label: 'O99' }, { task: 'unknown' }, { unsupported: 'bad' }, { unsupported: [1] }]) {
     save([{ ...rows[0], ...change }, ...rows.slice(1)]);
     expect(() => scores.factcheckScore(run, file)).toThrow();
   }

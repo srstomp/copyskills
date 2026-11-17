@@ -124,7 +124,7 @@ export function factcheckBundles(run: Run, seed = 1): void {
     const map: LabelMap = {};
     let text = `Locale: ${task.locale}\nAudience: ${task.audience}\nRegister: ${task.register}\n\n## Brief\n\n${task.brief}\n\n## Facts\n\n${task.facts}\n\n## Unknown\n\n${task.unknown}\n`;
     shuffle(all.filter(o => o.task === task.id), next).forEach((output, i) => {
-      const label = `F${i + 1}`;
+      const label = `O${i + 1}`; // not F<n>: those are fact ids
       map[label] = { arm: output.arm, n: output.n };
       text += `\n## ${label}\n\n` + task.deliverables.map(d => `### ${d.name}\n\n${output.sections[d.name] ?? ''}`).join('\n\n') + '\n';
     });

@@ -383,8 +383,14 @@ describe('owner, calibration, report and CLI', () => {
     const guards = evidence();
     guards.outputs.find(o => o.arm === 'B')!.hard = ['Missing placeholder {link}'];
     writeJSON(join(run.dir, 'guards.json'), guards);
-    expect(report(run)).toContain('Outcome: **revert**; candidate B has hard guard failures');
+    expect(report(run)).toContain('Outcome: **revert**; candidate B has more hard guard failures than A (1 vs 0)');
     expect(report(run)).toContain('- dev-0 B1: Missing placeholder {link}');
+    // Equal failure counts in both arms (the A/A base rate) do not revert.
+    const both = evidence();
+    both.outputs.find(o => o.arm === 'A')!.hard = ['Budget exceeded'];
+    both.outputs.find(o => o.arm === 'B')!.hard = ['Missing placeholder {link}'];
+    writeJSON(join(run.dir, 'guards.json'), both);
+    expect(report(run)).not.toContain('Outcome: **revert**; candidate B has more hard guard failures');
     evidence();
     run.tasks[0].set = 'holdout';
     run.tasks[1].set = 'report';

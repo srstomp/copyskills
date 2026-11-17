@@ -44,9 +44,11 @@ export function report(run: Run): string {
   });
   const factInterval = interval(facts.filter(t => devIds.has(t.task)).map(t => t.difference));
   const failingB = guardOutputs.filter(o => o.arm === 'B' && o.hard.length);
+  // An A/A run showed about 1 in 60 outputs fails a budget by chance, so B reverts only when it fails more often than A.
+  const failingA = guardOutputs.filter(o => o.arm === 'A' && o.hard.length);
   let outcome = 'inconclusive', reason = 'preference interval does not establish improvement';
-  if (failingB.length) {
-    outcome = 'revert'; reason = 'candidate B has hard guard failures';
+  if (failingB.length > failingA.length) {
+    outcome = 'revert'; reason = `candidate B has more hard guard failures than A (${failingB.length} vs ${failingA.length})`;
   } else if (preference.upper !== null && preference.upper < 0) {
     outcome = 'revert'; reason = 'preference is below zero beyond its interval';
   } else if (defects.upper !== null && defects.upper < 0) {
