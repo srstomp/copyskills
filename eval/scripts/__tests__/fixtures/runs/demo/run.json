@@ -1,0 +1,1 @@
+{"run": "demo", "arms": ["A", "B"], "n": 2, "tasks": ["demo-nl", "demo-en"], "samples": {"A": false, "B": true}}
