@@ -43,7 +43,7 @@ Placeholders are defined by this task, because no domain-status email exists in 
 F1: A domain's status stays `pending` until the required DNS records resolve, then becomes `active`. (source: reggy-launch/src/pages/docs.astro:317)
 F2: `failed` means the provider reported a terminal failure, usually a record never published or published at the wrong name. This email does not cover `failed`. (source: reggy-launch/src/pages/docs.astro:320)
 F3: Domains are added in the console under Delivery → Domains; Reggy returns the DNS records to publish at the DNS provider. (source: reggy-launch/src/pages/docs.astro:317)
-F4: A domain returns four record groups: domain verification (TXT), DKIM (CNAME x3), MAIL FROM (MX + TXT), DMARC (TXT). DMARC is recommended, the other three are required. (source: reggy-launch/src/pages/docs.astro:56-80)
+F4: A domain returns four (4) record groups: domain verification (TXT), DKIM (3 CNAME records), MAIL FROM (MX + TXT), DMARC (TXT). DMARC is recommended, the other three (3) are required. (source: reggy-launch/src/pages/docs.astro:56-80)
 F5: Many DNS providers append the zone automatically, so pasting a fully-qualified record name produces `name.yourdomain.com.yourdomain.com`; if verification will not complete, check this first. (source: reggy-launch/src/pages/docs.astro:342)
 F6: The bounce domain is a subdomain of the customer's domain, `bounce.yourdomain.com` unless another is chosen; there is no need to add Reggy to an existing root SPF record. (source: reggy-launch/src/pages/docs.astro:348)
 F7: DNS propagation is not instant: publish everything, then re-run verification. Reggy re-checks on demand. (source: reggy-launch/src/pages/docs.astro:355)

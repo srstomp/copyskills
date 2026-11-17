@@ -1,4 +1,4 @@
-You are judging pairs of copy versions written for the same brief. Read-only: do not edit any file.
+You are judging pairs of copy versions written for the same brief. Read-only: do not edit any file. Read only the bundle file below; do not open any other file.
 
 Bundle: __BUNDLE__
 
