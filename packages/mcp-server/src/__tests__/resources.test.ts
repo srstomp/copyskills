@@ -162,7 +162,7 @@ describe('copydoc://domains/{domain}/workflow resource', () => {
 });
 
 describe('copydoc://domains/{domain}/references resource', () => {
-  test('copydoc://domains/email-copy/references returns JSON array of 4 references', async () => {
+  test('copydoc://domains/email-copy/references includes all 5 references', async () => {
     const server = makeServer();
     const loader = createLoader(SKILLS_DIR);
     registerResources(server, loader);
@@ -172,7 +172,8 @@ describe('copydoc://domains/{domain}/references resource', () => {
     expect(content.mimeType).toBe('application/json');
     const parsed = JSON.parse(content.text as string);
     expect(Array.isArray(parsed)).toBe(true);
-    expect(parsed).toHaveLength(4);
+    expect(parsed).toHaveLength(5);
+    expect(parsed).toContain('transactional');
   });
 });
 

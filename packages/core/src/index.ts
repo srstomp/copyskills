@@ -7,9 +7,7 @@ export const VERSION = '0.1.1';
 
 export type {
   Brief,
-  QualityScores,
   FrameworkSelection,
-  CopyOutput,
   AssembledPrompt,
   SkillMetadata,
   SkillContent,

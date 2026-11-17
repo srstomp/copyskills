@@ -33,6 +33,8 @@ mock.module('readline/promises', () => ({
 
 // ---- Mock setup: @copydoc/core assembler and lint ----
 
+const { languageOf } = await import('@copydoc/core');
+
 const mockAssemble = mock((_brief: unknown) => ({
   systemPrompt: 'system prompt',
   userPrompt: 'user prompt',
@@ -43,7 +45,7 @@ const mockAssembleCritique = mock((_text: unknown, _context?: unknown) => ({
   userPrompt: 'critique user prompt',
 }));
 
-const mockAssembleAdapt = mock((_sourceText: unknown, _targetFormat: unknown) => ({
+const mockAssembleAdapt = mock((_sourceText: unknown, _targetFormat: unknown, _brandVoice?: unknown, _locale?: unknown) => ({
   systemPrompt: 'adapt system prompt',
   userPrompt: 'adapt user prompt',
 }));
@@ -54,6 +56,7 @@ const mockLint = mock((_text: string) => ({
 }));
 
 mock.module('@copydoc/core', () => ({
+  languageOf,
   createLoader: mock(() => makeLoader()),
   createBundledLoader: mock(() => makeLoader()),
   resolveSkillsDir: mock(() => path.resolve(__dirname, '../../../../skills')),
@@ -379,6 +382,12 @@ describe('critiqueCommand() - accepts file or inline text', () => {
     expect(textArg).toBe('This is inline copy text to critique.');
   });
 
+  test('critiqueCommand() passes the locale to prompt assembly', async () => {
+    const { critiqueCommand } = await import('../commands/critique');
+    await critiqueCommand(makeLoader(), 'Sake uit Kyoto.', 'nl-NL');
+    expect(mockAssembleCritique.mock.calls[0]).toEqual(['Sake uit Kyoto.', { locale: 'nl-NL' }]);
+  });
+
   test('critiqueCommand() calls provider.generate() (not stream)', async () => {
     const { critiqueCommand } = await import('../commands/critique');
     await critiqueCommand(makeLoader(), 'Some copy to review.');
@@ -472,6 +481,12 @@ describe('adaptCommand() - adapts copy to target format', () => {
     const [sourceArg, formatArg] = mockAssembleAdapt.mock.calls[0] as [string, string];
     expect(sourceArg).toBe('Original landing page copy');
     expect(formatArg).toBe('linkedin');
+  });
+
+  test('adaptCommand() passes the locale to prompt assembly', async () => {
+    const { adaptCommand } = await import('../commands/adapt');
+    await adaptCommand(makeLoader(), 'Sake uit Kyoto.', 'LinkedIn post', 'nl-NL');
+    expect(mockAssembleAdapt.mock.calls[0]).toEqual(['Sake uit Kyoto.', 'LinkedIn post', undefined, 'nl-NL']);
   });
 
   test('adaptCommand() streams adapted output to terminal', async () => {

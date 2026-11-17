@@ -122,7 +122,10 @@ export function routeToDomain(copyType: string): string {
 /**
  * Detects email sub-type from copy type string.
  */
-function detectEmailSubtype(lower: string): 'cold-outreach' | 'welcome-nurture' | 'newsletter' {
+function detectEmailSubtype(lower: string): 'transactional' | 'cold-outreach' | 'welcome-nurture' | 'newsletter' {
+  if (/\b(?:transactional|receipt|confirmation|order|shipped|shipping|delivery|password|reset|verify|verification|sign-in code|login code|invoice|notification|alert|reminder)\b/.test(lower)) {
+    return 'transactional';
+  }
   if (lower.includes('newsletter')) {
     return 'newsletter';
   }
@@ -246,6 +249,14 @@ export function selectFramework(copyType: string, goal: string): FrameworkSelect
   switch (domain) {
     case 'email-copy': {
       const subtype = detectEmailSubtype(lower);
+      if (subtype === 'transactional') {
+        return {
+          framework: 'None',
+          path: 'email-copy/references/transactional.md',
+          rationale:
+            'Transactional email confirms what happened and what to do next; a persuasion arc makes a receipt read like an advert.',
+        };
+      }
       if (subtype === 'newsletter') {
         return {
           framework: 'AIDA',

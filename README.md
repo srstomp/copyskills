@@ -278,20 +278,22 @@ constraints:
   length: "150 words max"
 ```
 
-Output includes the copy plus quality metadata:
+Output is the copy plus what a human needs to review it. There are no self-awarded scores:
 
 ```yaml
 copy:
-  primary: "..."
-  variants: ["...", "..."]
-metadata:
-  framework_used: "PAS"
-  domain: "email-copy/cold-outreach"
-  quality_scores:
-    clarity: 9
-    specificity: 8
-    voice_match: 8
-    overall: 8
+  - locale: nl-NL
+    fields:
+      subject: "..."
+      body: "..."
+claims:        # every factual claim, with the fact ids it rests on
+  - text: "..."
+    facts: [F3]
+needs: []      # questions only a human can answer
+decisions: []  # judgment calls a human may want to overrule
+lint:
+  nl-NL: "0 errors, 0 warnings"
+open_issues: []
 ```
 
 ## Architecture

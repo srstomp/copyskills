@@ -2,8 +2,6 @@ import { describe, expect, test } from 'bun:test';
 import { VERSION } from '../index';
 import type {
   Brief,
-  QualityScores,
-  CopyOutput,
   FrameworkSelection,
   AssembledPrompt,
   SkillMetadata,
@@ -53,52 +51,6 @@ describe('@copydoc/core type exports', () => {
     expect(brief.product?.name).toBe('SakeBox');
     expect(brief.brand_voice?.avoids).toContain('artisanal');
     expect(brief.locale).toBe('en-US');
-  });
-
-  test('QualityScores type has all 7 required dimensions', () => {
-    const scores: QualityScores = {
-      clarity: 8,
-      specificity: 7,
-      voice_match: 9,
-      ai_tell_score: 2,
-      persuasion: 8,
-      action: 7,
-      overall: 8,
-    };
-    expect(Object.keys(scores)).toHaveLength(7);
-    expect(scores.clarity).toBe(8);
-    expect(scores.specificity).toBe(7);
-    expect(scores.voice_match).toBe(9);
-    expect(scores.ai_tell_score).toBe(2);
-    expect(scores.persuasion).toBe(8);
-    expect(scores.action).toBe(7);
-    expect(scores.overall).toBe(8);
-  });
-
-  test('CopyOutput type can be constructed with required shape', () => {
-    const output: CopyOutput = {
-      copy: {
-        primary: 'Your copy here',
-        variants: ['Variant A'],
-      },
-      metadata: {
-        framework_used: 'PAS',
-        domain: 'email-copy/cold-outreach',
-        quality_scores: {
-          clarity: 8,
-          specificity: 7,
-          voice_match: 9,
-          ai_tell_score: 2,
-          persuasion: 8,
-          action: 7,
-          overall: 8,
-        },
-        flags: [],
-      },
-    };
-    expect(output.copy.primary).toBe('Your copy here');
-    expect(output.metadata.framework_used).toBe('PAS');
-    expect(output.metadata.quality_scores.overall).toBe(8);
   });
 
   test('FrameworkSelection type has framework, path, rationale', () => {

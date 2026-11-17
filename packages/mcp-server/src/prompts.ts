@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SkillLoader, Brief } from '@copydoc/core';
-import { selectFramework, createAssembler } from '@copydoc/core';
+import { selectFramework, createAssembler, languageOf } from '@copydoc/core';
 import { z } from 'zod';
 
 /**
@@ -25,8 +25,11 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       product: z.string().optional().describe("Product name and description, e.g. 'SakeBox - direct from 40+ breweries'"),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'knowledgeable, casual'"),
       constraints: z.string().optional().describe("Copy constraints, e.g. '150 words max, plain text'"),
+      locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
+      facts: z.string().max(200000).optional().describe('One fact per line, optionally prefixed with an id like F3: (letters then digits) and ending with (source: ...)'),
+      voice_examples: z.string().max(200000).optional().describe('Approved copy samples separated by a line containing only ---'),
     },
-    ({ type, goal, audience, product, brand_voice, constraints }) => {
+    ({ type, goal, audience, product, brand_voice, constraints, locale, facts, voice_examples }) => {
       const brief: Brief = {
         type,
         goal,
@@ -42,6 +45,41 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
 
       if (brand_voice) {
         brief.brand_voice = { tone: brand_voice };
+      }
+
+      if (locale !== undefined) {
+        languageOf(locale);
+        brief.locale = locale;
+      }
+
+      if (facts) {
+        const lines = facts.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const parsed = lines.map((line) => {
+          const idMatch = line.match(/^([A-Z]{1,3}\d+):\s*/);
+          const claim = idMatch ? line.slice(idMatch[0].length) : line;
+          const sourceMatch = claim.match(/\s*\(source:\s*(.*)\)\s*$/);
+          return {
+            id: idMatch?.[1],
+            claim: sourceMatch ? claim.slice(0, sourceMatch.index).trim() : claim,
+            ...(sourceMatch ? { source: sourceMatch[1].trim() } : {}),
+          };
+        });
+        // Explicit ids are kept; the others get the next free F<n>, so no two facts share an id.
+        const used = new Set(parsed.map((fact) => fact.id).filter(Boolean));
+        let next = 1;
+        brief.facts = parsed.map((fact) => {
+          if (fact.id) return { ...fact, id: fact.id };
+          while (used.has(`F${next}`)) next += 1;
+          used.add(`F${next}`);
+          return { ...fact, id: `F${next}` };
+        });
+      }
+
+      if (voice_examples) {
+        brief.brand_voice = {
+          ...brief.brand_voice,
+          examples: voice_examples.split(/^\s*---\s*$/m).map((sample) => sample.trim()).filter(Boolean),
+        };
       }
 
       if (constraints) {
@@ -71,9 +109,15 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       audience: z.string().optional().describe('The intended audience for the copy'),
       goal: z.string().optional().describe('The conversion goal of the copy'),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'bold, direct'"),
+      locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
     },
-    ({ copy_text, audience, goal, brand_voice }) => {
+    ({ copy_text, audience, goal, brand_voice, locale }) => {
       const context: Partial<Brief> = {};
+
+      if (locale !== undefined) {
+        languageOf(locale);
+        context.locale = locale;
+      }
 
       if (audience) {
         context.audience = { who: audience };
@@ -109,11 +153,16 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       source_copy: z.string().describe('The source copy text to adapt'),
       target_format: z.string().describe("The target format, e.g. 'LinkedIn post'"),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'knowledgeable, casual'"),
+      locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
     },
-    ({ source_copy, target_format, brand_voice }) => {
+    ({ source_copy, target_format, brand_voice, locale }) => {
       const brandVoice: Brief['brand_voice'] = brand_voice ? { tone: brand_voice } : undefined;
 
-      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice);
+      if (locale !== undefined) {
+        languageOf(locale);
+      }
+
+      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice, locale);
       const text = systemPrompt + '\n\n---\n\n' + userPrompt;
 
       return {

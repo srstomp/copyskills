@@ -396,3 +396,109 @@ describe('optional arguments are passed through to assembler', () => {
     expect(text).toContain('knowledgeable, casual');
   });
 });
+
+describe('new brief fields', () => {
+  test('write preserves locale, fact ids and sources, tone, and multiline voice examples', async () => {
+    const loader = createLoader(SKILLS_DIR);
+    const server = makeServer();
+    registerPrompts(server, loader);
+    const result = await getPrompt(server, 'write', {
+      type: 'cold email', goal: 'book demo', locale: 'nl-NL',
+      facts: '\n F3: Brewed in Kyoto (source: catalogue)\r\n\n16% ABV\nPrice: € 24,99\nFounded in 1872 (source: brewery (2026))\n',
+      brand_voice: 'calm and direct',
+      voice_examples: 'Sake uit Kyoto.\nDroog en fris.\n  ---  \n\nKies je fles.\n',
+    });
+    const expected = createAssembler(loader, selectFramework).assemble({
+      type: 'cold email', goal: 'book demo', locale: 'nl-NL',
+      facts: [
+        { id: 'F3', claim: 'Brewed in Kyoto', source: 'catalogue' },
+        { id: 'F1', claim: '16% ABV' },
+        { id: 'F2', claim: 'Price: € 24,99' },
+        { id: 'F4', claim: 'Founded in 1872', source: 'brewery (2026)' },
+      ],
+      brand_voice: { tone: 'calm and direct', examples: ['Sake uit Kyoto.\nDroog en fris.', 'Kies je fles.'] },
+    });
+    const text = result.messages[0].content.text;
+    expect(text).toBe(expected.systemPrompt + '\n\n---\n\n' + expected.userPrompt);
+    expect(text).toContain('Language: nl-NL. Write natively in this language; do not translate from another language.');
+    expect(text).toContain('- F3: Brewed in Kyoto (source: catalogue)\n- F1: 16% ABV\n- F2: Price: € 24,99\n- F4: Founded in 1872 (source: brewery (2026))');
+    expect(text).toContain('Tone: calm and direct\nApproved samples (match their voice; do not reuse their phrases):\n\n<sample>\nSake uit Kyoto.\nDroog en fris.\n</sample>\n\n<sample>\nKies je fles.\n</sample>');
+    expect(text).toContain('# Language Rules: nl-NL (MANDATORY)');
+  });
+
+  test('voice examples work without tone and ignore empty samples', async () => {
+    const loader = createLoader(SKILLS_DIR);
+    const server = makeServer();
+    registerPrompts(server, loader);
+    const result = await getPrompt(server, 'write', {
+      type: 'cold email', goal: 'book demo',
+      voice_examples: '---\n  \n---\nFirst sample.\n--- inside a sample\nSecond line.\n---',
+    });
+    expect(result.messages[0].content.text).toContain('# Brand Voice Constraints\n\nApproved samples (match their voice; do not reuse their phrases):\n\n<sample>\nFirst sample.\n--- inside a sample\nSecond line.\n</sample>');
+  });
+
+  for (const [name, args] of [
+    ['write', { type: 'cold email', goal: 'book demo' }],
+    ['critique', { copy_text: 'Sake uit Kyoto.' }],
+    ['adapt', { source_copy: 'Sake uit Kyoto.', target_format: 'LinkedIn post' }],
+  ] as const) {
+    test(`${name} accepts locale and rejects invalid locales`, async () => {
+      const server = makeServer();
+      registerPrompts(server, createLoader(SKILLS_DIR));
+      const result = await getPrompt(server, name, { ...args, locale: 'nl-NL' });
+      expect(result.messages[0].content.text).toContain('Language: nl-NL. Write natively in this language; do not translate from another language.');
+      for (const locale of ['nl_NL', '../x', '']) {
+        await expect(getPrompt(server, name, { ...args, locale })).rejects.toThrow(`Invalid locale: ${locale}`);
+      }
+      await expect(getPrompt(server, name, { ...args, locale: 'x'.repeat(201) })).rejects.toThrow();
+    });
+  }
+
+  test.each(['facts', 'voice_examples'])('write caps %s', async (argument) => {
+    const server = makeServer();
+    registerPrompts(server, createLoader(SKILLS_DIR));
+    await expect(getPrompt(server, 'write', {
+      type: 'cold email', goal: 'book demo', [argument]: 'x'.repeat(200001),
+    })).rejects.toThrow();
+  });
+
+  test('omitting new arguments preserves all three assembled prompts', async () => {
+    const loader = createLoader(SKILLS_DIR);
+    const server = makeServer();
+    registerPrompts(server, loader);
+    const assembler = createAssembler(loader, selectFramework);
+    const cases: Array<{
+      name: string;
+      args: Record<string, string>;
+      expected: { systemPrompt: string; userPrompt: string };
+      user: string;
+    }> = [
+      { name: 'write', args: { type: 'cold email', goal: 'book demo', brand_voice: 'direct' },
+        expected: assembler.assemble({ type: 'cold email', goal: 'book demo', brand_voice: { tone: 'direct' } }),
+        user: 'Write a cold email.\nGoal: book demo' },
+      { name: 'critique', args: { copy_text: 'Source.', brand_voice: 'direct' },
+        expected: assembler.assembleCritique('Source.', { brand_voice: { tone: 'direct' } }),
+        user: 'Evaluate the following copy:\n\nSource.\n\nBrand voice: direct' },
+      { name: 'adapt', args: { source_copy: 'Source.', target_format: 'LinkedIn post', brand_voice: 'direct' },
+        expected: assembler.assembleAdapt('Source.', 'LinkedIn post', { tone: 'direct' }),
+        user: 'Adapt the following copy for LinkedIn post:\n\nSource.\n\nBrand voice: Tone: direct' },
+    ];
+    for (const { name, args, expected, user } of cases) {
+      const result = await getPrompt(server, name, args);
+      expect(expected.userPrompt).toBe(user);
+      expect(result.messages[0].content.text).toBe(expected.systemPrompt + '\n\n---\n\n' + user);
+    }
+  });
+
+  test('new prompt arguments are optional strings in prompt listings', async () => {
+    const server = makeServer();
+    registerPrompts(server, createLoader(SKILLS_DIR));
+    const result = await listPrompts(server);
+    for (const prompt of result.prompts) {
+      const fields = prompt.name === 'write' ? ['locale', 'facts', 'voice_examples'] : ['locale'];
+      for (const name of fields) {
+        expect(prompt.arguments).toContainEqual(expect.objectContaining({ name, required: false }));
+      }
+    }
+  });
+});

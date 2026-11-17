@@ -1,6 +1,35 @@
 import { describe, expect, test } from 'bun:test';
 import { selectFramework, routeToDomain } from '../frameworks';
 import type { FrameworkSelection } from '../types';
+import { createLoader } from '../loader';
+import path from 'path';
+
+describe('transactional email routing', () => {
+  const loader = createLoader(path.resolve(__dirname, '../../../../skills'));
+
+  test.each([
+    'order shipped email', 'password reset email', 'transactional email',
+    'receipt email', 'Dutch order confirmation email', 'confirmation email',
+    'shipping email', 'delivery email', 'verify email', 'verification email',
+    'sign-in code email', 'login code email', 'invoice email',
+    'notification email', 'alert email', 'reminder email',
+    'welcome order confirmation email', 'newsletter delivery email',
+  ])('%s uses no persuasion arc and resolves the transactional reference', (copyType) => {
+    const result = selectFramework(copyType, 'inform the reader');
+    expect(result.framework).toBe('None');
+    expect(result.path).toBe('email-copy/references/transactional.md');
+    expect(loader.resolveReference(result.path)).toContain('# Transactional Email');
+  });
+
+  test.each([
+    ['cold outreach email', 'PAS'],
+    ['welcome email', 'BAB'],
+    ['newsletter', 'AIDA'],
+    ['border collie breeder cold email', 'PAS'],
+  ])('%s keeps its existing framework', (copyType, framework) => {
+    expect(selectFramework(copyType, 'engage readers').framework).toBe(framework);
+  });
+});
 
 // AC: selectFramework('cold outreach email', 'book a demo') returns { framework: 'PAS', path contains 'pas.md' }
 describe('selectFramework - email-copy', () => {

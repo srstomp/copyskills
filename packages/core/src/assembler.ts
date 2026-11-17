@@ -19,7 +19,7 @@ function loadLocalePack(loader: SkillLoader, locale: string): string | null {
 export interface Assembler {
   assemble(brief: Brief): AssembledPrompt;
   assembleCritique(text: string, context?: Partial<Brief>): AssembledPrompt;
-  assembleAdapt(sourceText: string, targetFormat: string, brandVoice?: Brief['brand_voice']): AssembledPrompt;
+  assembleAdapt(sourceText: string, targetFormat: string, brandVoice?: Brief['brand_voice'], locale?: string): AssembledPrompt;
 }
 
 export function createAssembler(
@@ -74,7 +74,7 @@ export function createAssembler(
         brandParts.push(`Treat these as additional banned words: ${bv.avoids.join(', ')}`);
       }
       if (bv.examples && bv.examples.length > 0) {
-        brandParts.push(`Examples: ${bv.examples.join(', ')}`);
+        brandParts.push(`Approved samples (match their voice; do not reuse their phrases):\n\n${bv.examples.map((sample) => `<sample>\n${sample}\n</sample>`).join('\n\n')}`);
       }
 
       systemParts.push('# Brand Voice Constraints');
@@ -111,7 +111,7 @@ export function createAssembler(
     }
 
     if (brief.facts && brief.facts.length > 0) {
-      const factLines = brief.facts.map((f) => `- ${f.id}: ${f.claim}`);
+      const factLines = brief.facts.map((f) => `- ${f.id}: ${f.claim}${f.source ? ` (source: ${f.source})` : ''}`);
       userParts.push(`Facts (state only these; a fact you need that is missing goes in a list of questions, never a guess):\n${factLines.join('\n')}`);
     }
 
@@ -174,6 +174,10 @@ export function createAssembler(
       if (context.brand_voice?.tone) {
         contextParts.push(`Brand voice: ${context.brand_voice.tone}`);
       }
+      if (context.locale !== undefined) {
+        languageOf(context.locale);
+        contextParts.push(`Language: ${context.locale}. Write natively in this language; do not translate from another language.`);
+      }
       if (contextParts.length > 0) {
         userParts.push(contextParts.join('\n'));
       }
@@ -188,6 +192,7 @@ export function createAssembler(
     sourceText: string,
     targetFormat: string,
     brandVoice?: Brief['brand_voice'],
+    locale?: string,
   ): AssembledPrompt {
     // 1. Load copy-adapt skill
     const adaptSkill = loader.getSkill('copy-adapt');
@@ -223,6 +228,11 @@ export function createAssembler(
 
     userParts.push(`Adapt the following copy for ${targetFormat}:\n\n${sourceText}`);
 
+    if (locale !== undefined) {
+      languageOf(locale);
+      userParts.push(`Language: ${locale}. Write natively in this language; do not translate from another language.`);
+    }
+
     if (brandVoice) {
       const bvParts: string[] = [];
       if (brandVoice.tone) bvParts.push(`Tone: ${brandVoice.tone}`);
@@ -230,7 +240,7 @@ export function createAssembler(
         bvParts.push(`Avoids: ${brandVoice.avoids.join(', ')}`);
       }
       if (brandVoice.examples && brandVoice.examples.length > 0) {
-        bvParts.push(`Examples: ${brandVoice.examples.join(', ')}`);
+        bvParts.push(`Approved samples (match their voice; do not reuse their phrases):\n\n${brandVoice.examples.map((sample) => `<sample>\n${sample}\n</sample>`).join('\n\n')}`);
       }
       if (bvParts.length > 0) {
         userParts.push(`Brand voice: ${bvParts.join('. ')}`);

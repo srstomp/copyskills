@@ -30,36 +30,11 @@ export interface Brief {
   };
 }
 
-/** Quality scores returned by evaluation */
-export interface QualityScores {
-  clarity: number;
-  specificity: number;
-  voice_match: number;
-  ai_tell_score: number;  // 0-10, lower is better
-  persuasion: number;
-  action: number;
-  overall: number;
-}
-
 /** Framework selection result */
 export interface FrameworkSelection {
   framework: string;      // e.g., 'PAS'
   path: string;           // e.g., 'persuasion-frameworks/references/pas.md'
   rationale: string;
-}
-
-/** Copy output - the output contract */
-export interface CopyOutput {
-  copy: {
-    primary: string;
-    variants?: string[];
-  };
-  metadata: {
-    framework_used: string;
-    domain: string;
-    quality_scores: QualityScores;
-    flags: string[];
-  };
 }
 
 /** Assembled prompt pair ready for LLM */

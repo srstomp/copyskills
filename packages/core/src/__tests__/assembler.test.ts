@@ -335,7 +335,7 @@ describe('assemble() - locale and facts', () => {
       ],
     });
     expect(result.userPrompt).toContain('Facts (state only these');
-    expect(result.userPrompt).toContain('- F1: Brewery founded in 1872\n- F2: 16% ABV');
+    expect(result.userPrompt).toContain('- F1: Brewery founded in 1872 (source: catalogue)\n- F2: 16% ABV');
   });
 });
 
@@ -350,5 +350,22 @@ describe('locale errors', () => {
       return real.resolveReference(ref);
     } };
     expect(() => createAssembler(loader, selectFramework).assemble({ type: 'cold email', goal: 'book demo', locale: 'nl' })).toThrow('Permission denied');
+  });
+});
+
+describe('brand_voice.examples', () => {
+  const samples = ['Zurig, bloemig.\nGeen citroen.', 'Kies je fles.'];
+  const block = 'Approved samples (match their voice; do not reuse their phrases):\n\n<sample>\nZurig, bloemig.\nGeen citroen.\n</sample>\n\n<sample>\nKies je fles.\n</sample>';
+
+  test('assemble keeps each multi-line sample whole and separate', () => {
+    const result = makeAssembler().assemble({ type: 'product description', goal: 'sell', brand_voice: { examples: samples } });
+    const text = result.systemPrompt + result.userPrompt;
+    expect(text).toContain(block);
+    expect(text).not.toContain('Geen citroen., Kies je fles.');
+  });
+
+  test('assembleAdapt keeps each multi-line sample whole and separate', () => {
+    const result = makeAssembler().assembleAdapt('Original copy.', 'LinkedIn post', { examples: samples });
+    expect(result.systemPrompt + result.userPrompt).toContain(block);
   });
 });

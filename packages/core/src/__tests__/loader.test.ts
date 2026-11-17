@@ -125,10 +125,11 @@ describe('getReference()', () => {
 });
 
 describe('listReferences()', () => {
-  test('listReferences("email-copy") returns 4 references', () => {
+  test('listReferences("email-copy") returns 5 references including transactional', () => {
     const loader = createLoader(SKILLS_DIR);
     const refs = loader.listReferences('email-copy');
-    expect(refs).toHaveLength(4);
+    expect(refs).toHaveLength(5);
+    expect(refs).toContain('transactional');
   });
 
   test('listReferences("email-copy") returns expected reference names', () => {

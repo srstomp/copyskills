@@ -30,7 +30,7 @@ export async function adaptCommand(
 
   const sourceText = resolveInput(source);
 
-  const { systemPrompt, userPrompt } = assembler.assembleAdapt(sourceText, targetFormat);
+  const { systemPrompt, userPrompt } = assembler.assembleAdapt(sourceText, targetFormat, undefined, locale);
 
   let fullOutput = '';
   for await (const chunk of provider.stream(systemPrompt, userPrompt)) {

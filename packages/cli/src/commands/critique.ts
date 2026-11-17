@@ -25,7 +25,7 @@ export async function critiqueCommand(loader: SkillLoader, input: string, locale
 
   const text = resolveInput(input);
 
-  const { systemPrompt, userPrompt } = assembler.assembleCritique(text);
+  const { systemPrompt, userPrompt } = assembler.assembleCritique(text, { locale });
 
   const response = await provider.generate(systemPrompt, userPrompt);
 
