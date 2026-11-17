@@ -11,6 +11,8 @@ Breaking changes throughout; there are no external users to keep compatible.
 - **Checks, not self-scores:** `copy-workflow` and the domain skills gate new copy on pass/fail checks (facts, brief, tells, lint). The 7-dimension rubric stays for critiquing existing copy. The output contract now returns copy per locale with `claims`, `needs`, `decisions`, lint result and open issues.
 - **Linter:** `createLinter` replaces the English-only anti-slop checker: Unicode-aware phrase lists parsed from the markdown (`{lint: error}` / `{lint: warn}` sections), title and meta budgets, repeated sentences, numbers missing from a fact sheet, and batch skeleton and opener checks. New `copydoc lint` CLI command (no API key) and MCP `lint_copy` tool, replacing `score_copy` and `check_anti_slop`. Removed the sentence-length, paragraph-opening, tricolon and specificity heuristics.
 - **Routing:** shop deliverables route to commerce-copy before editorial's generic "SEO" keyword. `Brief` gains `locale` and `facts`; `constraints.language` is gone; the assembler loads the locale pack.
+- **Transactional email:** order, shipping, receipt, password and sign-in emails get their own reference (`email-copy/references/transactional.md`) and no persuasion framework. `Brief.email_type` (and `email_type` on MCP `write` and `select_framework`) names the email type explicitly; without it, only unambiguous phrases count as transactional.
+- **MCP prompts carry the new brief:** `write` takes `locale`, `facts` and `voice_examples`; `critique` and `adapt` take `locale` and load the locale pack. Voice samples are rendered as separate `<sample>` blocks. `QualityScores` and `CopyOutput` are removed from `@copydoc/core`.
 
 ## Codex installation and package distribution
 
