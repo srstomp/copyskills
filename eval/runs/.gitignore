@@ -1,0 +1,6 @@
+# Run outputs are regenerated; only results are kept.
+*
+!.gitignore
+!*/
+!*/results.md
+!*/owner-check.md
