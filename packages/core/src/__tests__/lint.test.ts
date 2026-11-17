@@ -188,10 +188,32 @@ describe('review regressions', () => {
       { rule: 'number', severity: 'error', message: 'Number 24 is not in the fact sheet' },
     ]);
   });
-  test('facts include CSV fields and both readings of comma tokens', () => {
+  test('a CSV row splits on commas; a lone decimal comma stays one number', () => {
     expect(clean().lint('45 720 16 34.5', { facts: 'DS45,Dassai 45,720,16,34.50' }).issues).toEqual([]);
-    expect(clean().lint('34 50 34.5', { facts: '34,50' }).issues).toEqual([]);
     expect(clean().lint('720 16 34.5', { facts: 'DS45,720,16,34.50' }).issues).toEqual([]);
+    expect(clean().lint('€ 34,50 or 34.5', { facts: 'Prijs: € 34,50' }).issues).toEqual([]);
+    // A decimal-comma fact does not license its halves: a rounded or invented number is still an error.
+    expect(clean().lint('34 euro, 50 ml, 15%', { facts: 'Prijs: € 34,50. Alcohol: 15,5%' }).issues.map(i => i.message)).toEqual([
+      'Number 34 is not in the fact sheet',
+      'Number 50 is not in the fact sheet',
+      'Number 15 is not in the fact sheet',
+    ]);
+  });
+  test('large prices with thousands and decimal separators', () => {
+    expect(clean().lint('€ 1.234,56', { facts: '1234.56' }).issues).toEqual([]);
+    expect(clean().lint('€1,234.56', { facts: '1234,56' }).issues).toEqual([]);
+    expect(clean().lint('1.234.567', { facts: '1234567' }).issues).toEqual([]);
+  });
+  test('long whitespace runs and long batch items stay linear', () => {
+    const start = performance.now();
+    linter(fixture).lint("In today's" + ' '.repeat(200_000) + 'x');
+    clean().lintBatch(['12 '.repeat(300_000), 'a b c d', 'a b c d']);
+    expect(performance.now() - start).toBeLessThan(2000);
+  });
+  test('literal avoid phrases match across NBSP, line breaks and double spaces', () => {
+    for (const text of ['world\u00a0class', 'world\nclass', 'world  class']) {
+      expect(clean().lint(text, { avoid: ['world class'] }).errors).toBe(1);
+    }
   });
   test.each(['1.200', '1,200'])('thousands ambiguity is accepted on either side: %s', value => {
     expect(clean().lint(value, { facts: '1200' }).issues).toEqual([]);

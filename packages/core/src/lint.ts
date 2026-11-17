@@ -45,10 +45,11 @@ function compile(text: string, severity: Severity, suggestion?: string, literal 
   if (!text.trim()) return;
   const parts = literal ? [text] : text.split(/(\[[^\]\n]+\]|\.\.\.|…|\p{L}+\*| +)/u);
   const body = parts.map(part => {
-    if (literal) return escapeRegex(part);
+    if (literal) return escapeRegex(part).replace(/\s+/gu, '\\s{1,4}');
     if (/^\[[^\]\n]+\]$/u.test(part)) return "[\\p{L}\\p{N} '\\-]{1,40}";
     if (part === '...' || part === '…') return '[^.!?\\r\\n]{0,60}';
-    if (/^ +$/.test(part)) return '\\s+';
+    // Bounded: an unbounded \s+ next to the [X] and ... classes backtracks quadratically on long space runs.
+    if (/^ +$/.test(part)) return '\\s{1,4}';
     if (/^\p{L}+\*$/u.test(part)) return escapeRegex(part.slice(0, -1)) + '\\p{L}*';
     return escapeRegex(part);
   }).join('');
@@ -90,20 +91,25 @@ function parsePatterns(markdown: string): Pattern[] {
 
 // Match the whole numeric candidate before checking its prefix, so v2.5
 // cannot leak a partial match for 5.
-function numbers(text: string, facts = false): RegExpMatchArray[] {
-  return [...text.matchAll(facts ? /\d+(?:[.,]\d+)*/gu : /\d+(?:[.,]\d+)?/gu)].filter(match => {
+function numbers(text: string): RegExpMatchArray[] {
+  return [...text.matchAll(/\d+(?:[.,]\d+)*/gu)].filter(match => {
     const index = match.index!;
     // At most two UTF-16 units are needed for the preceding Unicode character.
     return !/[\p{L}_]$/u.test(text.slice(Math.max(0, index - 2), index));
   });
 }
-function numberValues(value: string, facts = false): number[] {
-  const readings = [value, ...(facts ? value.split(',') : [])];
-  return readings.flatMap(reading => {
-    const decimal = Number(reading.replace(',', '.'));
-    return /^\d+[.,]\d{3}$/.test(reading)
-      ? [decimal, Number(reading.replace(/[.,]/, ''))] : [decimal];
-  }).filter(Number.isFinite);
+/** Numeric readings of a number token: "15,5" = 15.5; "1.200" = 1.2 or 1200; "1.234,56" = 1234.56. */
+function numberValues(value: string): number[] {
+  const separators = [...value.matchAll(/[.,]/g)];
+  if (separators.length === 0) return [Number(value)];
+  const last = separators[separators.length - 1];
+  const tail = value.slice(last.index! + 1);
+  if (separators.length === 1) {
+    const decimal = Number(value.replace(',', '.'));
+    return tail.length === 3 ? [decimal, Number(value.replace(/[.,]/, ''))] : [decimal];
+  }
+  if (separators.every(sep => sep[0] === last[0]) && tail.length === 3) return [Number(value.replace(/[.,]/g, ''))];
+  return [Number(`${value.slice(0, last.index).replace(/[.,]/g, '')}.${tail}`)];
 }
 
 function splitSentences(text: string): string[] {
@@ -189,11 +195,11 @@ export function createLinter(loader: SkillLoader): Linter {
     }
 
     if (options.facts !== undefined) {
-      const facts = new Set(numbers(options.facts, true).flatMap(n => numberValues(n[0], true)));
-      // Also scan CSV fields independently, including fields after an identifier.
-      for (const number of numbers(options.facts.replace(/,/g, ' '))) {
-        for (const value of numberValues(number[0])) facts.add(value);
-      }
+      // In a CSV row commas separate fields, not decimals. A row has an unspaced comma touching a
+      // non-digit ("DS45,Dassai") or three comma-joined numbers ("45,720,16"); prose with "15,5%" has neither.
+      const isCsvRow = (line: string) => /[^\d\s],\S|\S,[^\d\s]/u.test(line) || /\d+,\d+,\d+/.test(line);
+      const factText = options.facts.split('\n').map(line => (isCsvRow(line) ? line.replace(/,/g, ' ') : line)).join('\n');
+      const facts = new Set(numbers(factText).flatMap(n => numberValues(n[0])));
       for (const number of numbers(text)) {
         if (!numberValues(number[0]).some(value => facts.has(value))) issues.push({ rule: 'number', severity: 'error', message: `Number ${number[0]} is not in the fact sheet` });
       }
@@ -212,10 +218,7 @@ export function createLinter(loader: SkillLoader): Linter {
       map.get(phrase)!.add(item);
     }
     items.forEach((text, item) => {
-      let masked = normalize(text).toLowerCase();
-      for (const number of numbers(masked).reverse()) {
-        masked = masked.slice(0, number.index) + '#' + masked.slice(number.index! + number[0].length);
-      }
+      const masked = normalize(text).toLowerCase().replace(/(?<![\p{L}_])\d+(?:[.,]\d+)*/gu, '#');
       const tokens = masked.match(/[\p{L}\p{N}']+|#/gu) ?? [];
       if (tokens.length >= 3) record(openers, tokens.slice(0, 3).join(' '), item);
       for (let i = 0; i <= tokens.length - 4; i++) {

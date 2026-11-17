@@ -200,10 +200,10 @@ Each pattern is a default choice that a person can also make on purpose. Leave a
 - delv*
 - testament
 - elevate*
+- elevating
 - unleash*
 - embark*
 - revolutioni*
-- revolutionise*
 - game-changer
 - game-changing
 - cutting-edge

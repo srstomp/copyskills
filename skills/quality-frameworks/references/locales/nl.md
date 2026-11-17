@@ -95,6 +95,7 @@ Dutch model copy has its own set of defaults. The lint lists below hold the ones
 - "Zeker!" (chat residue at the start of a text; fine inside a sentence such as "Dat kan zeker!")
 - naadlo* (a tell as praise; fine for naadloze kleding)
 - ontdek* (a stock opener in shop copy; fine when the reader really discovers something)
+- ervaar*
 - ervar*
 - beleef*
 - beleven*

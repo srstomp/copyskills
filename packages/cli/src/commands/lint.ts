@@ -57,6 +57,14 @@ export function lintCommand(loader: SkillLoader, targets: string[], flags: Recor
     const result = flags.items === 'lines'
       ? linter.lintBatch(texts[0].split(/\r?\n/).filter(line => line.trim()), options)
       : directory || files.length > 1 ? linter.lintBatch(texts, options) : linter.lint(texts[0], options);
+    const language = (options.locale ?? 'en').split('-')[0].toLowerCase();
+    if (language !== 'en') {
+      try {
+        loader.resolveReference(`quality-frameworks/references/locales/${language}.md`);
+      } catch {
+        console.error(`lint: no locale pack for "${language}"; phrase checks did not run, only length, repeat, number and batch checks`);
+      }
+    }
     if (flags.json) console.log(JSON.stringify(result));
     else printLintResult(result);
     return result.errors > 0 ? 1 : 0;
