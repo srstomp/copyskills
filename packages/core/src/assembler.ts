@@ -94,6 +94,10 @@ export function createAssembler(
     userParts.push(`Write a ${brief.type}.`);
     userParts.push(`Goal: ${brief.goal}`);
 
+    if (brief.email_type !== undefined) {
+      userParts.push(`Email type: ${brief.email_type}`);
+    }
+
     if (brief.audience) {
       const a = brief.audience;
       const audienceLine = `Audience: ${a.who}${a.pain ? `. Pain: ${a.pain}` : ''}${a.sophistication ? `. Sophistication: ${a.sophistication}` : ''}`;

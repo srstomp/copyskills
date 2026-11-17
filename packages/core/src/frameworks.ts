@@ -134,21 +134,22 @@ export type EmailType = (typeof EMAIL_TYPES)[number];
  * explicit `email_type: transactional`.
  */
 function detectEmailType(lower: string): EmailType {
-  if (lower.includes('newsletter')) return 'newsletter';
-  if (lower.includes('cold') || lower.includes('outreach')) return 'cold-outreach';
+  // Transactional phrases first: "order confirmation email for newsletter subscribers" is transactional.
   if (TRANSACTIONAL_EMAIL.test(lower)) return 'transactional';
+  if (lower.includes('newsletter')) return 'newsletter';
+  if (/\b(?:cold|outreach)\b/.test(lower)) return 'cold-outreach';
   if (['drip', 'nurture', 'welcome', 'sequence', 'campaign'].some((word) => lower.includes(word))) return 'welcome-sequence';
   return 'cold-outreach';
 }
 
 const TRANSACTIONAL_EMAIL = new RegExp(
   [
-    '\\b(?:transactional|password reset|reset (?:your )?password|(?:receipt|invoice) e-?mail)\\b',
-    '\\border (?:confirmation|shipped)\\b',
-    '\\b(?:shipping|delivery) confirmation\\b',
-    '\\b(?:sign[- ]?in|log[- ]?in|verification) code\\b',
+    '\\b(?:transactional|password[- ]reset|reset (?:your )?password|(?:receipt|invoice)[- ]e-?mail)\\b',
+    '\\border[- ](?:confirmation|shipped)\\b',
+    '\\b(?:shipping|delivery)[- ]confirmation\\b',
+    '\\b(?:sign[- ]?in|log[- ]?in|verification)[- ]code\\b',
     '\\b(?:verification e-?mail|verify (?:your )?e-?mail)\\b',
-    '\\bpayment (?:failed|receipt)\\b',
+    '\\bpayment[- ](?:failed|receipt)\\b',
     '(?:bestelbevestiging|orderbevestiging|verzendbevestiging|bestellbestätigung|auftragsbestätigung|versandbestätigung)',
   ].join('|'),
   'u',

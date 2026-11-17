@@ -15,6 +15,8 @@ describe('transactional email routing', () => {
     'login code email', 'verification code email', 'verification email', 'verify your email email',
     'payment failed email', 'invoice email', 'order confirmation email for Black Friday purchases',
     'subject line for order confirmation email', 'welcome order confirmation email',
+    'password-reset email', 'order-shipped email', 'order-confirmation email',
+    'password reset email for Coldwater customers', 'order confirmation email for newsletter subscribers',
     'bestelbevestiging email', 'orderbevestiging e-mail', 'bevestigingsmail na bestelling met bestelbevestiging',
     'Bestellbestätigung E-Mail', 'Versandbestätigung E-Mail',
   ])('%s is transactional', (copyType) => {

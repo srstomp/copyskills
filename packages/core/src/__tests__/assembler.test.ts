@@ -395,5 +395,13 @@ describe('explicit email type', () => {
     expect(result.systemPrompt).toContain('# Email Copy');
     expect(result.systemPrompt).toContain('# Transactional Email');
     expect(result.systemPrompt).not.toContain('# Persuasion Framework');
+    expect(result.userPrompt).toContain('Email type: transactional');
+  });
+
+  test('two email types with the same framework still give different prompts', () => {
+    const cold = makeAssembler().assemble({ type: 'email', goal: 'book demo', email_type: 'cold-outreach' });
+    const nurture = makeAssembler().assemble({ type: 'email', goal: 'book demo', email_type: 'nurture-sequence' });
+    expect(cold.userPrompt).not.toBe(nurture.userPrompt);
+    expect(nurture.userPrompt).toContain('Email type: nurture-sequence');
   });
 });
