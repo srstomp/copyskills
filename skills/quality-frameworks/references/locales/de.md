@@ -17,7 +17,7 @@ Load this with `../anti-slop.md` for any German copy. Write German from the fact
 - **Money:** `22,13 €` (number, non-breaking space, euro sign) is the DIN 5008 form and the most common in German shops; `€ 22,13` also occurs. Follow the shop's existing format; never `€22.13`.
 - **Numbers:** decimal comma, thousands point (`1.250`), `11 % Vol.` or `11 % vol` for alcohol, `10 °C`, `360 ml`.
 - **Dates:** `17. November 2026` or `17.11.2026`.
-- **Quotes:** „so" (low-high). Straight quotes are an error in finished copy.
+- **Quotes:** „so“: the opening mark is low (U+201E „), the closing mark is high (U+201C “). A straight " as the closing mark is the most common error in model-written German; check every quote. Guillemets »so« are also correct when the shop uses them.
 - **Dashes:** the spaced en dash ( – ) is the German Gedankenstrich and is correct typography. Use it rarely: more than one per paragraph is the model habit. The em dash (—) is not German typography and is an error.
 - **Nouns are capitalised;** headings follow normal German capitalisation, not English Title Case for adjectives and verbs ("Sake mit Flaschengärung", not "Sake Mit Flaschengärung").
 - **Compounds:** one word or hyphenated, never apart: "Sakebrauerei" or "Sake-Brauerei", "Reissorte", "Flaschengärung". "Sake Brauerei" is an error.

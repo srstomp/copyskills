@@ -1,6 +1,6 @@
 # Copyskills
 
-Professional copywriting skills for AI agents and humans. 15 skills covering 8 domains, 10 persuasion frameworks, and a built-in anti-slop system that catches AI writing patterns before they ship.
+Professional copywriting skills for AI agents and humans. 16 skills covering 9 domains, including web-shop copy driven by SEO audits, native writing in English, Dutch and German, a fact sheet that keeps agents from inventing claims, and an anti-slop system with a linter that catches AI writing patterns before they ship.
 
 Works as a ChatGPT and Codex plugin, a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript library.
 
@@ -27,7 +27,7 @@ Critique the copy in ./landing-page-copy.md.
 Adapt this case study into a LinkedIn post.
 ```
 
-The plugin bundles all 15 skills directly, so it does not require the MCP server or an API key.
+The plugin bundles all 16 skills directly, so it does not require the MCP server or an API key.
 
 ### Claude Code Plugin
 
@@ -159,20 +159,21 @@ npx --yes @copydoc/integrations@0.1.1 install --tool codex --global
 
 ## What's Inside
 
-### 15 Skills Across 3 Layers
+### 16 Skills Across 3 Layers
 
 **Layer 1: Framework References** (the methodology)
 
 | Skill | What it provides |
 |-------|-----------------|
 | persuasion-frameworks | 10 frameworks (AIDA, PAS, BAB, FAB, ACCA, PASTOR, QUEST, 4Ps, PPPP, Star-Story-Solution) with decision matrix for when to use each |
-| quality-frameworks | 7-dimension scoring rubric, anti-slop detection, Cialdini principles, readability targets |
+| quality-frameworks | Anti-slop method and lint lists, locale packs for English, Dutch and German (register, typography, translationese), scoring rubric for existing copy, Cialdini principles, readability targets |
 | headline-formulas | 26 proven headline templates, power words categorized by emotion |
 
 **Layer 2: Domain Skills** (the patterns)
 
 | Skill | Covers |
 |-------|--------|
+| commerce-copy | Product pages, category and style pages, title tags and meta descriptions (single or catalogue batch), About pages, alt text; turns SEO audit findings into page briefs |
 | marketing-copy | Landing pages, ads (Google/Meta/LinkedIn with char limits), CTAs, value propositions |
 | email-copy | Drip sequences, cold outreach, newsletters, subject lines |
 | ux-copy | Microcopy, error messages, onboarding flows, empty states |
@@ -186,10 +187,14 @@ npx --yes @copydoc/integrations@0.1.1 install --tool codex --global
 
 | Skill | Purpose |
 |-------|---------|
-| copy-brief | Gathers context before writing. Three modes: human interview, agent handshake, fast-path |
-| copy-workflow | Full pipeline: brief, domain routing, framework selection, draft, de-slop, critique, revise |
+| copy-brief | Gathers context before writing, including locale and a fact sheet with sources; conflicting facts become questions for a human. Three modes: human interview, agent handshake, fast-path |
+| copy-workflow | Full pipeline: brief, domain routing, framework selection, native draft per language, de-slop, pass/fail checks, revise |
 | copy-critique | Evaluates existing copy. Scores, diagnoses, suggests concrete fixes |
 | copy-adapt | Repurposes copy across channels while preserving the core message |
+
+### Facts, languages and the human in the loop
+
+Copy states only facts from the brief's fact sheet. Each fact has an id and a source; copy being rewritten counts as unverified, and points on which two sources or language versions disagree are left out and returned as questions. Each language is written from the fact sheet in that language, never translated from another draft, and then read by a fresh reader who has not seen the source. Every run returns, next to the copy, the claims it made (with fact ids), the questions only a human can answer, the judgment calls a human may want to overrule, and the lint result.
 
 ### Copy Linter
 
@@ -310,7 +315,7 @@ metadata:
 
 @copydoc/core (shared library)
   |
-  +-- reads 15 skill markdown files at runtime
+  +-- reads 16 skill markdown files at runtime
   +-- assembles prompts from skills + brief context
   +-- provides framework selection + copy linting
 ```

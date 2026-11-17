@@ -1,5 +1,17 @@
 # Changes
 
+## Grounded, multilingual, human-sounding copy
+
+Breaking changes throughout; there are no external users to keep compatible.
+
+- **commerce-copy (new skill):** product pages, category and style intros, title tags and meta descriptions (single or catalogue batch), About pages and alt text. Turns SEO audit findings into one brief per page. Uses no persuasion framework, refuses to pad to a word count, and checks batches for shared skeletons.
+- **Fact sheet:** `copy-brief` builds facts with ids and sources. Copy being rewritten is unverified, not evidence; claims that sources or language versions disagree on stay out and become `needs` questions. Every generator states only facts from the sheet.
+- **Native writing per language:** each locale is drafted in its own language from the fact sheet, never translated from another draft, then read by a fresh reader who has not seen the source. Locale packs for English, Dutch and German cover register, typography, translationese and stock phrases.
+- **Anti-slop reference rewritten** structure-first (adapted from blader/humanizer, MIT, and Wikipedia's Signs of AI writing), with a shop-copy section. Removed the advice that produced a synthetic voice (fragments, contractions everywhere, forced opinions) and the advice to "get a number", which invited invented facts.
+- **Checks, not self-scores:** `copy-workflow` and the domain skills gate new copy on pass/fail checks (facts, brief, tells, lint). The 7-dimension rubric stays for critiquing existing copy. The output contract now returns copy per locale with `claims`, `needs`, `decisions`, lint result and open issues.
+- **Linter:** `createLinter` replaces the English-only anti-slop checker: Unicode-aware phrase lists parsed from the markdown (`{lint: error}` / `{lint: warn}` sections), title and meta budgets, repeated sentences, numbers missing from a fact sheet, and batch skeleton and opener checks. New `copydoc lint` CLI command (no API key) and MCP `lint_copy` tool, replacing `score_copy` and `check_anti_slop`. Removed the sentence-length, paragraph-opening, tricolon and specificity heuristics.
+- **Routing:** shop deliverables route to commerce-copy before editorial's generic "SEO" keyword. `Brief` gains `locale` and `facts`; `constraints.language` is gone; the assembler loads the locale pack.
+
 ## Codex installation and package distribution
 
 - Added a native Codex plugin manifest and repository marketplace catalog, so the documented `codex plugin` installation flow has installable metadata.

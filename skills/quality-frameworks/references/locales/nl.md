@@ -22,7 +22,7 @@ Load this with `../anti-slop.md` for any Dutch copy. It covers what a native Dut
 - **Dashes:** as in `../anti-slop.md` §8: no em dash or spaced dash as a connector. Dutch uses a colon or a comma where English copy uses a dash.
 - **Compounds are written as one word.** "yuzusake", "sakefles", "proefnotities", "verzendkosten", "garnalentempura". Writing them apart ("yuzu sake", "sake fles") is the "Engelse ziekte" and an error. Use a hyphen only for a vowel clash ("sake-expert") or with a proper name or abbreviation ("Shizuoka-gisten", "IWC-titel").
 - **Place names:** drop English administrative labels: "Kainan" not "Kainan City", "de prefectuur Shizuoka" or just "Shizuoka".
-- **Quotes:** 'enkele' or "dubbele" aanhalingstekens, consistently.
+- **Quotes:** ‘enkele’ or “dubbele” aanhalingstekens, curly in finished copy unless the shop's own pages use straight ones; one style per site.
 
 ## Translationese: what a Dutch reader notices
 

@@ -262,7 +262,7 @@ codex plugin marketplace add srstomp/copyskills
 codex plugin add copyskills@copyskills
 ```
 
-Start a new task after installation. The plugin makes all 15 skills available without requiring an API key or MCP server.
+Start a new task after installation. The plugin makes all 16 skills available without requiring an API key or MCP server.
 
 For a project-local MCP configuration plus standalone skill copies instead, use:
 
@@ -342,33 +342,59 @@ npm install @copydoc/core
 
 ---
 
+## Recipe 13: Shop Copy From an SEO Audit, in Two Languages (Plugin)
+
+You ran an SEO audit (for example with claude-seo) and it says your product metas are templated, your titles lack buying words and your Dutch and English pages contradict each other.
+
+```
+/write shop copy from this SEO audit for the 5 bottles in ./catalogue.csv:
+title, meta and product description in en-GB and nl-NL. Findings: ./ACTION-PLAN.md.
+Facts: catalogue.csv only. Voice samples: ./voice/en.md, ./voice/nl.md.
+Target queries: nl-NL "<name> kopen"; en-GB the product name.
+```
+
+The copywriter routes this to `commerce-copy`, which turns the copy findings into one brief per page, builds a fact sheet from the catalogue, writes each language natively, checks the batch for shared skeletons and returns `needs` for anything the catalogue does not say. With the CLI installed, check the result yourself:
+
+```bash
+copydoc lint metas-nl.txt --items lines --kind meta --locale nl-NL --facts catalogue.csv
+```
+
+To rewrite an existing page in another language, give the live page as the source. It is treated as unverified copy: its claims are carried over only when nothing contradicts them, and the new language is written fresh from the facts, not translated.
+
+---
+
 ## How to Interpret the Output
 
-Generation workflows can return copy plus a metadata block. Linting returns `{ issues, errors, warnings }`.
+Generation workflows return copy per language plus what a human needs to review it. Linting returns `{ issues, errors, warnings }`.
 
 ```yaml
 copy:
-  primary: "..."
-  variants: ["...", "..."]
+  - locale: "nl-NL"
+    primary: "..."
+    variants: []
+claims:
+  - text: "brouwt sinds 1872"
+    facts: [F3]
+needs:
+  - "The EN and NL pages name different head brewers. Which is right?"
+decisions:
+  - "Used je, not u: no voice samples were supplied."
 metadata:
-  framework_used: "PAS"
-  domain: "email-copy/cold-outreach"
-  quality_scores:
-    clarity: 9
-    specificity: 7
-    voice_match: 8
-    persuasion: 8
-    action: 9
-    overall: 8
+  framework_used: "None"
+  domain: "commerce-copy"
+  lint: "0 errors, 1 warning"
+  open_issues: []
   flags: []
 ```
 
 What to do with each field:
 
-- **`framework_used`**: if the framework feels wrong for your situation, ask for a different one explicitly. The agent will not second-guess your override.
-- **`quality_scores`**: Model-assessed dimensions below 7 are a flag. Push back. `"Specificity scored 6, rewrite the second paragraph using the fact sheet."`
-- **`flags`**: lists recommended fields you did not provide and explains how that affected the output. If `brand_voice not provided: voice_match scored at 5`, you know what to add for the next pass.
-- **`variants`**: optional alternates the agent produced. Use them for A/B testing or pick the one that fits.
+- **`needs`**: read these first. They are the facts the copy left out because nobody supplied them or two sources disagree. Answer them and run again.
+- **`claims`**: every factual claim with the fact it rests on. Spot-check a few against your source; this is where a wrong fact would hide.
+- **`decisions`**: judgment calls (register, which fact led the copy, a trade name used). Overrule any that do not fit your brand.
+- **`framework_used`**: if the framework feels wrong for your situation, ask for a different one explicitly. Commerce and UX copy use none on purpose.
+- **`open_issues`**: checks that still failed after two revisions. Treat the copy as a draft until they are fixed.
+- **`flags`**: recommended brief fields you did not provide. `brand_voice not provided` means the copy is plain and neutral; add approved samples in each language for your own voice.
 
 ---
 
@@ -376,7 +402,7 @@ What to do with each field:
 
 **The output sounds generic.** You skipped the differentiator or audience pain. The model has nothing specific to lean on, so it pads with safe phrases. Fix the brief, not the copy.
 
-**Voice match is low.** You did not provide `brand_voice`. Either add it, or accept that voice will be a generic default. The system flags this so you cannot miss it.
+**The voice is not yours.** You did not provide `brand_voice.examples`. Add a few approved pieces of your own copy in each language; they override the generic style rules.
 
 **Lint issues remain after revision.** Use each issue’s rule and suggestion to revise the copy. Supply a fact sheet to check numeric claims.
 
@@ -389,7 +415,7 @@ What to do with each field:
 ## When Not to Use Copyskills
 
 - **You need legal, medical, or financial copy.** The anti-slop pass does not check compliance. Use a domain-specific reviewer.
-- **You are working in a language other than English.** All references and examples are English. The patterns generalize but the banned-word list does not translate cleanly.
+- **You are working in a language without a locale pack.** English, Dutch and German have packs (register, typography, translationese, stock phrases). Other languages get the structural rules only; add a pack under `skills/quality-frameworks/references/locales/` first.
 - **You have a copywriter on retainer who already knows your brand cold.** Copyskills replaces generic AI output. It does not replace a senior writer with three years of context on your product.
 
 For everything else, it is a faster path from brief to draft than a blank page.
