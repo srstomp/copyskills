@@ -125,11 +125,17 @@ Do not invent structure. Platform constraints plus framework define the structur
 
 Load `../quality-frameworks/references/anti-slop.md`.
 
-Social copy is the highest-slop-risk format. Generic openings are common and instantly recognizable as AI output. Run this sequence before considering the draft done:
+Social copy is the highest-slop-risk format. Generic openings are common and instantly recognizable as AI output.
 
-1. Scan for every banned word and phrase in the Banned Words and Phrases section. Flag each hit.
-2. Check for em dashes. Remove all of them. Restructure affected sentences.
-3. Check the opening line. If it starts with any of the following, rewrite it:
+Load `../quality-frameworks/references/locales/<language>.md` for the copy's language as well (`en`, `nl` or `de`).
+
+Run the de-slop pass described in the anti-slop reference on every part of the draft:
+1. Mark every tell from sections A to F, strongest first.
+2. Rewrite each flagged passage. Keep every fact; add none that is not in the brief's fact sheet. If a sentence is generic and the brief has no true detail for it, write a plainer sentence or cut it.
+3. Check the rewrite against the brief: no fact dropped, changed or added.
+4. Do the native read described in the anti-slop reference: one sentence at a time, as a native editor of the copy's language.
+5. If the `copydoc` CLI is available, run `copydoc lint <file> --locale <locale>` and fix every error.
+5. Check the opening line. If it starts with any of the following, rewrite it:
    - "Excited to announce"
    - "Thrilled to share"
    - "In today's fast-paced world"
@@ -138,29 +144,19 @@ Social copy is the highest-slop-risk format. Generic openings are common and ins
    - "Unpopular opinion:" (same)
    - A generic question ("Have you ever noticed...?")
    These openers have been used millions of times. Find the specific tension, observation, or fact from the brief and lead with that instead.
-4. Apply the sentence length variance test. Social copy tends to homogenize sentence length. Vary it.
-5. Apply the specificity test: could a competitor paste their name over this post and have it still work? If yes, find the specific detail from the brief and rebuild the copy around it.
 6. Check voice consistency. The post must sound like a real person with a real perspective, not a brand communications department.
 
 Do not consider the draft done until every flag is resolved.
 
-### Step 6: Score against quality rubric
+### Step 6: Check
 
-Score the de-slopped draft across these 7 dimensions:
+Check the draft. Each check passes or fails; do not score your own draft.
+1. **Facts.** Every factual claim comes from the brief's fact sheet. No contested fact is stated.
+2. **Brief.** Every deliverable is present and within its length or character limits; goal, audience and CTA are addressed.
+3. **Tells.** A careful native reader could not point at a sentence and say a model wrote it.
+4. For hooks and short-form posts, at least 3 of the 4Us (from `../quality-frameworks/references/four-us.md`) are met.
 
-| Dimension | Scale | Target |
-|-----------|-------|--------|
-| Clarity | 1-10 | 7+ |
-| Specificity | 1-10 | 7+ |
-| Voice Match | 1-10 | 7+ |
-| AI-Tell Score | 0-10 | 2 or lower |
-| Persuasion | 1-10 | 7+ |
-| Action | 1-10 | 7+ |
-| Overall | 1-10 | 7+ |
-
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
-
-For hooks and short-form posts, also score against the 4Us (from `../quality-frameworks/references/four-us.md`). Minimum: 3 out of 4 dimensions score 2 or higher.
+If a check fails, return to the de-slop step. Cap revisions at 2 passes; if a check still fails after that, return the best version and list the failed checks under Open issues.
 
 ### Step 7: Return structured output
 
@@ -174,14 +170,10 @@ Return the completed copy in this structure:
 ---
 **Character count:** [N] / [limit]
 **Hashtags:** [list]
-**Quality scores**
-- Clarity: [N]/10
-- Specificity: [N]/10
-- Voice Match: [N]/10
-- AI-Tell: [N]/10
-- Persuasion: [N]/10
-- Action: [N]/10
-- Overall: [N]/10
+**Claims:** [each factual claim and the fact id it rests on, or "none"]
+**Needs:** [questions only a human can answer, or "none"]
+**Lint:** [lint result per locale, or "not run"]
+**Open issues:** [checks still failing after 2 passes, or "none"]
 
 **Framework used:** [Framework name]
 **De-slop flags resolved:** [N] (list the specific issues fixed, or "none")

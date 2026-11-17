@@ -1,3 +1,5 @@
+import type { EmailType } from './frameworks.js';
+
 /** Brief - the input contract for copy generation */
 export interface Brief {
   type: string;           // e.g., 'cold outreach email', 'landing page hero'
@@ -12,6 +14,13 @@ export interface Brief {
     description?: string;
     differentiator?: string;
   };
+  email_type?: EmailType; // explicit email type; overrides inference from `type`
+  locale?: string;        // BCP 47, e.g. 'nl-NL'; the copy is written natively in this language
+  facts?: Array<{         // the only facts the copy may state
+    id: string;
+    claim: string;
+    source?: string;
+  }>;
   brand_voice?: {
     tone?: string;
     avoids?: string[];
@@ -21,31 +30,7 @@ export interface Brief {
     length?: string;
     format?: string;
     cta?: string;
-    language?: string;
   };
-}
-
-/** Quality scores returned by evaluation */
-export interface QualityScores {
-  clarity: number;
-  specificity: number;
-  voice_match: number;
-  ai_tell_score: number;  // 0-10, lower is better
-  persuasion: number;
-  action: number;
-  overall: number;
-}
-
-/** Anti-slop detection result */
-export interface AntiSlopIssue {
-  pattern: string;
-  line: number;
-  suggestion?: string;
-}
-
-export interface AntiSlopResult {
-  score: number;          // 0-10, capped
-  issues: AntiSlopIssue[];
 }
 
 /** Framework selection result */
@@ -53,20 +38,6 @@ export interface FrameworkSelection {
   framework: string;      // e.g., 'PAS'
   path: string;           // e.g., 'persuasion-frameworks/references/pas.md'
   rationale: string;
-}
-
-/** Copy output - the output contract */
-export interface CopyOutput {
-  copy: {
-    primary: string;
-    variants?: string[];
-  };
-  metadata: {
-    framework_used: string;
-    domain: string;
-    quality_scores: QualityScores;
-    flags: string[];
-  };
 }
 
 /** Assembled prompt pair ready for LLM */

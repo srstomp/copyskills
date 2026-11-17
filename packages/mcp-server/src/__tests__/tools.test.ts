@@ -1,269 +1,108 @@
 import { describe, expect, test } from 'bun:test';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { createLoader } from '@copydoc/core';
-import path from 'path';
+import type { SkillLoader } from '@copydoc/core';
 import { registerTools } from '../tools';
 
-// Skills dir: from packages/mcp-server/src/__tests__/ up to repo root, then skills/
-const SKILLS_DIR = path.resolve(__dirname, '../../../../skills');
-
 function makeServer(): McpServer {
-  return new McpServer(
-    { name: 'test-server', version: '0.1.0' },
-    { capabilities: { tools: {} } },
-  );
-}
-
-// Helper to call a tool via the server's internal request handlers
-async function callTool(server: McpServer, name: string, args: Record<string, unknown>) {
-  const underlyingServer = server.server;
-  const response = await (underlyingServer as unknown as {
-    _requestHandlers: Map<string, (req: unknown, extra: unknown) => unknown>;
-  })
-    ._requestHandlers
-    .get('tools/call')?.({ method: 'tools/call', params: { name, arguments: args } }, {});
-  return response as {
-    content: Array<{ type: string; text: string }>;
-    isError?: boolean;
+  const server = new McpServer({ name: 'test-server', version: '0.1.0' }, { capabilities: { tools: {} } });
+  const loader: SkillLoader = {
+    listSkills: () => [], getSkill: () => { throw new Error('unused'); },
+    getReference: () => '', listReferences: () => [],
+    resolveReference: (path) => path.endsWith('locales/nl.md') ? '# {lint: warn}\n- moeiteloos (Wees concreet)' : '# {lint: error}\n- leverage',
   };
+  registerTools(server, loader);
+  return server;
 }
-
-// Helper to list tools
-async function listTools(server: McpServer) {
-  const underlyingServer = server.server;
-  const response = await (underlyingServer as unknown as {
-    _requestHandlers: Map<string, (req: unknown, extra: unknown) => unknown>;
-  })
-    ._requestHandlers
-    .get('tools/list')?.({ method: 'tools/list', params: {} }, {});
-  return response as { tools: Array<{ name: string; inputSchema: unknown }> };
+async function request(method: string, params: unknown) {
+  const server = makeServer();
+  const handlers = (server.server as unknown as { _requestHandlers: Map<string, (req: unknown, extra: unknown) => Promise<unknown>> })._requestHandlers;
+  return await handlers.get(method)!({ method, params }, {});
 }
-
-describe('registerTools', () => {
-  test('registerTools registers without throwing', () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    expect(() => registerTools(server, loader)).not.toThrow();
+async function callTool(name: string, args: Record<string, unknown>) {
+  return await request('tools/call', { name, arguments: args }) as { content: Array<{ type: string; text: string }>; isError?: boolean };
+}
+describe('MCP tools', () => {
+  test('exposes only select_framework and lint_copy, with lint input schema', async () => {
+    const result = await request('tools/list', {}) as { tools: Array<{ name: string; inputSchema: { properties: Record<string, unknown> } }> };
+    expect(result.tools.map(t => t.name)).toEqual(['select_framework', 'lint_copy']);
+    expect(Object.keys(result.tools[1].inputSchema.properties).sort()).toEqual(['text', 'items', 'locale', 'kind', 'min', 'max', 'facts', 'avoid'].sort());
   });
-});
-
-describe('tools/list returns 3 tools with correct names and input schemas', () => {
-  test('tools/list returns 3 tools', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await listTools(server);
-    expect(result.tools).toHaveLength(3);
-  });
-
-  test('tools/list includes select_framework', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await listTools(server);
-    const names = result.tools.map((t) => t.name);
-    expect(names).toContain('select_framework');
-  });
-
-  test('tools/list includes score_copy', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await listTools(server);
-    const names = result.tools.map((t) => t.name);
-    expect(names).toContain('score_copy');
-  });
-
-  test('tools/list includes check_anti_slop', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await listTools(server);
-    const names = result.tools.map((t) => t.name);
-    expect(names).toContain('check_anti_slop');
-  });
-});
-
-describe('select_framework tool', () => {
-  test("select_framework('cold outreach email', 'book a demo') returns PAS with rationale", async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'select_framework', {
-      copy_type: 'cold outreach email',
-      goal: 'book a demo',
-    });
-
+  test('select_framework routes cold email to PAS', async () => {
+    const result = await callTool('select_framework', { copy_type: 'cold outreach email', goal: 'book a demo' });
     expect(result.isError).toBeFalsy();
     const parsed = JSON.parse(result.content[0].text);
     expect(parsed.framework).toBe('PAS');
-    expect(typeof parsed.path).toBe('string');
-    expect(parsed.path.length).toBeGreaterThan(0);
-    expect(typeof parsed.rationale).toBe('string');
+    expect(parsed.path).toBe('persuasion-frameworks/references/pas.md');
     expect(parsed.rationale.length).toBeGreaterThan(0);
   });
-
-  test('select_framework returns framework, path, rationale fields', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'select_framework', {
-      copy_type: 'landing page hero',
-      goal: 'increase signups',
-    });
-
+  test('lint_copy returns the LintResult as JSON with locale, facts and avoid applied', async () => {
+    const result = await callTool('lint_copy', { text: 'Moeiteloos 23 aanbod', locale: 'nl-BE', facts: '15', avoid: ['aanbod'] });
     expect(result.isError).toBeFalsy();
-    const parsed = JSON.parse(result.content[0].text);
-    expect(typeof parsed.framework).toBe('string');
-    expect(typeof parsed.path).toBe('string');
-    expect(typeof parsed.rationale).toBe('string');
+    expect(JSON.parse(result.content[0].text)).toEqual({ errors: 2, warnings: 1, issues: [
+      { rule: 'phrase', severity: 'warn', message: 'Banned pattern: moeiteloos', line: 1, suggestion: '(Wees concreet)' },
+      { rule: 'phrase', severity: 'error', message: 'Banned pattern: aanbod', line: 1 },
+      { rule: 'number', severity: 'error', message: 'Number 23 is not in the fact sheet' },
+    ] });
   });
-});
-
-describe('check_anti_slop tool', () => {
-  test('check_anti_slop returns score >= 2 for AI slop text', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'check_anti_slop', {
-      text: 'We leverage cutting-edge solutions',
-    });
-
+  test('lint_copy accepts items and passes kind and budget overrides', async () => {
+    const result = await callTool('lint_copy', { items: ['abcd', 'efghij'], kind: 'title', min: 5, max: 5, locale: 'fr' });
     expect(result.isError).toBeFalsy();
-    const parsed = JSON.parse(result.content[0].text);
-    expect(typeof parsed.ai_tell_score).toBe('number');
-    expect(parsed.ai_tell_score).toBeGreaterThanOrEqual(2);
-    expect(Array.isArray(parsed.issues)).toBe(true);
+    expect(JSON.parse(result.content[0].text)).toEqual({ errors: 2, warnings: 0, issues: [
+      { rule: 'length', severity: 'error', message: 'title has 4 characters', item: 0 },
+      { rule: 'length', severity: 'error', message: 'title has 6 characters', item: 1 },
+    ] });
   });
-
-  test('check_anti_slop returns issues with pattern, line, suggestion fields', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'check_anti_slop', {
-      text: 'We leverage cutting-edge solutions',
-    });
-
-    const parsed = JSON.parse(result.content[0].text);
-    expect(parsed.issues.length).toBeGreaterThan(0);
-    for (const issue of parsed.issues) {
-      expect(typeof issue.pattern).toBe('string');
-      expect(typeof issue.line).toBe('number');
-      // suggestion is optional
+  test('lint_copy applies batch repetition rules', async () => {
+    const result = await callTool('lint_copy', { items: ['one two three four', 'one two three four', 'one two three four'] });
+    expect(JSON.parse(result.content[0].text)).toEqual({ errors: 2, warnings: 0, issues: [
+      { rule: 'skeleton', severity: 'error', message: 'Sequence "one two three four" occurs in items 0, 1, 2' },
+      { rule: 'opener', severity: 'error', message: 'Opener "one two three" occurs in items 0, 1, 2' },
+    ] });
+  });
+  test('lint_copy accepts empty text and returns a clean result', async () => {
+    const result = await callTool('lint_copy', { text: '' });
+    expect(JSON.parse(result.content[0].text)).toEqual({ issues: [], errors: 0, warnings: 0 });
+  });
+  test('lint_copy rejects ambiguous or missing inputs and invalid options', async () => {
+    for (const args of [{}, { text: 'x', items: ['x'] }, { text: 'x', kind: 'email' }, { items: [1] }, { text: 'x', max: -1 }]) {
+      const result = await callTool('lint_copy', args);
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toMatch(/text|kind|items|max/);
     }
   });
-
-  test('check_anti_slop returns score 0 and empty issues for clean text', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'check_anti_slop', {
-      text: 'Short clear text.',
-    });
-
-    expect(result.isError).toBeFalsy();
-    const parsed = JSON.parse(result.content[0].text);
-    expect(parsed.ai_tell_score).toBe(0);
-    expect(parsed.issues).toHaveLength(0);
-  });
 });
 
-describe('score_copy tool', () => {
-  test('score_copy returns ai_tell_score with -1 for LLM-dependent dimensions', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'score_copy', {
-      text: 'We leverage cutting-edge solutions to transform your business.',
-    });
-
-    expect(result.isError).toBeFalsy();
-    const parsed = JSON.parse(result.content[0].text);
-
-    // ai_tell_score is computed
-    expect(typeof parsed.scores.ai_tell_score).toBe('number');
-    expect(parsed.scores.ai_tell_score).toBeGreaterThanOrEqual(0);
-
-    // LLM-dependent dimensions are -1
-    expect(parsed.scores.clarity).toBe(-1);
-    expect(parsed.scores.specificity).toBe(-1);
-    expect(parsed.scores.voice_match).toBe(-1);
-    expect(parsed.scores.persuasion).toBe(-1);
-    expect(parsed.scores.action).toBe(-1);
-    expect(parsed.scores.overall).toBe(-1);
-  });
-
-  test('score_copy returns issues array and summary string', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'score_copy', {
-      text: 'We leverage cutting-edge solutions to transform your business.',
-    });
-
-    const parsed = JSON.parse(result.content[0].text);
-    expect(Array.isArray(parsed.issues)).toBe(true);
-    expect(typeof parsed.summary).toBe('string');
-    expect(parsed.summary).toContain('AI-tell score:');
-    expect(parsed.summary).toContain('issues found');
-  });
-
-  test('score_copy accepts optional context parameter', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'score_copy', {
-      text: 'Short clean copy.',
-      context: { audience: 'developers', goal: 'sign up', brand_voice: 'direct' },
-    });
-
-    expect(result.isError).toBeFalsy();
-    const parsed = JSON.parse(result.content[0].text);
-    expect(typeof parsed.scores.ai_tell_score).toBe('number');
-  });
-});
-
-describe('Invalid tool inputs return validation errors', () => {
-  test('select_framework with missing copy_type returns isError response', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'select_framework', { goal: 'book a demo' });
-    // SDK returns isError: true with validation message rather than throwing
+describe('lint_copy input limits', () => {
+  test.each([
+    { text: 'a'.repeat(200001) },
+    { text: '', facts: 'a'.repeat(200001) },
+    { items: Array(2001).fill('') },
+    { items: ['a'.repeat(20001)] },
+    { text: '', avoid: Array(201).fill('') },
+    { text: '', avoid: ['a'.repeat(201)] },
+    { text: '', locale: 'nl_NL' },
+    { text: '', locale: '../locales/nl' },
+    { text: '', locale: 'abcd' },
+    { text: '', locale: 'en-123456789' },
+  ])('rejects input outside limits %#', async args => {
+    const result = await callTool('lint_copy', args);
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('copy_type');
+    expect(result.content[0].text).toMatch(/text|facts|items|avoid|locale/);
   });
-
-  test('check_anti_slop with missing text returns isError response', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'check_anti_slop', {});
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('text');
+  test('accepts exact caps', async () => {
+    for (const args of [
+      { text: 'a'.repeat(200000), facts: 'a'.repeat(200000) },
+      { items: Array(2000).fill('') },
+      { items: ['a'.repeat(20000)] },
+      { text: '', avoid: Array(200).fill('a'.repeat(200)), locale: 'NL-be' },
+    ]) {
+      const result = await callTool('lint_copy', args);
+      expect(result.isError).toBeFalsy();
+      expect(JSON.parse(result.content[0].text)).toEqual({ issues: [], errors: 0, warnings: 0 });
+    }
   });
-
-  test('score_copy with missing text returns isError response', async () => {
-    const server = makeServer();
-    const loader = createLoader(SKILLS_DIR);
-    registerTools(server, loader);
-
-    const result = await callTool(server, 'score_copy', {});
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('text');
+  test('avoid is literal through MCP', async () => {
+    const result = await callTool('lint_copy', { text: 'try X and delve from here to there', locale: 'fr', avoid: ['[X]', 'delv*', 'from...to'] });
+    expect(JSON.parse(result.content[0].text)).toEqual({ issues: [], errors: 0, warnings: 0 });
   });
 });

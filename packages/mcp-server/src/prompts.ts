@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SkillLoader, Brief } from '@copydoc/core';
-import { selectFramework, createAssembler } from '@copydoc/core';
+import { selectFramework, createAssembler, languageOf, EMAIL_TYPES } from '@copydoc/core';
 import { z } from 'zod';
 
 /**
@@ -25,12 +25,20 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       product: z.string().optional().describe("Product name and description, e.g. 'SakeBox - direct from 40+ breweries'"),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'knowledgeable, casual'"),
       constraints: z.string().optional().describe("Copy constraints, e.g. '150 words max, plain text'"),
+      email_type: z.enum(EMAIL_TYPES).optional().describe('Explicit email type, e.g. transactional; overrides inference from type'),
+      locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
+      facts: z.string().max(200000).optional().describe('One fact per line, optionally prefixed with an id like F3: and ending with (source: ...)'),
+      voice_examples: z.string().max(200000).optional().describe('Approved copy samples separated by a line containing only ---'),
     },
-    ({ type, goal, audience, product, brand_voice, constraints }) => {
+    ({ type, goal, audience, product, brand_voice, constraints, email_type, locale, facts, voice_examples }) => {
       const brief: Brief = {
         type,
         goal,
       };
+
+      if (email_type) {
+        brief.email_type = email_type;
+      }
 
       if (audience) {
         brief.audience = { who: audience };
@@ -42,6 +50,45 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
 
       if (brand_voice) {
         brief.brand_voice = { tone: brand_voice };
+      }
+
+      if (locale !== undefined) {
+        languageOf(locale);
+        brief.locale = baseLocale(locale);
+      }
+
+      if (facts) {
+        const parsed = facts.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+          const idMatch = line.match(/^(F\d+):\s*/);
+          const claim = idMatch ? line.slice(idMatch[0].length) : line;
+          const sourceMatch = claim.match(/\(source:[ \t]?([^()]*(?:\([^()]*\)[^()]*)*)\)$/);
+          return {
+            id: idMatch?.[1],
+            claim: (sourceMatch ? claim.slice(0, sourceMatch.index) : claim).trim(),
+            ...(sourceMatch ? { source: sourceMatch[1].trim() } : {}),
+          };
+        }).filter((fact) => fact.claim);
+        // Explicit ids are kept and must be unique; the others get the next free F<n>.
+        const used = new Set<string>();
+        for (const fact of parsed) {
+          if (!fact.id) continue;
+          if (used.has(fact.id)) throw new Error(`Duplicate fact id: ${fact.id}`);
+          used.add(fact.id);
+        }
+        let next = 1;
+        brief.facts = parsed.map((fact) => {
+          if (fact.id) return { ...fact, id: fact.id };
+          while (used.has(`F${next}`)) next += 1;
+          used.add(`F${next}`);
+          return { ...fact, id: `F${next}` };
+        });
+      }
+
+      if (voice_examples) {
+        brief.brand_voice = {
+          ...brief.brand_voice,
+          examples: voice_examples.split(/^\s*---\s*$/m).map((sample) => sample.trim()).filter(Boolean),
+        };
       }
 
       if (constraints) {
@@ -71,9 +118,15 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       audience: z.string().optional().describe('The intended audience for the copy'),
       goal: z.string().optional().describe('The conversion goal of the copy'),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'bold, direct'"),
+      locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
     },
-    ({ copy_text, audience, goal, brand_voice }) => {
+    ({ copy_text, audience, goal, brand_voice, locale }) => {
       const context: Partial<Brief> = {};
+
+      if (locale !== undefined) {
+        languageOf(locale);
+        context.locale = baseLocale(locale);
+      }
 
       if (audience) {
         context.audience = { who: audience };
@@ -109,11 +162,17 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       source_copy: z.string().describe('The source copy text to adapt'),
       target_format: z.string().describe("The target format, e.g. 'LinkedIn post'"),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'knowledgeable, casual'"),
+      locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
     },
-    ({ source_copy, target_format, brand_voice }) => {
+    ({ source_copy, target_format, brand_voice, locale }) => {
       const brandVoice: Brief['brand_voice'] = brand_voice ? { tone: brand_voice } : undefined;
 
-      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice);
+      if (locale !== undefined) {
+        languageOf(locale);
+      }
+      const cleanLocale = locale === undefined ? undefined : baseLocale(locale);
+
+      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice, cleanLocale);
       const text = systemPrompt + '\n\n---\n\n' + userPrompt;
 
       return {
@@ -126,4 +185,11 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       };
     },
   );
+}
+
+/** A validated locale reduced to language, script and region, so no other subtag text reaches the prompt. */
+function baseLocale(locale: string): string {
+  languageOf(locale);
+  const { language, script, region } = new Intl.Locale(locale);
+  return [language, script, region].filter(Boolean).join('-');
 }

@@ -1,6 +1,6 @@
 ---
 name: copy-workflow
-description: "Use when writing or generating new copy from scratch, for any copy type: marketing, email, UX, editorial, brand, sales, social, or conversion. Entry point that runs the complete generation pipeline. Not for critiquing existing copy (copy-critique) or repurposing it (copy-adapt)."
+description: "Use when writing new copy, or rewriting existing copy in another language or for another audience, for any copy type: web-shop and product copy, marketing, email, UX, editorial, brand, sales, social, or conversion. Entry point that runs the complete generation pipeline, in one or more languages. Not for critiquing existing copy (copy-critique) or changing its channel or format (copy-adapt)."
 ---
 
 # Copy Workflow
@@ -21,7 +21,7 @@ Invoke the `copy-brief` skill.
 
 Pass any input the user or calling agent provided. `copy-brief` handles validation and gap-filling through its three modes (interview, agent handshake, fast path).
 
-This step is complete when `copy-brief` returns a complete structured brief in YAML format with `type`, `goal`, and `audience.who` all present.
+This step is complete when `copy-brief` returns a complete structured brief in YAML format with `type`, `goal`, and `audience.who` all present, plus a fact sheet whenever the copy will state facts about a product, company or person. When the request is a rewrite of existing copy (a live page, another language version), `copy-brief` extracts the fact sheet from it and reports conflicts; the existing text is not passed on as a draft to edit.
 
 Do not proceed to Step 2 until the brief is complete.
 
@@ -35,6 +35,7 @@ Match the brief's `type` field to a domain skill using keyword matching.
 
 | Keywords in `type` field | Route to |
 |--------------------------|----------|
+| "product description", "product page", "PDP", "category page", "collection page", "style page", "meta description", "title tag", "alt text", "about page", "shop copy", "catalogue", "catalog", "seo audit" | `commerce-copy` |
 | "email", "subject line", "newsletter", "drip", "sequence", "outreach", "cold email", "cold outreach", "nurture", "campaign", "re-engagement", "transactional" | `email-copy` |
 | "microcopy", "button", "button label", "error message", "error state", "onboarding", "empty state", "tooltip", "UX", "UI copy", "notification", "dialog", "confirmation", "placeholder", "helper text" | `ux-copy` |
 | "LinkedIn", "Twitter", "X post", "tweet", "Instagram", "TikTok", "social", "social post", "thread", "carousel", "caption" | `social-copy` |
@@ -44,7 +45,7 @@ Match the brief's `type` field to a domain skill using keyword matching.
 | "pricing", "pricing page", "signup", "sign-up", "checkout", "A/B", "variant", "trial", "conversion", "funnel" | `conversion-copy` |
 | "landing page", "lander", "ad", "advertisement", "CTA", "value prop", "value proposition", "hero", "banner", "homepage", "sales page" | `marketing-copy` |
 
-Match is case-insensitive. Row order encodes the tie-breaks: a named social platform beats topic keywords (a LinkedIn thought leadership post is social copy, not editorial), and marketing is checked last because its keywords are the most generic. This table mirrors `routeToDomain()` in `@copydoc/core`; keep the two in sync when editing either.
+Match is case-insensitive. Row order encodes the tie-breaks: shop copy is checked first so that "meta description" or "SEO audit" for a shop page does not fall through to the generic "SEO" row of editorial copy; a named social platform beats topic keywords (a LinkedIn thought leadership post is social copy, not editorial), and marketing is checked last because its keywords are the most generic. This table mirrors `routeToDomain()` in `@copydoc/core`; keep the two in sync when editing either.
 
 **If no match:** Ask the user which domain skill to use, or default to `marketing-copy` if in agent mode.
 
@@ -56,9 +57,13 @@ Defer entirely to the domain skill.
 
 Pass the complete brief to the routed domain skill. The domain skill selects the appropriate framework (or principles, in the case of `ux-copy`) based on its own internal mapping. Do not override or second-guess the domain skill's framework choice.
 
-### Step 4: Draft
+### Step 4: Draft, in each language
 
 The domain skill generates the copy using its selected framework and domain patterns.
+
+**Languages.** Load `../quality-frameworks/references/locales/<language>.md` for every locale in the brief (`en`, `nl`, `de`; the primary subtag of the locale). Write each locale in its own language, from the brief and the fact sheet. Never translate a draft from another locale, and never reuse its sentence order: translated copy keeps the source language's idiom and punctuation, and native readers notice. If two locale versions line up sentence by sentence, rewrite the second one from the facts. Every locale states the same facts; none may add one the others lack unless the fact sheet has it.
+
+**Facts.** The draft may state only facts from the fact sheet. Contested points (`conflicts` in the brief) stay out.
 
 Receive the draft output from the domain skill. Note the framework used and any domain-specific flags. Pass draft to Step 5.
 
@@ -66,53 +71,32 @@ Receive the draft output from the domain skill. Note the framework used and any 
 
 **MANDATORY. This step cannot be skipped under any circumstances.**
 
-Load `../quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md` and the locale file for each language.
 
-Apply the full de-slop pass to the draft:
-- Scan for every banned word and phrase
-- Flag em dash usage
-- Flag tricolon patterns that read like jingles
-- Flag AI tell-tale phrasing (hedging language, hollow transitions, vague superlatives)
-- Apply humanization techniques from the anti-slop reference
-- Rewrite every flagged section before proceeding
+Run the de-slop pass that file describes on every field, in every language: mark the tells strongest first, rewrite, check that no fact was dropped, changed or added, do the native read, and search again for the tells that survive a rewrite. If the `copydoc` CLI is available, run `copydoc lint` as that file describes and fix every error.
 
-**Do not move to Step 6 with any unfixed anti-slop violations. The de-slop pass is non-negotiable.**
+**Do not move to Step 6 with an unfixed lint error or an unfixed tell from sections A, C, D or F of the anti-slop reference.**
 
-### Step 6: Critique
+### Step 6: Check
 
-Score the de-slopped draft against the 7-dimension quality rubric in `quality-frameworks` SKILL.md.
+Check the de-slopped draft. Each check passes or fails; do not score.
 
-| Dimension | Scale |
-|-----------|-------|
-| Clarity | 1-10 |
-| Specificity | 1-10 |
-| Voice Match | 1-10 |
-| AI-Tell Score | 0-10 (lower is better) |
-| Persuasion | 1-10 |
-| Action | 1-10 |
-| Overall | 1-10 |
-
-Record all 7 scores. Pass scores and draft to Step 7.
+1. **Facts.** Every factual claim maps to a fact id in the brief's fact sheet. No contested point is stated. Every locale states the same facts.
+2. **Brief.** Every deliverable is present and within its budget; the goal, audience, CTA and any SEO finding in the brief are addressed.
+3. **Tells.** A careful native reader of each language could not point at a sentence and say a model wrote it.
+4. **Domain checks.** Any pass/fail checks the domain skill lists (character limits for ads, the 4Us for headlines).
 
 ### Step 7: Revise
 
-**Revision threshold:** If AI-Tell Score >= 3 OR Overall score < 7, revision is required.
+If any check in Step 6 fails, return the draft to the domain skill with the failed checks, then re-run Steps 5 and 6.
 
-**If revision is required:**
-1. Return the draft to the domain skill with the critique scores and specific flags.
-2. Domain skill revises based on the flagged dimensions.
-3. Re-run Steps 5 and 6 on the revised draft.
-4. Evaluate against the threshold again.
-
-**Hard cap: maximum 2 revision cycles.** If the draft still fails the threshold after 2 cycles, proceed to Step 8 with the best available draft. Set `flags` in the output to note the unresolved quality issues and which threshold was not met.
-
-**If no revision is required (AI-Tell < 3 AND Overall >= 7):** Proceed directly to Step 8.
+**Hard cap: maximum 2 revision cycles.** If a check still fails after 2 cycles, proceed to Step 8 with the best available draft and list each failed check in `open_issues`.
 
 ### Step 8: Return
 
 Return structured output matching the output contract below.
 
-Include the framework used, domain routed to, all 7 quality scores, and any flags from the revision process.
+Include the framework used, the domain routed to, the claims, needs and decisions, the lint result, and any open issues and flags.
 
 ## Human Checkpoints
 
@@ -147,36 +131,35 @@ When invoked by an orchestrator, pipeline, or another agent:
 
 ```yaml
 copy:
-  primary: "..."
-  variants: ["...", "..."]
+  - locale: "nl-NL"
+    primary: "..."
+    variants: []
+claims:
+  - text: "brouwt sinds 1872"
+    facts: [F3]
+needs:
+  - "Which head brewer is right, or should the copy name none?"
+decisions:
+  - "Used je, not u: no voice samples were supplied."
 metadata:
   framework_used: "PAS"
   domain: "email-copy/cold-outreach"
-  quality_scores:
-    clarity: 8
-    specificity: 7
-    voice_match: 9
-    ai_tell_score: 2
-    overall: 8
+  lint: "0 errors, 0 warnings"
+  open_issues: []
   flags: []
 ```
 
 **Fields:**
 
-- `copy.primary`: The final copy, ready to use.
-- `copy.variants`: Optional alternate versions. Empty array if none were produced.
-- `metadata.framework_used`: The framework or approach the domain skill used (e.g., "PAS", "AIDA", "4Us").
-- `metadata.domain`: The domain skill routed to, with sub-type if applicable.
-- `metadata.quality_scores`: All 7 scores from the final critique in Step 6.
-- `metadata.flags`: Empty array on clean pass. Populated if revision cap was hit or recommended brief fields were absent.
-
-**Example flags:**
-
-```yaml
-flags:
-  - "AI-tell threshold not met after 2 revision cycles: ai_tell_score 3"
-  - "brand_voice not provided: voice_match scored at 5"
-```
+- `copy`: one entry per locale. `primary` is the final copy, ready to use; `variants` are optional alternates (empty if none). A domain skill with structured deliverables (title, meta, description) returns them as named fields inside the entry.
+- `claims`: every factual claim in the copy and the fact ids it rests on. Empty when the copy makes no factual claims.
+- `needs`: questions only a human can answer (missing or contested facts, missing voice samples). Empty if none.
+- `decisions`: judgment calls a human may want to overrule (register, which fact led, a trade name used).
+- `metadata.framework_used`: the framework or approach the domain skill used ("none" for commerce and UX copy).
+- `metadata.domain`: the domain skill routed to, with sub-type if applicable.
+- `metadata.lint`: the lint result per locale, or "not run" when the CLI was not available.
+- `metadata.open_issues`: checks from Step 6 that still fail after the revision cap.
+- `metadata.flags`: brief fields that were missing or inferred.
 
 ## Hard Rules
 
@@ -186,6 +169,10 @@ flags:
 
 **De-slop is mandatory.** Step 5 runs on every draft, every revision cycle, without exception.
 
-**Revision cap is 2 cycles.** Never exceed two revision cycles regardless of quality scores. Return with flags.
+**Facts come only from the fact sheet.** A missing fact is a `needs` item, never a guess. A contested fact is left out.
+
+**Each language is written, not translated.** Every locale is drafted in its own language from the brief and the fact sheet.
+
+**Revision cap is 2 cycles.** Never exceed two revision cycles. Return with the open issues listed.
 
 **One domain skill per request.** Route to exactly one domain skill. Do not blend outputs from multiple domain skills.

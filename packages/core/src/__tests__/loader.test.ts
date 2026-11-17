@@ -20,10 +20,10 @@ describe('createLoader', () => {
 });
 
 describe('listSkills()', () => {
-  test('listSkills() returns 15 skills from the real skills/ directory', () => {
+  test('listSkills() returns 16 skills from the real skills/ directory', () => {
     const loader = createLoader(SKILLS_DIR);
     const skills = loader.listSkills();
-    expect(skills).toHaveLength(15);
+    expect(skills).toHaveLength(16);
   });
 
   test('listSkills() returns an array of strings', () => {
@@ -125,10 +125,11 @@ describe('getReference()', () => {
 });
 
 describe('listReferences()', () => {
-  test('listReferences("email-copy") returns 4 references', () => {
+  test('listReferences("email-copy") returns 5 references including transactional', () => {
     const loader = createLoader(SKILLS_DIR);
     const refs = loader.listReferences('email-copy');
-    expect(refs).toHaveLength(4);
+    expect(refs).toHaveLength(5);
+    expect(refs).toContain('transactional');
   });
 
   test('listReferences("email-copy") returns expected reference names', () => {
@@ -173,5 +174,11 @@ describe('resolveReference()', () => {
   test('resolveReference throws for nonexistent path', () => {
     const loader = createLoader(SKILLS_DIR);
     expect(() => loader.resolveReference('nonexistent/references/file.md')).toThrow();
+  });
+});
+
+describe('reference containment', () => {
+  test.each(['../package.json', '../skills-other/ref.md', '../../etc/passwd', path.resolve(SKILLS_DIR, '../package.json')])('rejects outside reference %s', ref => {
+    expect(() => createLoader(SKILLS_DIR).resolveReference(ref)).toThrow('Reference outside skills directory');
   });
 });

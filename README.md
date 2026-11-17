@@ -1,6 +1,6 @@
 # Copyskills
 
-Professional copywriting skills for AI agents and humans. 15 skills covering 8 domains, 10 persuasion frameworks, and a built-in anti-slop system that catches AI writing patterns before they ship.
+Professional copywriting skills for AI agents and humans. 16 skills covering 9 domains, including web-shop copy driven by SEO audits, native writing in English, Dutch and German, a fact sheet that keeps agents from inventing claims, and an anti-slop system with a linter that catches AI writing patterns before they ship.
 
 Works as a ChatGPT and Codex plugin, a Claude Code plugin, an MCP server, a CLI tool, or a TypeScript library.
 
@@ -27,7 +27,7 @@ Critique the copy in ./landing-page-copy.md.
 Adapt this case study into a LinkedIn post.
 ```
 
-The plugin bundles all 15 skills directly, so it does not require the MCP server or an API key.
+The plugin bundles all 16 skills directly, so it does not require the MCP server or an API key.
 
 ### Claude Code Plugin
 
@@ -89,7 +89,7 @@ import {
   createBundledLoader,
   createAssembler,
   selectFramework,
-  createAntiSlopChecker,
+  createLinter,
 } from '@copydoc/core';
 
 const loader = createBundledLoader();
@@ -105,9 +105,9 @@ const { systemPrompt, userPrompt } = assembler.assemble({
 // Send to any LLM
 const copy = await yourLLM.generate(systemPrompt, userPrompt);
 
-// Check for AI patterns
-const checker = createAntiSlopChecker(loader);
-const { score, issues } = checker.check(copy);
+// Lint copy
+const linter = createLinter(loader);
+const { errors, warnings, issues } = linter.lint(copy, { locale: 'en' });
 ```
 
 ## Integrations
@@ -159,20 +159,21 @@ npx --yes @copydoc/integrations@0.1.1 install --tool codex --global
 
 ## What's Inside
 
-### 15 Skills Across 3 Layers
+### 16 Skills Across 3 Layers
 
 **Layer 1: Framework References** (the methodology)
 
 | Skill | What it provides |
 |-------|-----------------|
 | persuasion-frameworks | 10 frameworks (AIDA, PAS, BAB, FAB, ACCA, PASTOR, QUEST, 4Ps, PPPP, Star-Story-Solution) with decision matrix for when to use each |
-| quality-frameworks | 7-dimension scoring rubric, anti-slop detection, Cialdini principles, readability targets |
+| quality-frameworks | Anti-slop method and lint lists, locale packs for English, Dutch and German (register, typography, translationese), scoring rubric for existing copy, Cialdini principles, readability targets |
 | headline-formulas | 26 proven headline templates, power words categorized by emotion |
 
 **Layer 2: Domain Skills** (the patterns)
 
 | Skill | Covers |
 |-------|--------|
+| commerce-copy | Product pages, category and style pages, title tags and meta descriptions (single or catalogue batch), About pages, alt text; turns SEO audit findings into page briefs |
 | marketing-copy | Landing pages, ads (Google/Meta/LinkedIn with char limits), CTAs, value propositions |
 | email-copy | Drip sequences, cold outreach, newsletters, subject lines |
 | ux-copy | Microcopy, error messages, onboarding flows, empty states |
@@ -186,21 +187,24 @@ npx --yes @copydoc/integrations@0.1.1 install --tool codex --global
 
 | Skill | Purpose |
 |-------|---------|
-| copy-brief | Gathers context before writing. Three modes: human interview, agent handshake, fast-path |
-| copy-workflow | Full pipeline: brief, domain routing, framework selection, draft, de-slop, critique, revise |
+| copy-brief | Gathers context before writing, including locale and a fact sheet with sources; conflicting facts become questions for a human. Three modes: human interview, agent handshake, fast-path |
+| copy-workflow | Full pipeline: brief, domain routing, framework selection, native draft per language, de-slop, pass/fail checks, revise |
 | copy-critique | Evaluates existing copy. Scores, diagnoses, suggests concrete fixes |
 | copy-adapt | Repurposes copy across channels while preserving the core message |
 
-### Anti-Slop System
+### Facts, languages and the human in the loop
 
-Every workflow includes a mandatory quality pass that catches AI writing patterns:
+Copy states only facts from the brief's fact sheet. Each fact has an id and a source; copy being rewritten counts as unverified, and points on which two sources or language versions disagree are left out and returned as questions. Each language is written from the fact sheet in that language, never translated from another draft, and then read by a fresh reader who has not seen the source. Every run returns, next to the copy, the claims it made (with fact ids), the questions only a human can answer, the judgment calls a human may want to overrule, and the lint result.
 
-- **50+ banned patterns**: "leverage", "unlock", "elevate", "seamless", em dashes, "In today's [X]..."
-- **Structural detection**: Uniform sentence length, repeated paragraph openings, tricolon lists
-- **The specificity test**: Could a competitor paste their name over this copy? If yes, it's slop.
-- **Humanization**: Varied sentence length, contractions, sentence fragments, concrete numbers over vague claims
+### Copy Linter
 
-The anti-slop check runs after every draft. Copy scoring 3+ AI tells gets revised before output.
+The linter reports errors and warnings without an LLM or API key:
+
+- Locale-specific phrases from markdown sections marked `{lint: error}` or `{lint: warn}`; brand phrases can be added with `avoid`.
+- Title and meta character budgets, repeated sentences, and numbers absent from a supplied fact sheet.
+- Repeated four-word sequences and three-word openers across batches.
+
+English uses `anti-slop.md` plus `locales/en.md` when present. Other languages use their locale file when present. Locale variants such as `nl-BE` use the primary language (`nl`).
 
 ## MCP Server Details
 
@@ -220,16 +224,20 @@ copydoc://headlines/power-words         # Get power words by emotion
 
 **Tools** (active logic your agent calls):
 ```
-select_framework  { copy_type, goal }       ->  recommended framework + rationale
-check_anti_slop   { text, avoids? }         ->  AI pattern score + issues
-score_copy        { text, context? }        ->  ai_tell_score + issues (LLM dims return -1)
+select_framework  { copy_type, goal, email_type? }  ->  recommended framework + rationale
+lint_copy         { text?, items?, locale?, kind?, min?, max?, facts?, avoid? }
+                  -> { issues, errors, warnings }; provide exactly one of text or items
 ```
 
 **Prompts** (workflow templates for MCP clients):
 ```
-write     { type, goal, audience?, product?, brand_voice?, constraints? }
-critique  { copy_text, audience?, goal?, brand_voice? }
-adapt     { source_copy, target_format, brand_voice? }
+write     { type, goal, audience?, product?, brand_voice?, constraints?, email_type?, locale?, facts?, voice_examples? }
+critique  { copy_text, audience?, goal?, brand_voice?, locale? }
+adapt     { source_copy, target_format, brand_voice?, locale? }
+
+facts: one per line, optionally "F3: claim (source: where)". voice_examples: approved
+samples separated by a line containing only ---. email_type: transactional, newsletter,
+cold-outreach, welcome-sequence, ... (set it when the type name is ambiguous).
 ```
 
 ## CLI Commands
@@ -238,12 +246,16 @@ adapt     { source_copy, target_format, brand_voice? }
 copydoc init              # Set up provider (Anthropic/OpenAI/Gemini) and API key
 copydoc write <desc>      # Generate copy with interactive brief gathering
 copydoc critique <input>  # Evaluate copy from file or inline text
+copydoc lint <file|dir>... [--locale nl-NL] [--kind title|meta|body]
+  [--min N] [--max N] [--facts facts.md] [--items lines] [--json]
 copydoc adapt <src> --to <fmt>  # Repurpose copy for a different channel
 copydoc list              # Show all available skills grouped by layer
 copydoc info <skill>      # Show skill details and references
 ```
 
-Supports Anthropic (default), OpenAI, and Google Gemini. Set a custom base URL for Cloudflare AI Gateway.
+`lint` needs no API key or config. One file is checked as one text; multiple files or a directory form a batch (directory .md/.txt files are sorted). `--items lines` checks each non-empty line of a single file as an item. Exit codes: 0 for no errors, 1 for lint errors, 2 for usage errors.
+
+Generation supports Anthropic (default), OpenAI, and Google Gemini. Set a custom base URL for Cloudflare AI Gateway.
 
 ## Input/Output Contract
 
@@ -270,21 +282,22 @@ constraints:
   length: "150 words max"
 ```
 
-Output includes the copy plus quality metadata:
+Output is the copy plus what a human needs to review it. There are no self-awarded scores:
 
 ```yaml
 copy:
-  primary: "..."
-  variants: ["...", "..."]
-metadata:
-  framework_used: "PAS"
-  domain: "email-copy/cold-outreach"
-  quality_scores:
-    clarity: 9
-    specificity: 8
-    voice_match: 8
-    ai_tell_score: 1
-    overall: 8
+  - locale: nl-NL
+    fields:
+      subject: "..."
+      body: "..."
+claims:        # every factual claim, with the fact ids it rests on
+  - text: "..."
+    facts: [F3]
+needs: []      # questions only a human can answer
+decisions: []  # judgment calls a human may want to overrule
+lint:
+  nl-NL: "0 errors, 0 warnings"
+open_issues: []
 ```
 
 ## Architecture
@@ -308,9 +321,9 @@ metadata:
 
 @copydoc/core (shared library)
   |
-  +-- reads 15 skill markdown files at runtime
+  +-- reads 16 skill markdown files at runtime
   +-- assembles prompts from skills + brief context
-  +-- provides framework selection + anti-slop scoring
+  +-- provides framework selection + copy linting
 ```
 
 Skills are plain markdown files. No compilation, no transformation. The core library reads them at runtime and assembles structured prompts that any LLM can consume.

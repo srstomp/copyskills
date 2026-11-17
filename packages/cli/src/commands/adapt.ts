@@ -1,6 +1,7 @@
 import fs from 'fs';
 import type { SkillLoader } from '@copydoc/core';
-import { createAssembler, selectFramework, createAntiSlopChecker } from '@copydoc/core';
+import { createAssembler, selectFramework, createLinter } from '@copydoc/core';
+import { printLintResult } from './lint';
 import { loadConfig } from '../config';
 import { createProvider } from '../providers/adapter';
 
@@ -21,6 +22,7 @@ export async function adaptCommand(
   loader: SkillLoader,
   source: string,
   targetFormat: string,
+  locale: string = 'en',
 ): Promise<void> {
   const config = loadConfig();
   const provider = createProvider(config);
@@ -28,7 +30,7 @@ export async function adaptCommand(
 
   const sourceText = resolveInput(source);
 
-  const { systemPrompt, userPrompt } = assembler.assembleAdapt(sourceText, targetFormat);
+  const { systemPrompt, userPrompt } = assembler.assembleAdapt(sourceText, targetFormat, undefined, locale);
 
   let fullOutput = '';
   for await (const chunk of provider.stream(systemPrompt, userPrompt)) {
@@ -38,17 +40,7 @@ export async function adaptCommand(
 
   console.log('\n');
 
-  const result = createAntiSlopChecker(loader).check(fullOutput);
+  const result = createLinter(loader).lint(fullOutput, { locale });
 
-  console.log('--- Quality Check ---');
-  console.log(`AI-tell score: ${result.score}/10 (lower is better)`);
-  if (result.issues.length === 0) {
-    console.log('No issues found.');
-  } else {
-    console.log(`Issues found: ${result.issues.length}`);
-    for (const issue of result.issues.slice(0, 5)) {
-      const suggestion = issue.suggestion ? ` -> ${issue.suggestion}` : '';
-      console.log(`  Line ${issue.line}: "${issue.pattern}"${suggestion}`);
-    }
-  }
+  printLintResult(result);
 }

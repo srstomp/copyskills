@@ -31,7 +31,9 @@ mock.module('readline/promises', () => ({
   createInterface: () => mockInterface,
 }));
 
-// ---- Mock setup: @copydoc/core assembler and anti-slop ----
+// ---- Mock setup: @copydoc/core assembler and lint ----
+
+const { languageOf } = await import('@copydoc/core');
 
 const mockAssemble = mock((_brief: unknown) => ({
   systemPrompt: 'system prompt',
@@ -43,19 +45,18 @@ const mockAssembleCritique = mock((_text: unknown, _context?: unknown) => ({
   userPrompt: 'critique user prompt',
 }));
 
-const mockAssembleAdapt = mock((_sourceText: unknown, _targetFormat: unknown) => ({
+const mockAssembleAdapt = mock((_sourceText: unknown, _targetFormat: unknown, _brandVoice?: unknown, _locale?: unknown) => ({
   systemPrompt: 'adapt system prompt',
   userPrompt: 'adapt user prompt',
 }));
 
-const mockAntiSlopCheck = mock((_text: string) => ({
-  score: 2,
-  issues: [{ pattern: 'utilize', line: 1, suggestion: 'use' }],
+const mockLint = mock((_text: string) => ({
+  errors: 1, warnings: 0,
+  issues: [{ rule: 'phrase', severity: 'error', message: 'Banned pattern: utilize', line: 1, suggestion: 'use' }],
 }));
 
-const mockGetBannedPatterns = mock(() => ['utilize', 'leverage']);
-
 mock.module('@copydoc/core', () => ({
+  languageOf,
   createLoader: mock(() => makeLoader()),
   createBundledLoader: mock(() => makeLoader()),
   resolveSkillsDir: mock(() => path.resolve(__dirname, '../../../../skills')),
@@ -69,10 +70,7 @@ mock.module('@copydoc/core', () => ({
     path: 'persuasion-frameworks/references/pas.md',
     rationale: 'Test rationale',
   })),
-  createAntiSlopChecker: mock(() => ({
-    check: mockAntiSlopCheck,
-    getBannedPatterns: mockGetBannedPatterns,
-  })),
+  createLinter: mock(() => ({ lint: mockLint })),
 }));
 
 // ---- Mock setup: providers ----
@@ -239,7 +237,7 @@ describe('initCommand() - creates ~/.copydocrc.json', () => {
 
 // ---- write command tests ----
 
-describe('writeCommand() - streams copy and shows quality scores', () => {
+describe('writeCommand() - streams copy and shows lint results', () => {
   let output: string[] = [];
   let processWriteMock: ReturnType<typeof mock>;
   let consoleLogMock: ReturnType<typeof mock>;
@@ -255,7 +253,7 @@ describe('writeCommand() - streams copy and shows quality scores', () => {
     // Provide a real API key so loadConfig() doesn't throw
     process.env.COPYDOC_API_KEY = 'test-api-key';
     mockAssemble.mockClear();
-    mockAntiSlopCheck.mockClear();
+    mockLint.mockClear();
     mockStream.mockReset();
     mockStream.mockImplementation(async function* () {
       yield 'Streamed ';
@@ -291,24 +289,24 @@ describe('writeCommand() - streams copy and shows quality scores', () => {
     expect(written).toContain('output');
   });
 
-  test('writeCommand() runs anti-slop check on streamed output', async () => {
+  test('writeCommand() runs lint check on streamed output', async () => {
     mockReadlineAnswers = ['Book a demo', 'SaaS founders', ''];
     const { writeCommand } = await import('../commands/write');
     const loader = makeLoader();
     await writeCommand(loader, 'landing page hero', '/tmp/copydoc-test-output');
-    expect(mockAntiSlopCheck).toHaveBeenCalled();
-    const checkArg = mockAntiSlopCheck.mock.calls[0][0] as string;
+    expect(output.join('\n')).toContain('ERROR phrase line 1: Banned pattern: utilize (use)');
+    const checkArg = mockLint.mock.calls[0][0] as string;
     expect(checkArg).toContain('Streamed copy output');
   });
 
-  test('writeCommand() prints quality score after streaming', async () => {
+  test('writeCommand() prints lint summary after streaming', async () => {
     mockReadlineAnswers = ['Book a demo', 'SaaS founders', ''];
     const { writeCommand } = await import('../commands/write');
     const loader = makeLoader();
     await writeCommand(loader, 'landing page hero', '/tmp/copydoc-test-output');
     const combined = output.join('\n');
-    // Should mention anti-slop score
-    expect(combined).toMatch(/score|issue|quality|AI.tell/i);
+    // Report the actual lint summary
+    expect(combined).toContain('1 errors, 0 warnings');
   });
 
   test('writeCommand() saves output file to outputDir', async () => {
@@ -369,7 +367,7 @@ describe('critiqueCommand() - accepts file or inline text', () => {
     process.env.COPYDOC_API_KEY = 'test-api-key';
     mockGenerate.mockClear();
     mockAssembleCritique.mockClear();
-    mockAntiSlopCheck.mockClear();
+    mockLint.mockClear();
   });
 
   afterEach(() => {
@@ -382,6 +380,12 @@ describe('critiqueCommand() - accepts file or inline text', () => {
     expect(mockAssembleCritique).toHaveBeenCalled();
     const textArg = mockAssembleCritique.mock.calls[0][0] as string;
     expect(textArg).toBe('This is inline copy text to critique.');
+  });
+
+  test('critiqueCommand() passes the locale to prompt assembly', async () => {
+    const { critiqueCommand } = await import('../commands/critique');
+    await critiqueCommand(makeLoader(), 'Sake uit Kyoto.', 'nl-NL');
+    expect(mockAssembleCritique.mock.calls[0]).toEqual(['Sake uit Kyoto.', { locale: 'nl-NL' }]);
   });
 
   test('critiqueCommand() calls provider.generate() (not stream)', async () => {
@@ -397,12 +401,12 @@ describe('critiqueCommand() - accepts file or inline text', () => {
     expect(combined).toContain('Generated critique response');
   });
 
-  test('critiqueCommand() runs anti-slop check and prints score', async () => {
+  test('critiqueCommand() runs lint check and prints lint result', async () => {
     const { critiqueCommand } = await import('../commands/critique');
     await critiqueCommand(makeLoader(), 'Some copy to review.');
-    expect(mockAntiSlopCheck).toHaveBeenCalled();
+    expect(output.join('\n')).toContain('ERROR phrase line 1: Banned pattern: utilize (use)');
     const combined = output.join('\n');
-    expect(combined).toMatch(/score|AI.tell|issue/i);
+    expect(combined).toContain('1 errors, 0 warnings');
   });
 
   test('critiqueCommand() reads file when input is a file path that exists', async () => {
@@ -458,7 +462,7 @@ describe('adaptCommand() - adapts copy to target format', () => {
     process.stdout.write = processWriteMock as typeof process.stdout.write;
     process.env.COPYDOC_API_KEY = 'test-api-key';
     mockAssembleAdapt.mockClear();
-    mockAntiSlopCheck.mockClear();
+    mockLint.mockClear();
     mockStream.mockReset();
     mockStream.mockImplementation(async function* () {
       yield 'Adapted ';
@@ -477,6 +481,12 @@ describe('adaptCommand() - adapts copy to target format', () => {
     const [sourceArg, formatArg] = mockAssembleAdapt.mock.calls[0] as [string, string];
     expect(sourceArg).toBe('Original landing page copy');
     expect(formatArg).toBe('linkedin');
+  });
+
+  test('adaptCommand() passes the locale to prompt assembly', async () => {
+    const { adaptCommand } = await import('../commands/adapt');
+    await adaptCommand(makeLoader(), 'Sake uit Kyoto.', 'LinkedIn post', 'nl-NL');
+    expect(mockAssembleAdapt.mock.calls[0]).toEqual(['Sake uit Kyoto.', 'LinkedIn post', undefined, 'nl-NL']);
   });
 
   test('adaptCommand() streams adapted output to terminal', async () => {
@@ -508,17 +518,17 @@ describe('adaptCommand() - adapts copy to target format', () => {
     expect(sourceArg).toBe(inlineText);
   });
 
-  test('adaptCommand() runs anti-slop check on output', async () => {
+  test('adaptCommand() runs lint check on output', async () => {
     const { adaptCommand } = await import('../commands/adapt');
     await adaptCommand(makeLoader(), 'Source copy', 'linkedin');
-    expect(mockAntiSlopCheck).toHaveBeenCalled();
+    expect(output.join('\n')).toContain('ERROR phrase line 1: Banned pattern: utilize (use)');
   });
 
-  test('adaptCommand() prints quality scores after streaming', async () => {
+  test('adaptCommand() prints lint summary after streaming', async () => {
     const { adaptCommand } = await import('../commands/adapt');
     await adaptCommand(makeLoader(), 'Source copy', 'linkedin');
     const combined = output.join('\n');
-    expect(combined).toMatch(/score|issue|quality|AI.tell/i);
+    expect(combined).toContain('1 errors, 0 warnings');
   });
 });
 

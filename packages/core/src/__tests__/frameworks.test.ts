@@ -1,6 +1,76 @@
 import { describe, expect, test } from 'bun:test';
 import { selectFramework, routeToDomain } from '../frameworks';
 import type { FrameworkSelection } from '../types';
+import { createLoader } from '../loader';
+import path from 'path';
+
+describe('transactional email routing', () => {
+  const loader = createLoader(path.resolve(__dirname, '../../../../skills'));
+
+  // Inference only fires on unambiguous phrases.
+  test.each([
+    'transactional email', 'receipt email', 'password reset email', 'reset your password email',
+    'order confirmation email', 'order confirmation e-mail', 'order shipped email', 'Dutch order confirmation email',
+    'shipping confirmation email', 'delivery confirmation email', 'sign-in code email', 'sign in code email',
+    'login code email', 'verification code email', 'verification email', 'verify your email email',
+    'payment failed email', 'invoice email', 'order confirmation email for Black Friday purchases',
+    'subject line for order confirmation email', 'welcome order confirmation email',
+    'password-reset email', 'order-shipped email', 'order-confirmation email',
+    'password reset email for Coldwater customers', 'order confirmation email for newsletter subscribers',
+    'bestelbevestiging email', 'orderbevestiging e-mail', 'bevestigingsmail na bestelling met bestelbevestiging',
+    'Bestellbestätigung E-Mail', 'Versandbestätigung E-Mail',
+  ])('%s is transactional', (copyType) => {
+    const result = selectFramework(copyType, 'inform the reader');
+    expect(result.framework).toBe('None');
+    expect(result.path).toBe('email-copy/references/transactional.md');
+    expect(loader.resolveReference(result.path)).toContain('# Transactional Email');
+  });
+
+  test.each([
+    ['cold outreach email', 'PAS'], ['welcome email', 'BAB'], ['newsletter', 'AIDA'],
+    ['border collie breeder cold email', 'PAS'], ['abandoned cart reminder email', 'PAS'],
+    ['price drop alert email', 'PAS'], ['reorder reminder email', 'PAS'], ['flash sale notification email', 'PAS'],
+    ['pre-order launch email', 'PAS'], ['free shipping email', 'PAS'], ['black friday confirmation email', 'PAS'],
+    ['password manager launch email', 'PAS'], ['invoice software launch email', 'PAS'],
+    ['refund policy announcement email', 'PAS'], ['promotional email for our receipt scanner', 'PAS'],
+    ['cold email about our order management software', 'PAS'], ['welcome email for our password manager', 'BAB'],
+    ['welcome sequence for invoice software', 'BAB'], ['drip sequence for shipping software email', 'BAB'],
+    ['newsletter about delivery times', 'AIDA'], ['Abrechnungssoftware email', 'PAS'],
+  ])('%s keeps a marketing framework', (copyType, framework) => {
+    const result = selectFramework(copyType, 'engage readers');
+    expect(result.framework).toBe(framework);
+    expect(result.path).not.toContain('transactional');
+  });
+
+  // Documented limit: these are transactional, but inference does not claim them; the brief names the type.
+  test.each(['appointment reminder email', 'subscription renewal email', 'payment declined email'])(
+    '%s needs an explicit email type',
+    (copyType) => {
+      expect(selectFramework(copyType, 'inform').framework).toBe('PAS');
+      expect(selectFramework(copyType, 'inform', 'transactional').path).toBe('email-copy/references/transactional.md');
+    },
+  );
+
+  test.each([
+    ['transactional', 'None', 'transactional.md'], ['newsletter', 'AIDA', 'aida.md'],
+    ['welcome-sequence', 'BAB', 'bab.md'], ['onboarding-sequence', 'BAB', 'bab.md'],
+    ['cold-outreach', 'PAS', 'pas.md'], ['nurture-sequence', 'PAS', 'pas.md'],
+    ['subject-line', '4Us', 'four-us.md'],
+  ] as const)('explicit email type %s selects %s', (emailType, framework, file) => {
+    // The explicit type wins over whatever the copy type string suggests.
+    const result = selectFramework('order confirmation email', 'inform', emailType);
+    expect(result.framework).toBe(framework);
+    expect(result.path.endsWith(file)).toBe(true);
+    expect(loader.resolveReference(result.path).length).toBeGreaterThan(100);
+  });
+
+  test.each([
+    ['mailing list signup form', 'email-copy', false], ['mail merge', 'email-copy', false],
+    ['direct mail sales page', 'email-copy', false], ['voicemail greeting', 'email-copy', false],
+  ] as const)('%s is not routed to email by a "mail" alias', (copyType, domain, expected) => {
+    expect(routeToDomain(copyType) === domain).toBe(expected);
+  });
+});
 
 // AC: selectFramework('cold outreach email', 'book a demo') returns { framework: 'PAS', path contains 'pas.md' }
 describe('selectFramework - email-copy', () => {
@@ -597,5 +667,30 @@ describe('selectFramework rationale content', () => {
   test('rationale for BAB (case study) is non-empty', () => {
     const result = selectFramework('case study', 'build trust');
     expect(result.rationale.length).toBeGreaterThan(20);
+  });
+});
+
+describe('routeToDomain - commerce routing', () => {
+  test('shop deliverables route to commerce-copy', () => {
+    expect(routeToDomain('product description')).toBe('commerce-copy');
+    expect(routeToDomain('meta description batch for 120 bottles')).toBe('commerce-copy');
+    expect(routeToDomain('Title tag')).toBe('commerce-copy');
+    expect(routeToDomain('category page intro')).toBe('commerce-copy');
+  });
+
+  test('a shop SEO audit routes to commerce-copy, not editorial-copy', () => {
+    expect(routeToDomain('copy fixes from an SEO audit')).toBe('commerce-copy');
+    expect(routeToDomain('SEO blog post')).toBe('editorial-copy');
+  });
+
+  test('"pdp" needs a word boundary', () => {
+    expect(routeToDomain('PDP copy')).toBe('commerce-copy');
+    expect(routeToDomain('pdpx widget')).not.toBe('commerce-copy');
+  });
+
+  test('commerce-copy uses no persuasion framework', () => {
+    const result = selectFramework('product description', 'help buyers choose');
+    expect(result.framework).toBe('None');
+    expect(result.path).toBe('commerce-copy/references/product-pages.md');
   });
 });

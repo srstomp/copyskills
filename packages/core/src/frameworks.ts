@@ -16,9 +16,15 @@ const AD_KEYWORDS = ['w:ad', 'w:ads', 'w:advertisement'];
  * Multi-word phrases always use substring matching (they are inherently specific enough).
  */
 const DOMAIN_ROUTING: Array<[string[], string]> = [
+  // commerce-copy - first, so shop "meta description" or "SEO audit" work does not fall
+  // through to editorial-copy's generic "seo" keyword
+  [
+    ['product description', 'product page', 'w:pdp', 'category page', 'collection page', 'style page', 'meta description', 'title tag', 'alt text', 'about page', 'shop copy', 'w:catalogue', 'w:catalog', 'seo audit'],
+    'commerce-copy',
+  ],
   // email-copy - check before marketing-copy to catch "sales email" going to email-copy
   [
-    ['w:email', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign', 're-engagement', 'w:transactional'],
+    ['w:email', 'e-mail', 'bevestigingsmail', 'bestätigungsmail', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign', 're-engagement', 'w:transactional'],
     'email-copy',
   ],
   // ux-copy - check before marketing-copy so "button" and "cta" don't collide
@@ -113,31 +119,77 @@ export function routeToDomain(copyType: string): string {
   return routeToDomainOrNull(copyType) ?? 'marketing-copy';
 }
 
+/** Email types a brief may name explicitly (`email_type`); the same ids as the email-copy skill's table. */
+export const EMAIL_TYPES = [
+  'transactional', 'cold-outreach', 'cold-follow-up', 'welcome-sequence', 'onboarding-sequence',
+  'nurture-sequence', 're-engagement', 'newsletter', 'subject-line',
+] as const;
+export type EmailType = (typeof EMAIL_TYPES)[number];
+
 /**
- * Detects email sub-type from copy type string.
+ * Infers the email type from a free-text copy type. Deliberately conservative:
+ * an email counts as transactional only for unambiguous phrases, because the same
+ * words ("order", "confirmation", "free shipping") appear in marketing email too.
+ * Anything else (appointment reminders, renewals, declined payments) needs an
+ * explicit `email_type: transactional`.
  */
-function detectEmailSubtype(lower: string): 'cold-outreach' | 'welcome-nurture' | 'newsletter' {
-  if (lower.includes('newsletter')) {
-    return 'newsletter';
-  }
-  if (
-    lower.includes('cold') ||
-    lower.includes('outreach') ||
-    lower.includes('subject line')
-  ) {
-    return 'cold-outreach';
-  }
-  if (
-    lower.includes('drip') ||
-    lower.includes('nurture') ||
-    lower.includes('welcome') ||
-    lower.includes('sequence') ||
-    lower.includes('campaign')
-  ) {
-    return 'welcome-nurture';
-  }
-  // Default email sub-type is cold-outreach
+function detectEmailType(lower: string): EmailType {
+  // Transactional phrases first: "order confirmation email for newsletter subscribers" is transactional.
+  if (TRANSACTIONAL_EMAIL.test(lower)) return 'transactional';
+  if (lower.includes('newsletter')) return 'newsletter';
+  if (/\b(?:cold|outreach)\b/.test(lower)) return 'cold-outreach';
+  if (['drip', 'nurture', 'welcome', 'sequence', 'campaign'].some((word) => lower.includes(word))) return 'welcome-sequence';
   return 'cold-outreach';
+}
+
+const TRANSACTIONAL_EMAIL = new RegExp(
+  [
+    '\\b(?:transactional|password[- ]reset|reset (?:your )?password|(?:receipt|invoice)[- ]e-?mail)\\b',
+    '\\border[- ](?:confirmation|shipped)\\b',
+    '\\b(?:shipping|delivery)[- ]confirmation\\b',
+    '\\b(?:sign[- ]?in|log[- ]?in|verification)[- ]code\\b',
+    '\\b(?:verification e-?mail|verify (?:your )?e-?mail)\\b',
+    '\\bpayment[- ](?:failed|receipt)\\b',
+    '(?:bestelbevestiging|orderbevestiging|verzendbevestiging|bestellbestätigung|auftragsbestätigung|versandbestätigung)',
+  ].join('|'),
+  'u',
+);
+
+/** The framework for an email type. */
+function emailFramework(type: EmailType): FrameworkSelection {
+  switch (type) {
+    case 'transactional':
+      return {
+        framework: 'None',
+        path: 'email-copy/references/transactional.md',
+        rationale: 'Transactional email confirms what happened and what to do next; a persuasion arc makes a receipt read like an advert.',
+      };
+    case 'newsletter':
+      return {
+        framework: 'AIDA',
+        path: 'persuasion-frameworks/references/aida.md',
+        rationale: 'Newsletters benefit from AIDA because readers arrive with moderate interest, and the framework builds attention then channels it toward a specific action.',
+      };
+    case 'welcome-sequence':
+    case 'onboarding-sequence':
+      return {
+        framework: 'BAB',
+        path: 'persuasion-frameworks/references/bab.md',
+        rationale: 'Welcome and nurture emails map to BAB because the reader is already opted in. Showing the before state, the better future, and the bridge builds trust through transformation rather than pain.',
+      };
+    case 'subject-line':
+      return {
+        framework: '4Us',
+        path: 'quality-frameworks/references/four-us.md',
+        rationale: 'A subject line is judged on usefulness, urgency, uniqueness and specificity; it has no room for a persuasion arc.',
+      };
+    default:
+      return {
+        framework: 'PAS',
+        path: 'persuasion-frameworks/references/pas.md',
+        rationale: 'Cold outreach maps to PAS because the audience has a clear pain point that needs to be agitated before presenting the solution.',
+      };
+  }
 }
 
 /**
@@ -221,7 +273,8 @@ function detectConversionSubtype(lower: string): 'pricing' | 'signup' {
  * Returns a FrameworkSelection with framework name, reference file path, and rationale.
  * Falls back to AIDA/marketing-copy if no keywords match.
  */
-export function selectFramework(copyType: string, goal: string): FrameworkSelection {
+export function selectFramework(copyType: string, goal: string, emailType?: EmailType): FrameworkSelection {
+  if (emailType !== undefined) return emailFramework(emailType);
   const matchedDomain = routeToDomainOrNull(copyType);
   const lower = copyType.toLowerCase();
 
@@ -238,30 +291,15 @@ export function selectFramework(copyType: string, goal: string): FrameworkSelect
   const domain = matchedDomain;
 
   switch (domain) {
-    case 'email-copy': {
-      const subtype = detectEmailSubtype(lower);
-      if (subtype === 'newsletter') {
-        return {
-          framework: 'AIDA',
-          path: 'persuasion-frameworks/references/aida.md',
-          rationale:
-            'Newsletters benefit from AIDA because readers arrive with moderate interest, and the framework builds attention then channels it toward a specific action.',
-        };
-      }
-      if (subtype === 'welcome-nurture') {
-        return {
-          framework: 'BAB',
-          path: 'persuasion-frameworks/references/bab.md',
-          rationale:
-            'Welcome and nurture emails map to BAB because the reader is already opted in. Showing the before state, the better future, and the bridge builds trust through transformation rather than pain.',
-        };
-      }
-      // cold-outreach default
+    case 'email-copy':
+      return emailFramework(detectEmailType(lower));
+
+    case 'commerce-copy': {
       return {
-        framework: 'PAS',
-        path: 'persuasion-frameworks/references/pas.md',
+        framework: 'None',
+        path: 'commerce-copy/references/product-pages.md',
         rationale:
-          'Cold outreach maps to PAS because the audience has a clear pain point that needs to be agitated before presenting the solution.',
+          'Shop copy helps a buyer choose from true, specific facts. A persuasion arc makes product and category pages read like adverts and makes catalogue copy share one skeleton.',
       };
     }
 

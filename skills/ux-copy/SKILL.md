@@ -120,32 +120,30 @@ Do not invent structure. The principles plus domain reference define the structu
 
 Load `../quality-frameworks/references/anti-slop.md`.
 
-Run this sequence on the draft:
+Load `../quality-frameworks/references/locales/<language>.md` for the copy's language as well (`en`, `nl` or `de`).
 
-1. Scan for every banned word and phrase in the Banned Words and Phrases section. Flag each hit.
-2. Check for em dashes. Remove all of them. Restructure affected sentences.
-3. Apply the specificity test: is this copy generic enough to appear in any product? If yes, add the product-specific detail from the brief.
-4. Check for filler words that pad without adding meaning: "simply", "just", "easy", "quickly". Remove them.
-5. Check for passive voice. UX copy is almost never passive. Rewrite any passive constructions.
-6. For error messages specifically: check that the message does not blame the user. "You entered an invalid email" blames the user. "This email address is not valid" describes the state.
+Run the de-slop pass described in the anti-slop reference on every part of the draft:
+1. Mark every tell from sections A to F, strongest first.
+2. Rewrite each flagged passage. Keep every fact; add none that is not in the brief's fact sheet. If a sentence is generic and the brief has no true detail for it, write a plainer sentence or cut it.
+3. Check the rewrite against the brief: no fact dropped, changed or added.
+4. Do the native read described in the anti-slop reference: one sentence at a time, as a native editor of the copy's language.
+5. If the `copydoc` CLI is available, run `copydoc lint <file> --locale <locale>` and fix every error.
+5. Check for filler words that pad without adding meaning: "simply", "just", "easy", "quickly". Remove them.
+6. Check for passive voice. UX copy is almost never passive. Rewrite any passive constructions.
+7. For error messages specifically: check that the message does not blame the user. "You entered an invalid email" blames the user. "This email address is not valid" describes the state.
 
 Do not consider the draft done until every flag is resolved.
 
-### Step 6: Score against quality rubric
+### Step 6: Check
 
-Score the de-slopped draft across these 7 dimensions. Weight Clarity highest for UX copy -- it is the primary quality signal.
+Check the draft. Each check passes or fails; do not score your own draft.
+1. **Facts.** Every factual claim comes from the brief's fact sheet. No contested fact is stated.
+2. **Brief.** Every deliverable is present and within its length or character limits; goal, audience and CTA are addressed.
+3. **Tells.** A careful native reader could not point at a sentence and say a model wrote it.
+4. **Clarity.** A user meeting this copy in the moment knows what is happening and what to do next. Clarity is the primary quality signal for UX copy.
+5. **Empathy.** Error and onboarding copy does not blame, scold or talk down to the user.
 
-| Dimension | Scale | Target | UX copy weight |
-|-----------|-------|-----------|---------------|
-| Clarity | 1-10 | 8+ | Highest |
-| Specificity | 1-10 | 7+ | High |
-| Voice Match | 1-10 | 7+ | Medium |
-| AI-Tell Score | 0-10 | 2 or lower | High |
-| Empathy (errors/onboarding) | 1-10 | 7+ | Context-dependent |
-| Action | 1-10 | 7+ | High |
-| Overall | 1-10 | 7+ | -- |
-
-If Clarity is below 8, or AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below their targets set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
+If a check fails, return to the de-slop step. Cap revisions at 2 passes; if a check still fails after that, return the best version and list the failed checks under Open issues.
 
 ### Step 7: Return structured output
 
@@ -157,14 +155,10 @@ Return the completed copy in this structure:
 [Copy here, formatted for its intended use. For multiple elements, group by type.]
 
 ---
-**Quality scores**
-- Clarity: [N]/10
-- Specificity: [N]/10
-- Voice Match: [N]/10
-- AI-Tell: [N]/10
-- Empathy: [N]/10 (if applicable)
-- Action: [N]/10
-- Overall: [N]/10
+**Claims:** [each factual claim and the fact id it rests on, or "none"]
+**Needs:** [questions only a human can answer, or "none"]
+**Lint:** [lint result per locale, or "not run"]
+**Open issues:** [checks still failing after 2 passes, or "none"]
 
 **Principles applied:** [List which of the 4 UX principles were primary]
 **De-slop flags resolved:** [N] (list the specific issues fixed, or "none")

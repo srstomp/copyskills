@@ -7,11 +7,7 @@ export const VERSION = '0.1.1';
 
 export type {
   Brief,
-  QualityScores,
-  AntiSlopIssue,
-  AntiSlopResult,
   FrameworkSelection,
-  CopyOutput,
   AssembledPrompt,
   SkillMetadata,
   SkillContent,
@@ -45,10 +41,12 @@ export function createBundledLoader() {
   return createLoader(resolveSkillsDir());
 }
 
-export { selectFramework, routeToDomain } from './frameworks.js';
+export { selectFramework, routeToDomain, EMAIL_TYPES } from './frameworks.js';
+export type { EmailType } from './frameworks.js';
 
-export { createAntiSlopChecker } from './anti-slop.js';
-export type { AntiSlopChecker } from './anti-slop.js';
+export { createLinter } from './lint.js';
+export { languageOf } from './locale.js';
+export type { Severity, LintIssue, LintOptions, LintResult, Linter } from './lint.js';
 
 export { createAssembler } from './assembler.js';
 export type { Assembler } from './assembler.js';

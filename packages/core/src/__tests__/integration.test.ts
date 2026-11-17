@@ -3,13 +3,13 @@ import path from 'path';
 import { createLoader } from '../loader';
 import { selectFramework, routeToDomain } from '../frameworks';
 import { createAssembler } from '../assembler';
-import { createAntiSlopChecker } from '../anti-slop';
+import { createLinter } from '../lint';
 import type { Brief } from '../types';
 
 const SKILLS_DIR = path.resolve(__dirname, '../../../../skills');
 
 // Full pipeline integration test:
-// createLoader -> createAssembler + selectFramework -> assemble a brief -> createAntiSlopChecker -> check assembled prompt
+// createLoader -> createAssembler + selectFramework -> assemble a brief -> createLinter -> check assembled prompt
 describe('Full pipeline integration', () => {
   test('createLoader produces a working loader that reads real skills', () => {
     const loader = createLoader(SKILLS_DIR);
@@ -41,17 +41,16 @@ describe('Full pipeline integration', () => {
     expect(result.userPrompt.length).toBeGreaterThan(10);
   });
 
-  test('createAntiSlopChecker composes with createLoader from the same loader', () => {
+  test('createLinter composes with createLoader from the same loader', () => {
     const loader = createLoader(SKILLS_DIR);
-    const checker = createAntiSlopChecker(loader);
-    expect(typeof checker.check).toBe('function');
-    expect(checker.getBannedPatterns().length).toBeGreaterThanOrEqual(20);
+    const linter = createLinter(loader);
+    expect(linter.lint('Unique content.', { locale: 'fr' })).toEqual({ issues: [], errors: 0, warnings: 0 });
   });
 
-  test('assembled prompt can be passed through anti-slop checker without error', () => {
+  test('assembled prompt can be passed through copy linter without error', () => {
     const loader = createLoader(SKILLS_DIR);
     const assembler = createAssembler(loader, selectFramework);
-    const checker = createAntiSlopChecker(loader);
+    const linter = createLinter(loader);
 
     const brief: Brief = {
       type: 'cold email',
@@ -60,24 +59,25 @@ describe('Full pipeline integration', () => {
 
     const { systemPrompt, userPrompt } = assembler.assemble(brief);
 
-    // Running the assembled prompts through the checker must not throw
-    expect(() => checker.check(systemPrompt)).not.toThrow();
-    expect(() => checker.check(userPrompt)).not.toThrow();
+    expect(linter.lint(systemPrompt, { avoid: ['Role'] }).issues.map(({ rule, severity, message }) => ({ rule, severity, message }))).toContainEqual({
+      rule: 'phrase', severity: 'error', message: 'Banned pattern: Role',
+    });
+    expect(linter.lint(userPrompt, { avoid: ['book a demo'] }).issues.map(({ rule, severity, message }) => ({ rule, severity, message }))).toContainEqual({
+      rule: 'phrase', severity: 'error', message: 'Banned pattern: book a demo',
+    });
   });
 
-  test('anti-slop checker returns a structured result for assembled systemPrompt', () => {
+  test('copy linter returns a structured result for assembled systemPrompt', () => {
     const loader = createLoader(SKILLS_DIR);
     const assembler = createAssembler(loader, selectFramework);
-    const checker = createAntiSlopChecker(loader);
+    const linter = createLinter(loader);
 
     const brief: Brief = { type: 'cold email', goal: 'book a demo' };
     const { systemPrompt } = assembler.assemble(brief);
 
-    const result = checker.check(systemPrompt);
-    expect(typeof result.score).toBe('number');
-    expect(Array.isArray(result.issues)).toBe(true);
-    expect(result.score).toBeGreaterThanOrEqual(0);
-    expect(result.score).toBeLessThanOrEqual(10);
+    const result = linter.lint(systemPrompt, { avoid: ['Role'] });
+    expect(result.issues.map(({ rule, severity, message }) => ({ rule, severity, message }))).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: Role' });
+    expect(result.errors).toBeGreaterThanOrEqual(1);
   });
 
   test('full pipeline: routeToDomain selects email-copy, assembler loads that domain skill', () => {
@@ -108,7 +108,7 @@ describe('Full pipeline integration', () => {
   test('full pipeline: assembleAdapt routes to target domain and includes anti-slop', () => {
     const loader = createLoader(SKILLS_DIR);
     const assembler = createAssembler(loader, selectFramework);
-    const checker = createAntiSlopChecker(loader);
+    const linter = createLinter(loader);
 
     const { systemPrompt } = assembler.assembleAdapt(
       'Our product helps you save time.',
@@ -118,14 +118,14 @@ describe('Full pipeline integration', () => {
     expect(systemPrompt).toMatch(/Social Copy|LinkedIn|social/i);
     expect(systemPrompt).toMatch(/Anti-Slop|Banned Words|slop/i);
 
-    const result = checker.check(systemPrompt);
-    expect(result.score).toBeLessThanOrEqual(10);
+    const result = linter.lint(systemPrompt, { avoid: ['Role'] });
+    expect(result.errors).toBeGreaterThanOrEqual(1);
   });
 
   test('full pipeline: assembleCritique includes scoring rubric and anti-slop', () => {
     const loader = createLoader(SKILLS_DIR);
     const assembler = createAssembler(loader, selectFramework);
-    const checker = createAntiSlopChecker(loader);
+    const linter = createLinter(loader);
 
     const copyText = 'Buy now and save big. Limited time offer.';
     const { systemPrompt, userPrompt } = assembler.assembleCritique(copyText);
@@ -134,14 +134,14 @@ describe('Full pipeline integration', () => {
     expect(systemPrompt).toMatch(/Anti-Slop|Banned Words|slop/i);
     expect(userPrompt).toContain(copyText);
 
-    const result = checker.check(systemPrompt);
-    expect(typeof result.score).toBe('number');
+    const result = linter.lint(systemPrompt, { avoid: ['Role'] });
+    expect(result.issues.map(({ rule, severity, message }) => ({ rule, severity, message }))).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: Role' });
   });
 
-  test('full pipeline: brand_voice.avoids words appear in assembled prompt and are detected by checker', () => {
+  test('full pipeline: brand_voice.avoids words appear in assembled prompt and are detected by linter', () => {
     const loader = createLoader(SKILLS_DIR);
     const assembler = createAssembler(loader, selectFramework);
-    const checker = createAntiSlopChecker(loader);
+    const linter = createLinter(loader);
 
     const brief: Brief = {
       type: 'cold email',
@@ -156,11 +156,12 @@ describe('Full pipeline integration', () => {
     expect(systemPrompt).toContain('leverage');
     expect(systemPrompt).toContain('seamless');
 
-    // The anti-slop checker independently flags these words if present in text
+    // The copy linter independently flags these words if present in text
     const testText = 'We leverage seamless workflows.';
-    const result = checker.check(testText);
-    expect(result.issues.some(i => i.pattern.toLowerCase().includes('leverage'))).toBe(true);
-    expect(result.issues.some(i => i.pattern.toLowerCase().includes('seamless'))).toBe(true);
+    const result = linter.lint(testText, { avoid: brief.brand_voice!.avoids });
+    const phrases = result.issues.map(({ rule, severity, message }) => ({ rule, severity, message }));
+    expect(phrases).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: leverag*' });
+    expect(phrases).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: seamless' });
   });
 
   test('full pipeline: all three assembler methods work with single shared loader', () => {

@@ -106,7 +106,7 @@ You get:
 - 7-dimension scores
 - Line-level issues with concrete fixes (`"Replace 'We help businesses unlock growth' with 'We cut your 3PL reconciliation time from 6 hours to 20 minutes'"`)
 - A severity tag on each issue (high, medium, low)
-- A rewrite of flagged sections if AI-tell score is 5+ (or if you ask for one)
+- A rewrite of flagged sections when requested
 
 This is the single best use of Copyskills for copy you already have. Slop detection is mechanical and consistent in a way human review usually is not.
 
@@ -160,7 +160,7 @@ import {
   createBundledLoader,
   createAssembler,
   selectFramework,
-  createAntiSlopChecker,
+  createLinter,
 } from '@copydoc/core';
 
 const loader = createBundledLoader();
@@ -184,11 +184,11 @@ const { systemPrompt, userPrompt } = assembler.assemble(brief);
 // Send to any model
 const copy = await yourLLM.generate({ system: systemPrompt, user: userPrompt });
 
-// Run the same de-slop check the workflow uses
-const checker = createAntiSlopChecker(loader);
-const { score, issues } = checker.check(copy);
+// Lint locale-specific patterns and repeated sentences
+const linter = createLinter(loader);
+const { errors, warnings, issues } = linter.lint(copy, { locale: 'en' });
 
-if (score >= 3) {
+if (errors > 0) {
   // revise with the issues fed back in
 }
 ```
@@ -222,14 +222,16 @@ The server exposes three categories your agent can use independently:
 - `copydoc://quality/anti-slop` to read the banned-pattern list
 
 **Tools** (active calls, return structured data):
-- `select_framework({ copy_type, goal })` to get the recommended framework name
-- `check_anti_slop({ text })` to score AI patterns and list issues
-- `score_copy({ text, context })` to get all 7 dimension scores
+- `select_framework({ copy_type, goal, email_type? })` to get the recommended framework name; pass `email_type` (for example `transactional`) when the type name is ambiguous
+- `lint_copy({ text, locale, kind, facts, avoid })` to lint a single text
+- `lint_copy({ items, locale, kind, min, max, facts, avoid })` to lint a batch
+
+Lint results contain `issues`, `errors` and `warnings`. Supply exactly one of `text` or `items`; all other fields are optional.
 
 **Prompts** (full workflows as templates):
-- `write({ type, goal, audience?, product?, brand_voice? })`
-- `critique({ copy_text, audience?, goal? })`
-- `adapt({ source_copy, target_format })`
+- `write({ type, goal, audience?, product?, brand_voice?, email_type?, locale?, facts?, voice_examples? })`: facts one per line (`F3: claim (source: where)`), voice samples separated by a line containing only `---`
+- `critique({ copy_text, audience?, goal?, locale? })`
+- `adapt({ source_copy, target_format, locale? })`
 
 If your agent has its own LLM and just needs the methodology, call the resources. If it wants the full pipeline, invoke a prompt.
 
@@ -245,7 +247,7 @@ npx --yes @copydoc/integrations@0.1.1 install --tool cursor
 
 What happens: MCP config added to `.cursor/mcp.json`, 8 `.mdc` rule files generated in `.cursor/rules/`.
 
-Cursor's agent sees the rules automatically when relevant. Ask it to write copy and it uses the copywriting knowledge. MCP tools are available for framework selection and anti-slop scoring.
+Cursor's agent sees the rules automatically when relevant. Ask it to write copy and it uses the copywriting knowledge. MCP tools are available for framework selection and copy linting.
 
 Example: In Cursor chat, type `Write a cold outreach email for SyncRail targeting Heads of Ops`. The agent picks up the rules without any extra configuration.
 
@@ -260,7 +262,7 @@ codex plugin marketplace add srstomp/copyskills
 codex plugin add copyskills@copyskills
 ```
 
-Start a new task after installation. The plugin makes all 15 skills available without requiring an API key or MCP server.
+Start a new task after installation. The plugin makes all 16 skills available without requiring an API key or MCP server.
 
 For a project-local MCP configuration plus standalone skill copies instead, use:
 
@@ -270,7 +272,7 @@ npx --yes @copydoc/integrations@0.1.1 install --tool codex
 
 That command adds the MCP server to `.codex/config.toml` and copies each skill into `.agents/skills/<skill-name>/`. Add `--global` to use `~/.codex/config.toml` and `~/.agents/skills/`. Copies are the default so an `npx` cache cleanup cannot break the installation; use `--link` only for local development.
 
-Codex reads SKILL.md files natively. MCP server provides tools for framework selection and anti-slop checking.
+Codex reads SKILL.md files natively. MCP server provides tools for framework selection and copy linting.
 
 Example:
 
@@ -332,7 +334,7 @@ npx --yes @copydoc/integrations@0.1.1 install --tool pi
 
 What happens: Skills symlinked to `.pi/skills/copydoc`, TypeScript extension generated at `.pi/extensions/copydoc.ts`.
 
-Pi reads skills natively. The extension wraps `@copydoc/core` for prompt assembly and anti-slop checking. Install `@copydoc/core` as a dependency to use the extension:
+Pi reads skills natively. The extension wraps `@copydoc/core` for prompt assembly and copy linting. Install `@copydoc/core` as a dependency to use the extension:
 
 ```bash
 npm install @copydoc/core
@@ -340,34 +342,59 @@ npm install @copydoc/core
 
 ---
 
+## Recipe 13: Shop Copy From an SEO Audit, in Two Languages (Plugin)
+
+You ran an SEO audit (for example with claude-seo) and it says your product metas are templated, your titles lack buying words and your Dutch and English pages contradict each other.
+
+```
+/write shop copy from this SEO audit for the 5 bottles in ./catalogue.csv:
+title, meta and product description in en-GB and nl-NL. Findings: ./ACTION-PLAN.md.
+Facts: catalogue.csv only. Voice samples: ./voice/en.md, ./voice/nl.md.
+Target queries: nl-NL "<name> kopen"; en-GB the product name.
+```
+
+The copywriter routes this to `commerce-copy`, which turns the copy findings into one brief per page, builds a fact sheet from the catalogue, writes each language natively, checks the batch for shared skeletons and returns `needs` for anything the catalogue does not say. With the CLI installed, check the result yourself:
+
+```bash
+copydoc lint metas-nl.txt --items lines --kind meta --locale nl-NL --facts catalogue.csv
+```
+
+To rewrite an existing page in another language, give the live page as the source. It is treated as unverified copy: its claims are carried over only when nothing contradicts them, and the new language is written fresh from the facts, not translated.
+
+---
+
 ## How to Interpret the Output
 
-Every interface returns copy plus a metadata block. The metadata is not decoration. Read it.
+Generation workflows return copy per language plus what a human needs to review it. Linting returns `{ issues, errors, warnings }`.
 
 ```yaml
 copy:
-  primary: "..."
-  variants: ["...", "..."]
+  - locale: "nl-NL"
+    primary: "..."
+    variants: []
+claims:
+  - text: "brouwt sinds 1872"
+    facts: [F3]
+needs:
+  - "The EN and NL pages name different head brewers. Which is right?"
+decisions:
+  - "Used je, not u: no voice samples were supplied."
 metadata:
-  framework_used: "PAS"
-  domain: "email-copy/cold-outreach"
-  quality_scores:
-    clarity: 9
-    specificity: 7
-    voice_match: 8
-    ai_tell_score: 1
-    persuasion: 8
-    action: 9
-    overall: 8
+  framework_used: "None"
+  domain: "commerce-copy"
+  lint: "0 errors, 1 warning"
+  open_issues: []
   flags: []
 ```
 
 What to do with each field:
 
-- **`framework_used`**: if the framework feels wrong for your situation, ask for a different one explicitly. The agent will not second-guess your override.
-- **`quality_scores`**: anything below 7 (or AI-tell above 2) is a flag. Push back. `"Specificity scored 6, rewrite the second paragraph with concrete numbers."`
-- **`flags`**: lists recommended fields you did not provide and explains how that affected the output. If `brand_voice not provided: voice_match scored at 5`, you know what to add for the next pass.
-- **`variants`**: optional alternates the agent produced. Use them for A/B testing or pick the one that fits.
+- **`needs`**: read these first. They are the facts the copy left out because nobody supplied them or two sources disagree. Answer them and run again.
+- **`claims`**: every factual claim with the fact it rests on. Spot-check a few against your source; this is where a wrong fact would hide.
+- **`decisions`**: judgment calls (register, which fact led the copy, a trade name used). Overrule any that do not fit your brand.
+- **`framework_used`**: if the framework feels wrong for your situation, ask for a different one explicitly. Commerce and UX copy use none on purpose.
+- **`open_issues`**: checks that still failed after two revisions. Treat the copy as a draft until they are fixed.
+- **`flags`**: recommended brief fields you did not provide. `brand_voice not provided` means the copy is plain and neutral; add approved samples in each language for your own voice.
 
 ---
 
@@ -375,9 +402,9 @@ What to do with each field:
 
 **The output sounds generic.** You skipped the differentiator or audience pain. The model has nothing specific to lean on, so it pads with safe phrases. Fix the brief, not the copy.
 
-**Voice match is low.** You did not provide `brand_voice`. Either add it, or accept that voice will be a generic default. The system flags this so you cannot miss it.
+**The voice is not yours.** You did not provide `brand_voice.examples`. Add a few approved pieces of your own copy in each language; they override the generic style rules.
 
-**AI-tell score is 3+ even after revision.** The brief is probably underspecified. The model is hedging with buzzwords because it does not have enough material to be concrete. Add proof points, names, numbers.
+**Lint issues remain after revision.** Use each issue’s rule and suggestion to revise the copy. Supply a fact sheet to check numeric claims.
 
 **The agent asks too many questions.** You triggered interactive mode without enough context. Either provide more in the first message, or invoke the workflow with the full brief structure directly.
 
@@ -388,7 +415,17 @@ What to do with each field:
 ## When Not to Use Copyskills
 
 - **You need legal, medical, or financial copy.** The anti-slop pass does not check compliance. Use a domain-specific reviewer.
-- **You are working in a language other than English.** All references and examples are English. The patterns generalize but the banned-word list does not translate cleanly.
+- **You are working in a language without a locale pack.** English, Dutch and German have packs (register, typography, translationese, stock phrases). Other languages get the structural rules only; add a pack under `skills/quality-frameworks/references/locales/` first.
 - **You have a copywriter on retainer who already knows your brand cold.** Copyskills replaces generic AI output. It does not replace a senior writer with three years of context on your product.
 
 For everything else, it is a faster path from brief to draft than a blank page.
+
+## Lint Files Without an API Key
+
+```bash
+copydoc lint product.md --locale de-DE
+copydoc lint titles.txt --locale nl-NL --kind title --items lines --json
+copydoc lint descriptions/ --kind meta --facts facts.md
+```
+
+One file is one text. Multiple files or a directory form a batch; directories include sorted `.md` and `.txt` files. `--items lines` requires a single file and skips empty lines. Use `--min N` and `--max N` to override error bounds. Results contain `issues`, `errors` and `warnings`; exit codes are 0 for no errors, 1 for lint errors and 2 for usage errors.
