@@ -224,16 +224,20 @@ copydoc://headlines/power-words         # Get power words by emotion
 
 **Tools** (active logic your agent calls):
 ```
-select_framework  { copy_type, goal }       ->  recommended framework + rationale
+select_framework  { copy_type, goal, email_type? }  ->  recommended framework + rationale
 lint_copy         { text?, items?, locale?, kind?, min?, max?, facts?, avoid? }
                   -> { issues, errors, warnings }; provide exactly one of text or items
 ```
 
 **Prompts** (workflow templates for MCP clients):
 ```
-write     { type, goal, audience?, product?, brand_voice?, constraints? }
-critique  { copy_text, audience?, goal?, brand_voice? }
-adapt     { source_copy, target_format, brand_voice? }
+write     { type, goal, audience?, product?, brand_voice?, constraints?, email_type?, locale?, facts?, voice_examples? }
+critique  { copy_text, audience?, goal?, brand_voice?, locale? }
+adapt     { source_copy, target_format, brand_voice?, locale? }
+
+facts: one per line, optionally "F3: claim (source: where)". voice_examples: approved
+samples separated by a line containing only ---. email_type: transactional, newsletter,
+cold-outreach, welcome-sequence, ... (set it when the type name is ambiguous).
 ```
 
 ## CLI Commands

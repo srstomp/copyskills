@@ -222,16 +222,16 @@ The server exposes three categories your agent can use independently:
 - `copydoc://quality/anti-slop` to read the banned-pattern list
 
 **Tools** (active calls, return structured data):
-- `select_framework({ copy_type, goal })` to get the recommended framework name
+- `select_framework({ copy_type, goal, email_type? })` to get the recommended framework name; pass `email_type` (for example `transactional`) when the type name is ambiguous
 - `lint_copy({ text, locale, kind, facts, avoid })` to lint a single text
 - `lint_copy({ items, locale, kind, min, max, facts, avoid })` to lint a batch
 
 Lint results contain `issues`, `errors` and `warnings`. Supply exactly one of `text` or `items`; all other fields are optional.
 
 **Prompts** (full workflows as templates):
-- `write({ type, goal, audience?, product?, brand_voice? })`
-- `critique({ copy_text, audience?, goal? })`
-- `adapt({ source_copy, target_format })`
+- `write({ type, goal, audience?, product?, brand_voice?, email_type?, locale?, facts?, voice_examples? })`: facts one per line (`F3: claim (source: where)`), voice samples separated by a line containing only `---`
+- `critique({ copy_text, audience?, goal?, locale? })`
+- `adapt({ source_copy, target_format, locale? })`
 
 If your agent has its own LLM and just needs the methodology, call the resources. If it wants the full pipeline, invoke a prompt.
 
