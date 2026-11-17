@@ -71,3 +71,38 @@ describe('MCP tools', () => {
     }
   });
 });
+
+describe('lint_copy input limits', () => {
+  test.each([
+    { text: 'a'.repeat(200001) },
+    { text: '', facts: 'a'.repeat(200001) },
+    { items: Array(2001).fill('') },
+    { items: ['a'.repeat(20001)] },
+    { text: '', avoid: Array(201).fill('') },
+    { text: '', avoid: ['a'.repeat(201)] },
+    { text: '', locale: 'nl_NL' },
+    { text: '', locale: '../locales/nl' },
+    { text: '', locale: 'abcd' },
+    { text: '', locale: 'en-123456789' },
+  ])('rejects input outside limits %#', async args => {
+    const result = await callTool('lint_copy', args);
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toMatch(/text|facts|items|avoid|locale/);
+  });
+  test('accepts exact caps', async () => {
+    for (const args of [
+      { text: 'a'.repeat(200000), facts: 'a'.repeat(200000) },
+      { items: Array(2000).fill('') },
+      { items: ['a'.repeat(20000)] },
+      { text: '', avoid: Array(200).fill('a'.repeat(200)), locale: 'NL-be' },
+    ]) {
+      const result = await callTool('lint_copy', args);
+      expect(result.isError).toBeFalsy();
+      expect(JSON.parse(result.content[0].text)).toEqual({ issues: [], errors: 0, warnings: 0 });
+    }
+  });
+  test('avoid is literal through MCP', async () => {
+    const result = await callTool('lint_copy', { text: 'try X and delve from here to there', locale: 'fr', avoid: ['[X]', 'delv*', 'from...to'] });
+    expect(JSON.parse(result.content[0].text)).toEqual({ issues: [], errors: 0, warnings: 0 });
+  });
+});

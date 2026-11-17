@@ -19,6 +19,7 @@ export async function writeCommand(
   loader: SkillLoader,
   description: string,
   outputDir: string = './output',
+  locale: string = 'en',
 ): Promise<void> {
   const config = loadConfig();
   const provider = createProvider(config);
@@ -52,6 +53,7 @@ export async function writeCommand(
   const brief: Brief = {
     type: description,
     goal,
+    locale,
   };
 
   if (audience) {
@@ -77,7 +79,7 @@ export async function writeCommand(
 
   console.log('\n');
 
-  const result = createLinter(loader).lint(fullOutput, { avoid: avoids });
+  const result = createLinter(loader).lint(fullOutput, { locale, avoid: avoids });
 
   printLintResult(result);
   // Save output

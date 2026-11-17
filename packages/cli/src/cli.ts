@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createBundledLoader, type SkillLoader } from '@copydoc/core';
+import { createBundledLoader, languageOf, type SkillLoader } from '@copydoc/core';
 import { listCommand } from './commands/list';
 import { infoCommand } from './commands/info';
 import { initCommand } from './commands/init';
@@ -57,12 +57,12 @@ function printHelp(): void {
   console.log('');
   console.log('  Commands:');
   console.log('    init                   Set up API key and configuration');
-  console.log('    write <description>    Generate copy from a description');
-  console.log('    critique <file-or-text>  Evaluate copy');
+  console.log('    write <description> [--locale en]    Generate copy from a description');
+  console.log('    critique <file-or-text> [--locale en]  Evaluate copy');
   console.log('    lint <file|dir>...      Lint copy without an API key or config');
   console.log('      --locale en --kind title|meta|body --min N --max N');
   console.log('      --facts facts.md --items lines --json');
-  console.log('    adapt <source> --to <format>  Adapt copy to a different format');
+  console.log('    adapt <source> --to <format> [--locale en]  Adapt copy to a different format');
   console.log('    list                   List all available skills');
   console.log('    info <skill-name>      Show skill details and preview');
   console.log('    help                   Show this help text');
@@ -72,6 +72,12 @@ function printHelp(): void {
 export async function runCli(argv: string[], loader: SkillLoader, configPath?: string): Promise<void> {
   const parsed = parseArgs(argv);
   const { command, args } = parsed;
+  let locale = 'en';
+  if (['write', 'critique', 'adapt'].includes(command) && parsed.flags.locale !== undefined) {
+    if (typeof parsed.flags.locale !== 'string') throw new Error('Invalid value for --locale');
+    locale = parsed.flags.locale;
+    languageOf(locale);
+  }
 
   switch (command) {
     case 'lint':
@@ -94,20 +100,20 @@ export async function runCli(argv: string[], loader: SkillLoader, configPath?: s
 
     case 'write': {
       const description = args.join(' ');
-      await writeCommand(loader, description);
+      await writeCommand(loader, description, undefined, locale);
       break;
     }
 
     case 'critique': {
       const input = args.join(' ');
-      await critiqueCommand(loader, input);
+      await critiqueCommand(loader, input, locale);
       break;
     }
 
     case 'adapt': {
       const source = args.join(' ');
       const targetFormat = (parsed.flags['to'] as string) ?? '';
-      await adaptCommand(loader, source, targetFormat);
+      await adaptCommand(loader, source, targetFormat, locale);
       break;
     }
 

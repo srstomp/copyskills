@@ -175,3 +175,9 @@ describe('resolveReference()', () => {
     expect(() => loader.resolveReference('nonexistent/references/file.md')).toThrow();
   });
 });
+
+describe('reference containment', () => {
+  test.each(['../package.json', '../skills-other/ref.md', '../../etc/passwd', path.resolve(SKILLS_DIR, '../package.json')])('rejects outside reference %s', ref => {
+    expect(() => createLoader(SKILLS_DIR).resolveReference(ref)).toThrow('Reference outside skills directory');
+  });
+});

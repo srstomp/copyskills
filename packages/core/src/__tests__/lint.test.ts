@@ -120,8 +120,8 @@ describe('single text rules', () => {
     expect(clean().lint('a'.repeat(61), { kind: 'title', max: 70 }).issues).toEqual([]);
     expect(clean().lint('a'.repeat(31), { kind: 'title', max: 30 }).issues.map(i => [i.rule, i.severity])).toEqual([['length', 'error']]);
     expect(clean().lint('a'.repeat(120), { kind: 'meta', min: 121 }).issues).toEqual([{ rule: 'length', severity: 'error', message: 'meta has 120 characters' }]);
-    expect(clean().lint('a'.repeat(161), { kind: 'meta', max: 170 }).issues.map(i => [i.rule, i.severity])).toEqual([['length', 'warn']]);
-    expect(clean().lint('😀'.repeat(30), { kind: 'title' }).issues).toEqual([]);
+    expect(clean().lint('a'.repeat(161), { kind: 'meta', max: 170 }).issues).toEqual([]);
+    expect(clean().lint('😀'.repeat(31), { kind: 'title' }).issues).toEqual([]);
   });
   test('repeated sentences report normalized content and count', () => {
     expect(clean().lint('Classic izakaya staples. '.repeat(5)).issues).toEqual([
@@ -138,11 +138,12 @@ describe('single text rules', () => {
       { rule: 'repeat', severity: 'error', message: 'Sentence "three label words" occurs 3 times' },
     ]);
   });
-  test('numbers require facts, normalize decimal comma and exclude alphanumeric tokens', () => {
+  test('numbers require facts, normalize decimal comma and skip letter-prefixed tokens', () => {
     const text = '23 items, 15,5 cm, 2.75 kg, v2 KID2 v3.5 4x';
     expect(clean().lint(text).issues).toEqual([]);
     expect(clean().lint(text, { facts: '15.5 cm; 2,75 kg; KID23' }).issues).toEqual([
       { rule: 'number', severity: 'error', message: 'Number 23 is not in the fact sheet' },
+      { rule: 'number', severity: 'error', message: 'Number 4 is not in the fact sheet' },
     ]);
     expect(clean().lint('23', { facts: '' })).toEqual({ issues: [{ rule: 'number', severity: 'error', message: 'Number 23 is not in the fact sheet' }], errors: 1, warnings: 0 });
   });
@@ -165,6 +166,8 @@ describe('batch rules', () => {
   test('threshold counts items, not occurrences, and needs half the batch rounded up', () => {
     expect(clean().lintBatch(['one two three four one two three four', 'one two three four', 'other', 'another', 'last']).issues).toEqual([]);
     expect(clean().lintBatch(['a b c d', 'a b c d', 'a b c d', 'e', 'f', 'g', 'h']).issues).toEqual([]);
+    expect(clean().lintBatch(['a b c d', 'a b c d', 'e f g h', 'i j k l']).issues).toEqual([]);
+    expect(clean().lintBatch(['red one two three', 'blue one two three', 'green one two three']).issues).toEqual([]);
   });
   test('each item receives all single-text rules and severities', () => {
     const result = clean().lintBatch(['Classic izakaya staples. Classic izakaya staples.', 'Offer 23'], { avoid: ['Offer'], kind: 'title', min: 10, facts: '' });
@@ -175,11 +178,110 @@ describe('batch rules', () => {
       { rule: 'number', severity: 'error', message: 'Number 23 is not in the fact sheet', item: 1 },
     ] });
   });
-  test('two items skip batch rules but retain single-item errors with indices', () => {
-    expect(clean().lintBatch(['one two three four 23', 'one two three four 24'], { facts: '23', avoid: ['four'] })).toEqual({ errors: 3, warnings: 0, issues: [
-      { rule: 'phrase', severity: 'error', message: 'Banned pattern: four', line: 1, item: 0 },
-      { rule: 'phrase', severity: 'error', message: 'Banned pattern: four', line: 1, item: 1 },
-      { rule: 'number', severity: 'error', message: 'Number 24 is not in the fact sheet', item: 1 },
-    ] });
+});
+
+describe('review regressions', () => {
+  test('numbers compare numeric values and all missing values are reported', () => {
+    expect(clean().lint('15 34,50', { facts: '15.0 34.5' }).issues).toEqual([]);
+    expect(clean().lint('23 24', { facts: '15' }).issues).toEqual([
+      { rule: 'number', severity: 'error', message: 'Number 23 is not in the fact sheet' },
+      { rule: 'number', severity: 'error', message: 'Number 24 is not in the fact sheet' },
+    ]);
+  });
+  test('facts include CSV fields and both readings of comma tokens', () => {
+    expect(clean().lint('45 720 16 34.5', { facts: 'DS45,Dassai 45,720,16,34.50' }).issues).toEqual([]);
+    expect(clean().lint('34 50 34.5', { facts: '34,50' }).issues).toEqual([]);
+    expect(clean().lint('720 16 34.5', { facts: 'DS45,720,16,34.50' }).issues).toEqual([]);
+  });
+  test.each(['1.200', '1,200'])('thousands ambiguity is accepted on either side: %s', value => {
+    expect(clean().lint(value, { facts: '1200' }).issues).toEqual([]);
+    expect(clean().lint('1200', { facts: value }).issues).toEqual([]);
+    expect(clean().lint(value, { facts: '1.2' }).issues).toEqual([]);
+  });
+  test('units count while letter and underscore prefixes skip the whole number', () => {
+    expect(clean().lint('v2 KID2 v3.5 _42 é20 𐐀21 720ml 900ml 4x', { facts: '720' }).issues).toEqual([
+      { rule: 'number', severity: 'error', message: 'Number 900 is not in the fact sheet' },
+      { rule: 'number', severity: 'error', message: 'Number 4 is not in the fact sheet' },
+    ]);
+  });
+  test('200 KB of numbers with facts finishes within two seconds', async () => {
+    const script = `import { createLinter } from ${JSON.stringify(new URL('../lint.ts', import.meta.url).pathname)};
+      const checker = createLinter({ resolveReference: () => '' });
+      console.log(JSON.stringify(checker.lint('12 '.repeat(66666), { facts: '12' })));`;
+    const proc = Bun.spawn([process.execPath, '-e', script], { stdout: 'pipe', stderr: 'pipe' });
+    const timer = setTimeout(() => proc.kill(), 2000);
+    try {
+      const [output, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
+      expect(code).toBe(0);
+      expect(JSON.parse(output)).toEqual({ issues: [], errors: 0, warnings: 0 });
+    } finally { clearTimeout(timer); proc.kill(); }
+  });
+  test.each(['nl_NL', '../locales/nl', 'abcd', ''])('rejects invalid locale %s', locale => {
+    expect(() => clean().lint('copy', { locale })).toThrow(`Invalid locale: ${locale}`);
+    expect(() => clean().lintBatch([], { locale })).toThrow(`Invalid locale: ${locale}`);
+  });
+  test.each(['[X]', 'from...to', 'delv*', '...'])('avoid is literal: %s', phrase => {
+    expect(clean().lint(phrase, { avoid: [phrase] }).issues).toEqual([
+      { rule: 'phrase', severity: 'error', message: `Banned pattern: ${phrase}`, line: 1 },
+    ]);
+    expect(clean().lint('X from something to delve', { avoid: [phrase] }).issues).toEqual([]);
+  });
+  test('avoid placeholder chains stay literal', () => {
+    const start = performance.now();
+    expect(clean().lint('a'.repeat(300), { avoid: ['[a][a][a][a][a]x'] }).issues).toEqual([]);
+    expect(performance.now() - start).toBeLessThan(500);
+  });
+  test('pattern spaces match whitespace runs and both sides normalize NFC', () => {
+    const checker = linter({ 'anti-slop.md': '# {lint: error}\n- café  noir\n- élan' });
+    expect(checker.lint('café\u00a0\nnoir; élan').issues).toEqual([
+      { rule: 'phrase', severity: 'error', message: 'Banned pattern: café  noir', line: 1 },
+      { rule: 'phrase', severity: 'error', message: 'Banned pattern: élan', line: 2 },
+    ]);
+  });
+  test('markdown word suffix stars accept letters and keep the word start boundary', () => {
+    const checker = linter({ 'anti-slop.md': '# {lint: error}\n- delv*\n- try  simpl* now' });
+    for (const word of ['delve', 'delves', 'delved', 'delving', 'delv']) {
+      expect(checker.lint(word).issues.map(i => i.message)).toEqual(['Banned pattern: delv*']);
+    }
+    expect(checker.lint('predelve _delve').issues).toEqual([]);
+    expect(checker.lint('try simply now').issues.map(i => i.message)).toEqual(['Banned pattern: try  simpl* now']);
+  });
+  test('overlapping first matches prefer the longest regardless of pattern order', () => {
+    for (const patterns of ['- perfect\n- elke gelegenheid\n- perfect voor elke gelegenheid', '- perfect voor elke gelegenheid\n- elke gelegenheid\n- perfect']) {
+      const checker = linter({ 'anti-slop.md': `# {lint: error}\n${patterns}` });
+      expect(checker.lint('Perfect voor elke gelegenheid').issues).toEqual([
+        { rule: 'phrase', severity: 'error', message: 'Banned pattern: perfect voor elke gelegenheid', line: 1 },
+      ]);
+    }
+  });
+  test('partial overlaps keep the longer match and disjoint first matches remain', () => {
+    const checker = linter({ 'anti-slop.md': '# {lint: error}\n- one two\n- two three four' });
+    expect(checker.lint('one two three four').issues.map(i => i.message)).toEqual(['Banned pattern: two three four']);
+    expect(checker.lint('one two. two three four').issues.map(i => i.message)).toEqual([
+      'Banned pattern: one two', 'Banned pattern: two three four',
+    ]);
+    expect(checker.lint('one two\ntwo three four').issues.map(i => i.line)).toEqual([1, 2]);
+    const chain = linter({ 'anti-slop.md': '# {lint: error}\n- one two\n- two three\n- three four five' });
+    expect(chain.lint('one two three four five').issues.map(i => i.message)).toEqual([
+      'Banned pattern: one two', 'Banned pattern: three four five',
+    ]);
+  });
+  test.each([{ max: 25 }, { min: 5 }, { min: 5, max: 25 }])('explicit bounds disable default warnings: %j', bounds => {
+    expect(clean().lint('Short title', { kind: 'title', ...bounds }).issues).toEqual([]);
+  });
+  test('ellipsis ends repeated sentences', () => {
+    expect(clean().lint('Three clear words…Three clear words…').issues).toEqual([
+      { rule: 'repeat', severity: 'error', message: 'Sentence "three clear words" occurs 2 times' },
+    ]);
+  });
+  test.each(['z. B.', 'z.B.', 'd. h.', 'bzw.', 'bijv.', 'o.a.', 'd.w.z.', 'e.g.', 'i.e.', 'etc.'])('abbreviation %s does not create a repeated fragment', abbreviation => {
+    expect(clean().lint(`Try ${abbreviation} three clear words. Choose ${abbreviation} three clear words.`).issues).toEqual([]);
+    expect(clean().lint(`Try ${abbreviation} three clear words. Try ${abbreviation} three clear words.`).issues).toEqual([
+      { rule: 'repeat', severity: 'error', message: `Sentence "try ${abbreviation.toLowerCase()} three clear words" occurs 2 times` },
+    ]);
+  });
+  test.each(['---', '==='])('a list item above %s stays a pattern', underline => {
+    const checker = linter({ 'anti-slop.md': `# {lint: error}\n- jargon\n${underline}\n- fluff` });
+    expect(checker.lint('jargon fluff').issues.map(i => i.message)).toEqual(['Banned pattern: jargon', 'Banned pattern: fluff']);
   });
 });

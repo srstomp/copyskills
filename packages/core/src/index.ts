@@ -46,6 +46,7 @@ export function createBundledLoader() {
 export { selectFramework, routeToDomain } from './frameworks.js';
 
 export { createLinter } from './lint.js';
+export { languageOf } from './locale.js';
 export type { Severity, LintIssue, LintOptions, LintResult, Linter } from './lint.js';
 
 export { createAssembler } from './assembler.js';

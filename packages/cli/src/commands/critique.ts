@@ -18,7 +18,7 @@ function resolveInput(input: string): string {
   return input;
 }
 
-export async function critiqueCommand(loader: SkillLoader, input: string): Promise<void> {
+export async function critiqueCommand(loader: SkillLoader, input: string, locale: string = 'en'): Promise<void> {
   const config = loadConfig();
   const provider = createProvider(config);
   const assembler = createAssembler(loader, selectFramework);
@@ -31,7 +31,7 @@ export async function critiqueCommand(loader: SkillLoader, input: string): Promi
 
   console.log(response);
 
-  const result = createLinter(loader).lint(text);
+  const result = createLinter(loader).lint(text, { locale });
 
   console.log('');
   printLintResult(result);

@@ -31,21 +31,25 @@ export function registerTools(server: McpServer, loader: SkillLoader): void {
     'lint_copy',
     'Lint one text or a batch for locale-specific phrases, length, repetition and unsupported numbers.',
     {
-      text: z.string().optional(),
-      items: z.array(z.string()).optional(),
-      locale: z.string().optional(),
+      text: z.string().max(200000).optional(),
+      items: z.array(z.string().max(20000)).max(2000).optional(),
+      locale: z.string().regex(/^[A-Za-z]{2,3}(-[A-Za-z0-9]+)*$/).optional(),
       kind: z.enum(['title', 'meta', 'body']).optional(),
       min: z.number().int().nonnegative().optional(),
       max: z.number().int().nonnegative().optional(),
-      facts: z.string().optional(),
-      avoid: z.array(z.string()).optional(),
+      facts: z.string().max(200000).optional(),
+      avoid: z.array(z.string().max(200)).max(200).optional(),
     },
     ({ text, items, ...options }) => {
       if ((text === undefined) === (items === undefined)) {
         return { isError: true, content: [{ type: 'text' as const, text: 'Provide exactly one of text or items' }] };
       }
-      const result = items === undefined ? linter.lint(text!, options) : linter.lintBatch(items, options);
-      return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
+      try {
+        const result = items === undefined ? linter.lint(text!, options) : linter.lintBatch(items, options);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
+      } catch (error) {
+        return { isError: true, content: [{ type: 'text' as const, text: error instanceof Error ? error.message : String(error) }] };
+      }
     },
   );
 }

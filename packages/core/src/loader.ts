@@ -85,7 +85,11 @@ export function createLoader(skillsDir: string): SkillLoader {
   }
 
   function resolveReference(relativePath: string): string {
-    const fullPath = path.join(skillsDir, relativePath);
+    const fullPath = path.resolve(skillsDir, relativePath);
+    const relative = path.relative(skillsDir, fullPath);
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error(`Reference outside skills directory: ${relativePath}`);
+    }
     if (!fs.existsSync(fullPath)) {
       throw new Error(`Reference not found at relative path: '${relativePath}'. Resolved to ${fullPath}`);
     }

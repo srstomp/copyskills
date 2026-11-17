@@ -1,15 +1,17 @@
 import type { Brief, AssembledPrompt } from './types.js';
 import type { SkillLoader } from './loader.js';
 import { routeToDomain } from './frameworks.js';
+import { languageOf } from './locale.js';
 
 const ANTI_SLOP_PATH = 'quality-frameworks/references/anti-slop.md';
 
 /** The locale pack for a BCP 47 locale, or null when the language has none. */
 function loadLocalePack(loader: SkillLoader, locale: string): string | null {
-  const language = locale.split('-')[0].toLowerCase();
+  const language = languageOf(locale);
   try {
     return loader.resolveReference(`quality-frameworks/references/locales/${language}.md`);
-  } catch {
+  } catch (error) {
+    if (!(error instanceof Error) || !(/Reference not found/.test(error.message) || ('code' in error && error.code === 'ENOENT'))) throw error;
     return null;
   }
 }
@@ -55,7 +57,7 @@ export function createAssembler(
     systemParts.push('# Quality Rules (MANDATORY)');
     systemParts.push(antiSlopContent);
 
-    const localePack = brief.locale ? loadLocalePack(loader, brief.locale) : null;
+    const localePack = brief.locale !== undefined ? loadLocalePack(loader, brief.locale) : null;
     if (localePack) {
       systemParts.push(`# Language Rules: ${brief.locale} (MANDATORY)`);
       systemParts.push(localePack);

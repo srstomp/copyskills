@@ -338,3 +338,17 @@ describe('assemble() - locale and facts', () => {
     expect(result.userPrompt).toContain('- F1: Brewery founded in 1872\n- F2: 16% ABV');
   });
 });
+
+describe('locale errors', () => {
+  test.each(['nl_NL', '../locales/nl', 'abcd', ''])('invalid brief locale %s is an error', locale => {
+    expect(() => makeAssembler().assemble({ type: 'cold email', goal: 'book demo', locale })).toThrow(`Invalid locale: ${locale}`);
+  });
+  test('locale loader errors other than missing files propagate', () => {
+    const real = createLoader(SKILLS_DIR);
+    const loader = { ...real, resolveReference: (ref: string) => {
+      if (ref.includes('/locales/')) throw new Error('Permission denied');
+      return real.resolveReference(ref);
+    } };
+    expect(() => createAssembler(loader, selectFramework).assemble({ type: 'cold email', goal: 'book demo', locale: 'nl' })).toThrow('Permission denied');
+  });
+});

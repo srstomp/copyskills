@@ -18,10 +18,16 @@ describe('linter on the real anti-slop and locale packs', () => {
   });
 
   test('Dutch: its own list applies, the English one does not', () => {
-    const found = rules('Duik in de wereld van sake. Een naadloze smaak.', 'nl-NL');
+    const found = rules('Duik in sake. Een naadloze smaak.', 'nl-NL');
     expect(found).toContain('error:Banned pattern: duik in');
     expect(found).toContain('error:Banned pattern: naadloze');
     expect(rules('We delve into it.', 'nl-NL')).toEqual([]);
+  });
+
+  test('Dutch: overlapping patterns report only the longest match', () => {
+    expect(rules('Perfect voor elke gelegenheid', 'nl-NL')).toEqual([
+      'error:Banned pattern: perfect voor elke gelegenheid',
+    ]);
   });
 
   test('German: the spaced Gedankenstrich is a warning, the em dash an error', () => {

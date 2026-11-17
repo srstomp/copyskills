@@ -22,6 +22,7 @@ export async function adaptCommand(
   loader: SkillLoader,
   source: string,
   targetFormat: string,
+  locale: string = 'en',
 ): Promise<void> {
   const config = loadConfig();
   const provider = createProvider(config);
@@ -39,7 +40,7 @@ export async function adaptCommand(
 
   console.log('\n');
 
-  const result = createLinter(loader).lint(fullOutput);
+  const result = createLinter(loader).lint(fullOutput, { locale });
 
   printLintResult(result);
 }

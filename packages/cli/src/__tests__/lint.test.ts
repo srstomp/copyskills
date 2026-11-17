@@ -36,10 +36,9 @@ describe('copydoc lint', () => {
   test('items lines ignores blank lines and identifies batch items', async () => {
     const result = await cli([file('lines.txt', 'red\n\nblue\n  \ngreen\n'), '--items', 'lines', '--kind', 'title', '--locale', 'fr', '--min', '5', '--json']);
     expect(result.code).toBe(1);
-    expect(JSON.parse(result.stdout)).toEqual({ errors: 2, warnings: 1, issues: [
+    expect(JSON.parse(result.stdout)).toEqual({ errors: 2, warnings: 0, issues: [
       { rule: 'length', severity: 'error', message: 'title has 3 characters', item: 0 },
       { rule: 'length', severity: 'error', message: 'title has 4 characters', item: 1 },
-      { rule: 'length', severity: 'warn', message: 'title has 5 characters', item: 2 },
     ] });
   });
   test('directory uses sorted md/txt files as a batch; multiple files also form a batch', async () => {
@@ -85,5 +84,36 @@ describe('copydoc lint', () => {
       expect(result.code).toBe(2);
       expect(result.stderr).toMatch(/lint:/);
     }
+  });
+});
+
+describe('lint review regressions', () => {
+  test.each(['nl_NL', '../locales/nl'])('invalid locale %s exits 2 with a clear message', async locale => {
+    const result = await cli([file('locale.txt', 'copy'), '--locale', locale]);
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain(`Invalid locale: ${locale}`);
+  });
+  test('input and facts files over 2 MB exit 2', async () => {
+    const large = file('large.txt', 'a'.repeat(2 * 1024 * 1024 + 1));
+    const small = file('small.txt', 'copy');
+    for (const args of [[large], [small, '--facts', large]]) {
+      const result = await cli(args);
+      expect(result.code).toBe(2);
+      expect(result.stderr).toContain('File exceeds 2 MB');
+    }
+    const result = await cli([file('limit.txt', 'a'.repeat(2 * 1024 * 1024)), '--locale', 'fr', '--json']);
+    expect(result.code).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ issues: [], errors: 0, warnings: 0 });
+  });
+  test('human suggestions retain exactly one pair of parentheses', async () => {
+    const script = `
+      import { runCli } from './packages/cli/src/cli.ts';
+      const loader = { resolveReference: () => '# {lint: error}\\n- jargon (Use plain words)' };
+      await runCli(['bun', 'copydoc', 'lint', ${JSON.stringify(file('parentheses.txt', 'jargon'))}], loader);
+    `;
+    const proc = Bun.spawn([process.execPath, '-e', script], { cwd: root, stdout: 'pipe', stderr: 'pipe' });
+    const [stdout, code] = await Promise.all([new Response(proc.stdout).text(), proc.exited]);
+    expect(code).toBe(1);
+    expect(stdout).toBe('ERROR phrase line 1: Banned pattern: jargon (Use plain words)\n1 errors, 0 warnings\n');
   });
 });

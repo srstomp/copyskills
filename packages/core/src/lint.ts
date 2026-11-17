@@ -1,4 +1,5 @@
 import type { SkillLoader } from './loader.js';
+import { languageOf } from './locale.js';
 
 export type Severity = 'error' | 'warn';
 export interface LintIssue {
@@ -31,17 +32,25 @@ interface Pattern {
 }
 
 function normalize(text: string): string {
-  return text.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+  return text.normalize('NFC').replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
 }
 
-function compile(text: string, severity: Severity, suggestion?: string): Pattern | undefined {
-  text = normalize(text).replace(/(?:\.\.\.|…)+$/u, '');
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function compile(text: string, severity: Severity, suggestion?: string, literal = false): Pattern | undefined {
+  text = normalize(text);
+  if (!literal) text = text.replace(/(?:\.\.\.|…)+$/u, '');
   if (!text.trim()) return;
-  const parts = text.split(/(\[[^\]\n]+\]|\.\.\.|…)/u);
+  const parts = literal ? [text] : text.split(/(\[[^\]\n]+\]|\.\.\.|…|\p{L}+\*| +)/u);
   const body = parts.map(part => {
+    if (literal) return escapeRegex(part);
     if (/^\[[^\]\n]+\]$/u.test(part)) return "[\\p{L}\\p{N} '\\-]{1,40}";
     if (part === '...' || part === '…') return '[^.!?\\r\\n]{0,60}';
-    return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (/^ +$/.test(part)) return '\\s+';
+    if (/^\p{L}+\*$/u.test(part)) return escapeRegex(part.slice(0, -1)) + '\\p{L}*';
+    return escapeRegex(part);
   }).join('');
   const start = /^[\p{L}\p{N}]/u.test(text) ? '(?<![\\p{L}\\p{N}_])' : '';
   const end = /[\p{L}\p{N}]$/u.test(text) ? '(?![\\p{L}\\p{N}_])' : '';
@@ -55,7 +64,7 @@ function parsePatterns(markdown: string): Pattern[] {
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index];
     const heading = /^ {0,3}#{1,6}(?:\s+|$)/.test(line) ||
-      (line.trim() !== '' && /^ {0,3}(?:=+|-+)\s*$/.test(lines[index + 1] ?? ''));
+      (line.trim() !== '' && !/^\s*(?:[-+*]|\d+[.)])\s/u.test(line) && /^ {0,3}(?:=+|-+)\s*$/.test(lines[index + 1] ?? ''));
     if (heading) {
       severity = line.match(/\{lint: (error|warn)\}/)?.[1] as Severity | undefined;
       continue;
@@ -79,17 +88,30 @@ function parsePatterns(markdown: string): Pattern[] {
   return patterns;
 }
 
-// Match the whole numeric candidate before checking its neighbours, so v2.5
+// Match the whole numeric candidate before checking its prefix, so v2.5
 // cannot leak a partial match for 5.
-function numbers(text: string): RegExpMatchArray[] {
-  return [...text.matchAll(/\d+(?:[.,]\d+)?/gu)].filter(match => {
+function numbers(text: string, facts = false): RegExpMatchArray[] {
+  return [...text.matchAll(facts ? /\d+(?:[.,]\d+)*/gu : /\d+(?:[.,]\d+)?/gu)].filter(match => {
     const index = match.index!;
-    const before = [...text.slice(0, index)].at(-1) ?? '';
-    const after = [...text.slice(index + match[0].length)][0] ?? '';
-    return !/[\p{L}\p{N}_]/u.test(before + after);
+    // At most two UTF-16 units are needed for the preceding Unicode character.
+    return !/[\p{L}_]$/u.test(text.slice(Math.max(0, index - 2), index));
   });
 }
-function numberKey(value: string): string { return value.replace(',', '.'); }
+function numberValues(value: string, facts = false): number[] {
+  const readings = [value, ...(facts ? value.split(',') : [])];
+  return readings.flatMap(reading => {
+    const decimal = Number(reading.replace(',', '.'));
+    return /^\d+[.,]\d{3}$/.test(reading)
+      ? [decimal, Number(reading.replace(/[.,]/, ''))] : [decimal];
+  }).filter(Number.isFinite);
+}
+
+function splitSentences(text: string): string[] {
+  // Protect abbreviation periods while preserving their spelling in repeat reports.
+  const protectedText = text.replace(/(?<![\p{L}\p{N}_])(?:z\.\s*B\.|d\.\s*h\.|bzw\.|bijv\.|o\.a\.|d\.w\.z\.|e\.g\.|i\.e\.|etc\.)/giu,
+    abbreviation => abbreviation.replace(/\./g, '\u0000'));
+  return protectedText.split(/…+|[.!?]+(?:\s+|$)|[\r\n]+/u).map(part => part.replace(/\u0000/g, '.'));
+}
 function words(text: string): string[] { return text.match(/[\p{L}\p{N}']+/gu) ?? []; }
 function result(issues: LintIssue[]): LintResult {
   return { issues, errors: issues.filter(i => i.severity === 'error').length, warnings: issues.filter(i => i.severity === 'warn').length };
@@ -98,7 +120,7 @@ function result(issues: LintIssue[]): LintResult {
 export function createLinter(loader: SkillLoader): Linter {
   const cache = new Map<string, Pattern[]>();
   function patternsFor(locale: string): Pattern[] {
-    const language = locale.split('-')[0].toLowerCase();
+    const language = languageOf(locale);
     if (!cache.has(language)) {
       const patterns = language === 'en'
         ? parsePatterns(loader.resolveReference('quality-frameworks/references/anti-slop.md')) : [];
@@ -119,10 +141,11 @@ export function createLinter(loader: SkillLoader): Linter {
     const normalized = normalize(text);
     const patterns = [...patternsFor(options.locale ?? 'en')];
     for (const phrase of options.avoid ?? []) {
-      const pattern = compile(phrase, 'error');
+      const pattern = compile(phrase, 'error', undefined, true);
       if (pattern) patterns.push(pattern);
     }
     const seen = new Set<string>();
+    const matches: { issue: LintIssue; start: number; end: number }[] = [];
     for (const pattern of patterns) {
       const key = pattern.text.toLowerCase();
       if (seen.has(key)) continue;
@@ -130,8 +153,18 @@ export function createLinter(loader: SkillLoader): Linter {
       const severity = patterns.some(p => p.text.toLowerCase() === key && p.severity === 'error') ? 'error' : pattern.severity;
       seen.add(key);
       const hit = pattern.regex.exec(normalized);
-      if (hit) issues.push({ rule: 'phrase', severity, message: `Banned pattern: ${pattern.text}`, line: normalized.slice(0, hit.index).split('\n').length, ...(pattern.suggestion ? { suggestion: pattern.suggestion } : {}) });
+      if (hit) matches.push({
+        start: hit.index, end: hit.index + hit[0].length,
+        issue: { rule: 'phrase', severity, message: `Banned pattern: ${pattern.text}`, line: normalized.slice(0, hit.index).split('\n').length, ...(pattern.suggestion ? { suggestion: pattern.suggestion } : {}) },
+      });
     }
+    const reported: typeof matches = [];
+    for (const match of [...matches].sort((a, b) => (b.end - b.start) - (a.end - a.start))) {
+      if (!reported.some(other => other.issue.line === match.issue.line && other.start < match.end && match.start < other.end)) {
+        reported.push(match);
+      }
+    }
+    issues.push(...matches.filter(match => reported.includes(match)).map(match => match.issue));
 
     if (options.kind === 'title' || options.kind === 'meta') {
       const length = [...text.trim()].length;
@@ -139,12 +172,13 @@ export function createLinter(loader: SkillLoader): Linter {
       const min = options.min;
       let severity: Severity | undefined;
       if (length > max || (min !== undefined && length < min)) severity = 'error';
-      else if (length < (options.kind === 'title' ? 30 : 120) || (options.kind === 'meta' && length > 155)) severity = 'warn';
+      else if (options.min === undefined && options.max === undefined &&
+        (length < (options.kind === 'title' ? 30 : 120) || (options.kind === 'meta' && length > 155))) severity = 'warn';
       if (severity) issues.push({ rule: 'length', severity, message: `${options.kind} has ${length} characters` });
     }
 
     const sentences = new Map<string, number>();
-    for (const part of normalized.split(/[.!?]+(?:\s+|$)|[\r\n]+/u)) {
+    for (const part of splitSentences(normalized)) {
       const sentence = part.toLowerCase().replace(/\s+/gu, ' ').trim().replace(/[\p{P}\s]+$/u, '');
       if (words(sentence).length >= 3) sentences.set(sentence, (sentences.get(sentence) ?? 0) + 1);
     }
@@ -153,15 +187,20 @@ export function createLinter(loader: SkillLoader): Linter {
     }
 
     if (options.facts !== undefined) {
-      const facts = new Set(numbers(options.facts).map(n => numberKey(n[0])));
+      const facts = new Set(numbers(options.facts, true).flatMap(n => numberValues(n[0], true)));
+      // Also scan CSV fields independently, including fields after an identifier.
+      for (const number of numbers(options.facts.replace(/,/g, ' '))) {
+        for (const value of numberValues(number[0])) facts.add(value);
+      }
       for (const number of numbers(text)) {
-        if (!facts.has(numberKey(number[0]))) issues.push({ rule: 'number', severity: 'error', message: `Number ${number[0]} is not in the fact sheet` });
+        if (!numberValues(number[0]).some(value => facts.has(value))) issues.push({ rule: 'number', severity: 'error', message: `Number ${number[0]} is not in the fact sheet` });
       }
     }
     return result(issues);
   }
 
   function lintBatch(items: string[], options: LintOptions = {}): LintResult {
+    languageOf(options.locale ?? 'en');
     const issues: LintIssue[] = items.flatMap((text, item) => lint(text, options).issues.map(issue => ({ ...issue, item })));
     if (items.length < 3) return result(issues);
     const skeletons = new Map<string, Set<number>>();

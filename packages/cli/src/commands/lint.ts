@@ -6,10 +6,15 @@ export function printLintResult(result: LintResult): void {
   for (const issue of result.issues) {
     const item = issue.item === undefined ? '' : ` [item ${issue.item}]`;
     const line = issue.line === undefined ? '' : ` line ${issue.line}`;
-    const suggestion = issue.suggestion ? ` (${issue.suggestion})` : '';
+    const suggestion = issue.suggestion ? ` ${issue.suggestion.startsWith('(') ? issue.suggestion : `(${issue.suggestion})`}` : '';
     console.log(`${issue.severity === 'error' ? 'ERROR' : 'WARN'} ${issue.rule}${item}${line}: ${issue.message}${suggestion}`);
   }
   console.log(`${result.errors} errors, ${result.warnings} warnings`);
+}
+
+function readLintFile(file: string): string {
+  if (fs.statSync(file).size > 2 * 1024 * 1024) throw new Error(`File exceeds 2 MB: ${file}`);
+  return fs.readFileSync(file, 'utf8');
 }
 
 export function lintCommand(loader: SkillLoader, targets: string[], flags: Record<string, string | boolean>): number {
@@ -34,7 +39,7 @@ export function lintCommand(loader: SkillLoader, targets: string[], flags: Recor
     }
     const effectiveMax = options.max ?? (options.kind === 'meta' ? 160 : options.kind === 'title' ? 60 : undefined);
     if (options.min !== undefined && effectiveMax !== undefined && options.min > effectiveMax) throw new Error('--min must not exceed --max');
-    if (flags.facts !== undefined) options.facts = fs.readFileSync(String(flags.facts), 'utf8');
+    if (flags.facts !== undefined) options.facts = readLintFile(String(flags.facts));
     let directory = false;
     const files = targets.flatMap(target => {
       const stat = fs.statSync(target);
@@ -47,7 +52,7 @@ export function lintCommand(loader: SkillLoader, targets: string[], flags: Recor
     });
     if (!files.length) throw new Error('No .md or .txt files found');
     if (flags.items && (targets.length !== 1 || directory)) throw new Error('--items lines requires a single file');
-    const texts = files.map(file => fs.readFileSync(file, 'utf8'));
+    const texts = files.map(readLintFile);
     const linter = createLinter(loader);
     const result = flags.items === 'lines'
       ? linter.lintBatch(texts[0].split(/\r?\n/).filter(line => line.trim()), options)
