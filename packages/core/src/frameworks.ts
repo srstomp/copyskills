@@ -24,7 +24,7 @@ const DOMAIN_ROUTING: Array<[string[], string]> = [
   ],
   // email-copy - check before marketing-copy to catch "sales email" going to email-copy
   [
-    ['w:email', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign', 're-engagement', 'w:transactional'],
+    ['w:email', 'e-mail', 'w:mail', 'bevestigingsmail', 'bestätigungsmail', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign', 're-engagement', 'w:transactional'],
     'email-copy',
   ],
   // ux-copy - check before marketing-copy so "button" and "cta" don't collide
@@ -123,15 +123,15 @@ export function routeToDomain(copyType: string): string {
  * Detects email sub-type from copy type string.
  */
 function detectEmailSubtype(lower: string): 'transactional' | 'cold-outreach' | 'welcome-nurture' | 'newsletter' {
+  // Order matters: explicit marketing types first, then transactional, then sequences.
   if (lower.includes('newsletter')) {
     return 'newsletter';
   }
-  if (
-    lower.includes('cold') ||
-    lower.includes('outreach') ||
-    lower.includes('subject line')
-  ) {
+  if (lower.includes('cold') || lower.includes('outreach')) {
     return 'cold-outreach';
+  }
+  if (!MARKETING_EMAIL.test(lower) && TRANSACTIONAL_EMAIL.test(lower)) {
+    return 'transactional';
   }
   if (
     lower.includes('drip') ||
@@ -142,27 +142,30 @@ function detectEmailSubtype(lower: string): 'transactional' | 'cold-outreach' | 
   ) {
     return 'welcome-nurture';
   }
-  if (TRANSACTIONAL_EMAIL.test(lower)) {
-    return 'transactional';
-  }
-  // Default email sub-type is cold-outreach
+  // Subject lines and anything unmatched default to cold-outreach
   return 'cold-outreach';
 }
 
+/** Words that make an email marketing even when it names a transactional topic ("password manager launch"). */
+const MARKETING_EMAIL = /\b(?:launch|promo|promotional|announcement|sale|black friday|cyber monday|discount|offer|win-back|re-engagement|abandoned cart)\b/;
+
 /**
  * Transactional email, by phrase rather than bare word, so marketing types such as
- * "abandoned cart reminder" or "price drop alert" keep their framework.
- * Includes Dutch and German terms (bestelbevestiging, factuur, Bestellbestätigung).
+ * "price drop alert" or "reorder reminder" keep their framework.
+ * Dutch and German compounds match inside words (bestelbevestiging, Versandbestätigung);
+ * shorter German and Dutch nouns only at a word start, so "Abrechnungssoftware" does not.
  */
 const TRANSACTIONAL_EMAIL = new RegExp(
   [
-    '\\b(?:transactional|receipt|invoice|refund|confirmation|otp|magic link|password|verif(?:y|ication))\\b',
-    '\\b(?:sign[- ]?in|log[- ]?in|one[- ]time|two[- ]factor|2fa) code\\b',
-    '\\border[- ](?:confirmation|confirmed|shipped|update|status)\\b',
-    '\\b(?:shipping|delivery|dispatch) (?:confirmation|notification|update)\\b',
-    '\\bpayment (?:failed|received|confirmation)\\b',
-    '\\bsecurity alert\\b',
-    '(?:bevestiging|bestätigung|factuur|rechnung|wachtwoord|passwort)',
+    '\\b(?:transactional|receipt|invoice|refund|confirmation|otp|magic link|password|activation|verif(?:y|ication))\\b',
+    '\\b(?:sign[- ]?in|log[- ]?in|one[- ]time|two[- ]factor|2fa)[- ]code\\b',
+    '\\b(?:new )?(?:login|sign[- ]?in) alert\\b',
+    '\\border\\b.{0,20}?\\b(?:confirmation|confirmed|shipped|delivered|cancell?ed|received|update|status)\\b',
+    '\\b(?:shipping|delivery|dispatch|shipment) (?:confirmation|notification|update|email|e-mail|mail)\\b',
+    '\\bpayment (?:failed|received|confirmation|reminder)\\b',
+    '\\b(?:security|account) alert\\b',
+    '(?:bevestiging|bestätigung|wachtwoord|passwort)',
+    '(?<![\\p{L}])(?:factuur|rechnung|verzonden|versand)',
   ].join('|'),
   'u',
 );

@@ -49,14 +49,14 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
 
       if (locale !== undefined) {
         languageOf(locale);
-        brief.locale = new Intl.Locale(locale).baseName;
+        brief.locale = baseLocale(locale);
       }
 
       if (facts) {
         const parsed = facts.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
           const idMatch = line.match(/^(F\d+):\s*/);
           const claim = idMatch ? line.slice(idMatch[0].length) : line;
-          const sourceMatch = claim.match(/\s*\(source:\s*([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$/);
+          const sourceMatch = claim.match(/\(source:[ \t]?([^()]*(?:\([^()]*\)[^()]*)*)\)$/);
           return {
             id: idMatch?.[1],
             claim: (sourceMatch ? claim.slice(0, sourceMatch.index) : claim).trim(),
@@ -120,7 +120,7 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
 
       if (locale !== undefined) {
         languageOf(locale);
-        context.locale = new Intl.Locale(locale).baseName;
+        context.locale = baseLocale(locale);
       }
 
       if (audience) {
@@ -165,9 +165,9 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       if (locale !== undefined) {
         languageOf(locale);
       }
-      const baseLocale = locale === undefined ? undefined : new Intl.Locale(locale).baseName;
+      const cleanLocale = locale === undefined ? undefined : baseLocale(locale);
 
-      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice, baseLocale);
+      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice, cleanLocale);
       const text = systemPrompt + '\n\n---\n\n' + userPrompt;
 
       return {
@@ -180,4 +180,11 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       };
     },
   );
+}
+
+/** A validated locale reduced to language, script and region, so no other subtag text reaches the prompt. */
+function baseLocale(locale: string): string {
+  languageOf(locale);
+  const { language, script, region } = new Intl.Locale(locale);
+  return [language, script, region].filter(Boolean).join('-');
 }

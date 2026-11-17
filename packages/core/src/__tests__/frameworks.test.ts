@@ -14,6 +14,11 @@ describe('transactional email routing', () => {
     'login code email', 'magic link email', 'OTP email', 'invoice email', 'refund email',
     'payment failed email', 'shipping confirmation email', 'security alert email',
     'bestelbevestiging email', 'factuur email', 'Bestellbestätigung email', 'Rechnung email',
+    'shipping email', 'delivery email', 'your order has shipped email', 'order cancelled email',
+    'order delivered email', 'shipment notification email', 'new login alert email',
+    'account activation email', 'payment reminder email', 'login-code email',
+    'order confirmation e-mail', 'Versandbestätigung E-Mail', 'bevestigingsmail', 'Bestätigungsmail',
+    'welcome order confirmation email', 'subject line for order confirmation email',
   ])('%s uses no persuasion arc and resolves the transactional reference', (copyType) => {
     const result = selectFramework(copyType, 'inform the reader');
     expect(result.framework).toBe('None');
@@ -35,7 +40,13 @@ describe('transactional email routing', () => {
     ['cold email about our order management software', 'PAS'],
     ['drip sequence for shipping software email', 'BAB'],
     ['newsletter about delivery times', 'AIDA'],
-    ['welcome order confirmation email', 'BAB'],
+    ['password manager launch email', 'PAS'],
+    ['invoice software launch email', 'PAS'],
+    ['refund policy announcement email', 'PAS'],
+    ['black friday confirmation email', 'PAS'],
+    ['promotional email for our receipt scanner', 'PAS'],
+    ['Abrechnungssoftware email', 'PAS'],
+    ['subject line for a product launch', 'PAS'],
   ])('%s keeps a marketing framework', (copyType, framework) => {
     const result = selectFramework(copyType, 'engage readers');
     expect(result.framework).toBe(framework);
