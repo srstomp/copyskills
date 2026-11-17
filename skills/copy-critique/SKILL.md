@@ -29,14 +29,11 @@ Take the copy as submitted. Note any optional context provided. Do not modify th
 
 ### Step 2: Anti-slop scan
 
-Load `../quality-frameworks/references/anti-slop.md`.
+Load `../quality-frameworks/references/anti-slop.md` and `../quality-frameworks/references/locales/<language>.md` for the copy's language (`en`, `nl` or `de`).
 
-Scan the copy for:
-- Every banned word and phrase listed in the Banned Words and Phrases section
-- Em dash usage
-- Tricolon patterns that read like jingles
-- AI tell-tale phrasing (hedging language, hollow transitions, vague superlatives)
-- Paragraph openings with repetitive grammatical patterns
+Scan the copy for every tell in sections A to F of the anti-slop reference and the locale pack, including translationese in non-English copy. If the `copydoc` CLI is available, run `copydoc lint <file> --locale <locale>` and include its errors.
+
+If facts or other language versions of the same page are provided, also flag every claim that is not supported by them, and every point on which two language versions disagree. Contradictions between language versions are high severity: a reader in one language is told something false.
 
 Flag each hit with the specific text and its location in the copy.
 

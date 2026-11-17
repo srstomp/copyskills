@@ -16,6 +16,12 @@ const AD_KEYWORDS = ['w:ad', 'w:ads', 'w:advertisement'];
  * Multi-word phrases always use substring matching (they are inherently specific enough).
  */
 const DOMAIN_ROUTING: Array<[string[], string]> = [
+  // commerce-copy - first, so shop "meta description" or "SEO audit" work does not fall
+  // through to editorial-copy's generic "seo" keyword
+  [
+    ['product description', 'product page', 'w:pdp', 'category page', 'collection page', 'style page', 'meta description', 'title tag', 'alt text', 'about page', 'shop copy', 'w:catalogue', 'w:catalog', 'seo audit'],
+    'commerce-copy',
+  ],
   // email-copy - check before marketing-copy to catch "sales email" going to email-copy
   [
     ['w:email', 'subject line', 'newsletter', 'w:drip', 'w:sequence', 'w:outreach', 'cold email', 'cold outreach', 'w:nurture', 'w:campaign', 're-engagement', 'w:transactional'],
@@ -262,6 +268,15 @@ export function selectFramework(copyType: string, goal: string): FrameworkSelect
         path: 'persuasion-frameworks/references/pas.md',
         rationale:
           'Cold outreach maps to PAS because the audience has a clear pain point that needs to be agitated before presenting the solution.',
+      };
+    }
+
+    case 'commerce-copy': {
+      return {
+        framework: 'None',
+        path: 'commerce-copy/references/product-pages.md',
+        rationale:
+          'Shop copy helps a buyer choose from true, specific facts. A persuasion arc makes product and category pages read like adverts and makes catalogue copy share one skeleton.',
       };
     }
 

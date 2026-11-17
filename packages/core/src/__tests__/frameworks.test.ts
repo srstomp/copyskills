@@ -599,3 +599,28 @@ describe('selectFramework rationale content', () => {
     expect(result.rationale.length).toBeGreaterThan(20);
   });
 });
+
+describe('routeToDomain - commerce routing', () => {
+  test('shop deliverables route to commerce-copy', () => {
+    expect(routeToDomain('product description')).toBe('commerce-copy');
+    expect(routeToDomain('meta description batch for 120 bottles')).toBe('commerce-copy');
+    expect(routeToDomain('Title tag')).toBe('commerce-copy');
+    expect(routeToDomain('category page intro')).toBe('commerce-copy');
+  });
+
+  test('a shop SEO audit routes to commerce-copy, not editorial-copy', () => {
+    expect(routeToDomain('copy fixes from an SEO audit')).toBe('commerce-copy');
+    expect(routeToDomain('SEO blog post')).toBe('editorial-copy');
+  });
+
+  test('"pdp" needs a word boundary', () => {
+    expect(routeToDomain('PDP copy')).toBe('commerce-copy');
+    expect(routeToDomain('pdpx widget')).not.toBe('commerce-copy');
+  });
+
+  test('commerce-copy uses no persuasion framework', () => {
+    const result = selectFramework('product description', 'help buyers choose');
+    expect(result.framework).toBe('None');
+    expect(result.path).toBe('commerce-copy/references/product-pages.md');
+  });
+});

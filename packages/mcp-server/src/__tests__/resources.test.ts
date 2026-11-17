@@ -108,7 +108,7 @@ describe('resources/list returns all copydoc:// static resources', () => {
 });
 
 describe('copydoc://skills resource', () => {
-  test('copydoc://skills returns JSON with 15 skills', async () => {
+  test('copydoc://skills returns JSON with 16 skills', async () => {
     const server = makeServer();
     const loader = createLoader(SKILLS_DIR);
     registerResources(server, loader);
@@ -121,7 +121,7 @@ describe('copydoc://skills resource', () => {
     expect(content.mimeType).toBe('application/json');
     const parsed = JSON.parse(content.text as string);
     expect(Array.isArray(parsed)).toBe(true);
-    expect(parsed).toHaveLength(15);
+    expect(parsed).toHaveLength(16);
     // Each entry should have name and description
     for (const item of parsed) {
       expect(typeof item.name).toBe('string');

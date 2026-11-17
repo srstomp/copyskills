@@ -20,10 +20,10 @@ describe('createLoader', () => {
 });
 
 describe('listSkills()', () => {
-  test('listSkills() returns 15 skills from the real skills/ directory', () => {
+  test('listSkills() returns 16 skills from the real skills/ directory', () => {
     const loader = createLoader(SKILLS_DIR);
     const skills = loader.listSkills();
-    expect(skills).toHaveLength(15);
+    expect(skills).toHaveLength(16);
   });
 
   test('listSkills() returns an array of strings', () => {

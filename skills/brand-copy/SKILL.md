@@ -96,38 +96,32 @@ Load `../quality-frameworks/references/anti-slop.md`.
 
 Brand documents are especially prone to buzzword slop. A voice guide that uses "authentic," "empowering," and "customer-centric" in its own prose has failed its own standard.
 
-Run this sequence on the draft:
+Load `../quality-frameworks/references/locales/<language>.md` for the copy's language as well (`en`, `nl` or `de`).
 
-1. Scan for every banned word and phrase in the anti-slop reference. Flag each hit. Brand copy cannot contain the words it tells others to avoid.
-2. Apply the specificity test: does any sentence read like it could describe any brand in any industry? If yes, it is slop. Rebuild with specifics from the brief.
-3. Check the this/not-that pairs. Is each "that" concrete enough to produce different copy than the "not-that"? Vague pairs are decorative, not functional.
-4. Read the voice profile aloud. Does it sound like the brand it describes? A casual-voice brand document written in stiff corporate prose is broken.
-5. Check for em dashes. Remove all of them. Restructure affected sentences.
+Run the de-slop pass described in the anti-slop reference on every part of the draft:
+1. Mark every tell from sections A to F, strongest first.
+2. Rewrite each flagged passage. Keep every fact; add none that is not in the brief's fact sheet. If a sentence is generic and the brief has no true detail for it, write a plainer sentence or cut it.
+3. Check the rewrite against the brief: no fact dropped, changed or added.
+4. Do the native read described in the anti-slop reference: one sentence at a time, as a native editor of the copy's language.
+5. If the `copydoc` CLI is available, run `copydoc lint <file> --locale <locale>` and fix every error.
+5. Brand copy cannot contain the words it tells others to avoid. Check every flagged tell against the document's own word lists.
+6. Check the this/not-that pairs. Is each "that" concrete enough to produce different copy than the "not-that"? Vague pairs are decorative, not functional.
+7. Read the voice profile aloud. Does it sound like the brand it describes? A casual-voice brand document written in stiff corporate prose is broken.
 
 Do not consider the draft done until every flag is resolved.
 
-### Step 6: Score against quality rubric
+### Step 6: Check
 
-Brand copy uses a different rubric than marketing or UX copy. The primary quality signal is actionability: can someone use this document to produce noticeably different copy?
+Check the draft. Each check passes or fails; do not score your own draft.
+1. **Facts.** Every factual claim comes from the brief's fact sheet. No contested fact is stated.
+2. **Brief.** Every deliverable is present and within its length or character limits; goal, audience and CTA are addressed.
+3. **Tells.** A careful native reader could not point at a sentence and say a model wrote it.
+4. **Specificity.** The document contains details that could only apply to this brand. No sentence could describe any brand in any industry.
+5. **Actionability.** A writer using this document would produce noticeably different copy than without it. If the answer is "probably not", the document is decorative.
+6. **Distinctiveness.** The voice defined here is different enough from generic brand-speak to be memorable.
+7. **Voice consistency.** The document itself is written in the voice it defines.
 
-| Dimension | Scale | Target |
-|-----------|-------|--------|
-| Specificity | 1-10 | 8+ |
-| Actionability | 1-10 | 8+ |
-| Distinctiveness | 1-10 | 7+ |
-| Voice Consistency | 1-10 | 8+ |
-| AI-Tell Score | 0-10 | 2 or lower |
-| Overall | 1-10 | 7+ |
-
-**Specificity** measures whether the document contains details that could only apply to this brand.
-
-**Actionability** measures whether a writer using this document would produce noticeably different copy than without it. If the answer is "probably not," the document is decorative.
-
-**Distinctiveness** measures whether the voice defined here is different enough from generic brand-speak to be memorable.
-
-**Voice Consistency** measures whether the document itself is written in the voice it defines.
-
-If Specificity or Actionability is below 8, return to Step 5. A brand document that cannot guide copywriting has no value. Cap revisions at 2 passes; if the draft still fails after that, return the best version with the failing scores flagged in the output.
+If a check fails, return to the de-slop step. Cap revisions at 2 passes; if a check still fails after that, return the best version and list the failed checks under Open issues.
 
 ### Step 7: Return structured output
 
@@ -184,13 +178,10 @@ For a style guide:
 After the artifact, include a brief quality summary:
 ```
 ---
-**Quality scores**
-- Specificity: [N]/10
-- Actionability: [N]/10
-- Distinctiveness: [N]/10
-- Voice Consistency: [N]/10
-- AI-Tell: [N]/10
-- Overall: [N]/10
+**Claims:** [each factual claim and the fact id it rests on, or "none"]
+**Needs:** [questions only a human can answer, or "none"]
+**Lint:** [lint result per locale, or "not run"]
+**Open issues:** [checks still failing after 2 passes, or "none"]
 
 **De-slop flags resolved:** [N] (list the specific issues fixed, or "none")
 ```

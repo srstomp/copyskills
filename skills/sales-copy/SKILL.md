@@ -93,35 +93,27 @@ Do not invent structure. The framework plus domain reference define the structur
 
 Load `../quality-frameworks/references/anti-slop.md`.
 
-Run this sequence on the draft:
+Load `../quality-frameworks/references/locales/<language>.md` for the copy's language as well (`en`, `nl` or `de`).
 
-1. Scan for every banned word and phrase in the Banned Words and Phrases section. Flag each hit.
-2. Check for em dashes. Remove all of them. Restructure affected sentences.
-3. Apply the sentence length variance test. If all sentences cluster in the same length range, rewrite to vary rhythm.
-4. Apply the paragraph opening audit. If three or more consecutive paragraphs open with the same grammatical pattern, break the repetition.
-5. Check for tricolon traps. If any three-item list reads like a jingle, disrupt the rhythm.
-6. Apply the specificity test: could a competitor paste their name over this copy and have it still work? If yes, find the specific detail from the brief and rebuild around it.
-7. For case studies specifically: check every outcome claim. If a result is expressed without a number ("reduced time", "improved throughput", "cut costs"), replace it with the actual figure or flag it for the client to supply. Unquantified claims fail the specificity test automatically.
+Run the de-slop pass described in the anti-slop reference on every part of the draft:
+1. Mark every tell from sections A to F, strongest first.
+2. Rewrite each flagged passage. Keep every fact; add none that is not in the brief's fact sheet. If a sentence is generic and the brief has no true detail for it, write a plainer sentence or cut it.
+3. Check the rewrite against the brief: no fact dropped, changed or added.
+4. Do the native read described in the anti-slop reference: one sentence at a time, as a native editor of the copy's language.
+5. If the `copydoc` CLI is available, run `copydoc lint <file> --locale <locale>` and fix every error.
+5. For case studies specifically: check every outcome claim. If a result is expressed without a number ("reduced time", "improved throughput", "cut costs"), use the figure only if the brief has it; otherwise flag it for the client to supply. Never estimate a number.
 
 Do not consider the draft done until every flag is resolved.
 
-### Step 6: Score against quality rubric
+### Step 6: Check
 
-Score the de-slopped draft across these 7 dimensions:
+Check the draft. Each check passes or fails; do not score your own draft.
+1. **Facts.** Every factual claim comes from the brief's fact sheet. No contested fact is stated.
+2. **Brief.** Every deliverable is present and within its length or character limits; goal, audience and CTA are addressed.
+3. **Tells.** A careful native reader could not point at a sentence and say a model wrote it.
+4. For case studies, every outcome claim carries a figure from the brief or is flagged for the client. No vague outcomes.
 
-| Dimension | Scale | Target |
-|-----------|-------|--------|
-| Clarity | 1-10 | 7+ |
-| Specificity | 1-10 | 7+ |
-| Voice Match | 1-10 | 7+ |
-| AI-Tell Score | 0-10 | 2 or lower |
-| Persuasion | 1-10 | 7+ |
-| Action | 1-10 | 7+ |
-| Overall | 1-10 | 7+ |
-
-If AI-Tell Score is 3 or higher, or Overall is below 7: return to Step 5. Other dimensions below 7 set the revision priorities but do not block on their own. Cap revisions at 2 passes; if the draft still fails a hard gate after that, return the best version with the failing scores flagged in the output.
-
-For case studies: Specificity must score 8 or higher. Unverified vague outcomes are a disqualifier.
+If a check fails, return to the de-slop step. Cap revisions at 2 passes; if a check still fails after that, return the best version and list the failed checks under Open issues.
 
 ### Step 7: Return structured output
 
@@ -133,14 +125,10 @@ Return the completed copy in this structure:
 [Copy here, formatted for its intended use]
 
 ---
-**Quality scores**
-- Clarity: [N]/10
-- Specificity: [N]/10
-- Voice Match: [N]/10
-- AI-Tell: [N]/10
-- Persuasion: [N]/10
-- Action: [N]/10
-- Overall: [N]/10
+**Claims:** [each factual claim and the fact id it rests on, or "none"]
+**Needs:** [questions only a human can answer, or "none"]
+**Lint:** [lint result per locale, or "not run"]
+**Open issues:** [checks still failing after 2 passes, or "none"]
 
 **Framework used:** [Framework name]
 **De-slop flags resolved:** [N] (list the specific issues fixed, or "none")
