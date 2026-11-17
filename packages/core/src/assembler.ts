@@ -26,6 +26,15 @@ export function createAssembler(
   loader: SkillLoader,
   frameworkSelector: (copyType: string, goal: string) => { framework: string; path: string; rationale: string },
 ): Assembler {
+  /** Adds the locale pack, when the language has one, to a system prompt. */
+  function pushLocalePack(systemParts: string[], locale: string | undefined): void {
+    const localePack = locale !== undefined ? loadLocalePack(loader, locale) : null;
+    if (localePack) {
+      systemParts.push(`# Language Rules: ${locale} (MANDATORY)`);
+      systemParts.push(localePack);
+    }
+  }
+
   function assemble(brief: Brief): AssembledPrompt {
     // 1. Route brief.type to domain skill
     const domain = routeToDomain(brief.type);
@@ -51,17 +60,13 @@ export function createAssembler(
     systemParts.push('# Domain Workflow');
     systemParts.push(domainSkill.body);
 
-    systemParts.push(`# Persuasion Framework: ${framework.framework}`);
+    systemParts.push(framework.framework === 'None' ? '# Structure and Patterns' : `# Persuasion Framework: ${framework.framework}`);
     systemParts.push(frameworkContent);
 
     systemParts.push('# Quality Rules (MANDATORY)');
     systemParts.push(antiSlopContent);
 
-    const localePack = brief.locale !== undefined ? loadLocalePack(loader, brief.locale) : null;
-    if (localePack) {
-      systemParts.push(`# Language Rules: ${brief.locale} (MANDATORY)`);
-      systemParts.push(localePack);
-    }
+    pushLocalePack(systemParts, brief.locale);
 
     if (brief.brand_voice) {
       const bv = brief.brand_voice;
@@ -74,7 +79,7 @@ export function createAssembler(
         brandParts.push(`Treat these as additional banned words: ${bv.avoids.join(', ')}`);
       }
       if (bv.examples && bv.examples.length > 0) {
-        brandParts.push(`Approved samples (match their voice; do not reuse their phrases):\n\n${bv.examples.map((sample) => `<sample>\n${sample}\n</sample>`).join('\n\n')}`);
+        brandParts.push(renderSamples(bv.examples));
       }
 
       systemParts.push('# Brand Voice Constraints');
@@ -156,6 +161,8 @@ export function createAssembler(
     systemParts.push('# Quality Rules (MANDATORY)');
     systemParts.push(antiSlopContent);
 
+    pushLocalePack(systemParts, context?.locale);
+
     const systemPrompt = systemParts.join('\n\n');
 
     // 5. Build user prompt
@@ -176,7 +183,7 @@ export function createAssembler(
       }
       if (context.locale !== undefined) {
         languageOf(context.locale);
-        contextParts.push(`Language: ${context.locale}. Write natively in this language; do not translate from another language.`);
+        contextParts.push(`Language: the copy is in ${context.locale}; judge it against that language's rules.`);
       }
       if (contextParts.length > 0) {
         userParts.push(contextParts.join('\n'));
@@ -221,6 +228,8 @@ export function createAssembler(
     systemParts.push('# Quality Rules (MANDATORY)');
     systemParts.push(antiSlopContent);
 
+    pushLocalePack(systemParts, locale);
+
     const systemPrompt = systemParts.join('\n\n');
 
     // 6. Build user prompt
@@ -240,7 +249,7 @@ export function createAssembler(
         bvParts.push(`Avoids: ${brandVoice.avoids.join(', ')}`);
       }
       if (brandVoice.examples && brandVoice.examples.length > 0) {
-        bvParts.push(`Approved samples (match their voice; do not reuse their phrases):\n\n${brandVoice.examples.map((sample) => `<sample>\n${sample}\n</sample>`).join('\n\n')}`);
+        bvParts.push(renderSamples(brandVoice.examples));
       }
       if (bvParts.length > 0) {
         userParts.push(`Brand voice: ${bvParts.join('. ')}`);
@@ -253,4 +262,12 @@ export function createAssembler(
   }
 
   return { assemble, assembleCritique, assembleAdapt };
+}
+
+/** Voice samples as separate blocks; a sample may not close its own block. */
+function renderSamples(samples: string[]): string {
+  for (const sample of samples) {
+    if (/<\/?sample\b/i.test(sample)) throw new Error('A voice sample may not contain a <sample> tag');
+  }
+  return `Approved samples (match their voice; do not reuse their phrases):\n\n${samples.map((sample) => `<sample>\n${sample}\n</sample>`).join('\n\n')}`;
 }

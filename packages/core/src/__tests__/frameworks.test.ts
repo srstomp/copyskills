@@ -8,12 +8,12 @@ describe('transactional email routing', () => {
   const loader = createLoader(path.resolve(__dirname, '../../../../skills'));
 
   test.each([
-    'order shipped email', 'password reset email', 'transactional email',
+    'order shipped email', 'order-shipped email', 'password reset email', 'transactional email',
     'receipt email', 'Dutch order confirmation email', 'confirmation email',
-    'shipping email', 'delivery email', 'verify email', 'verification email',
-    'sign-in code email', 'login code email', 'invoice email',
-    'notification email', 'alert email', 'reminder email',
-    'welcome order confirmation email', 'newsletter delivery email',
+    'verify email', 'verification email', 'sign-in code email', 'sign in code email',
+    'login code email', 'magic link email', 'OTP email', 'invoice email', 'refund email',
+    'payment failed email', 'shipping confirmation email', 'security alert email',
+    'bestelbevestiging email', 'factuur email', 'Bestellbestätigung email', 'Rechnung email',
   ])('%s uses no persuasion arc and resolves the transactional reference', (copyType) => {
     const result = selectFramework(copyType, 'inform the reader');
     expect(result.framework).toBe('None');
@@ -26,8 +26,20 @@ describe('transactional email routing', () => {
     ['welcome email', 'BAB'],
     ['newsletter', 'AIDA'],
     ['border collie breeder cold email', 'PAS'],
-  ])('%s keeps its existing framework', (copyType, framework) => {
-    expect(selectFramework(copyType, 'engage readers').framework).toBe(framework);
+    ['abandoned cart reminder email', 'PAS'],
+    ['price drop alert email', 'PAS'],
+    ['reorder reminder email', 'PAS'],
+    ['flash sale notification email', 'PAS'],
+    ['win-back reminder email', 'PAS'],
+    ['pre-order launch email', 'PAS'],
+    ['cold email about our order management software', 'PAS'],
+    ['drip sequence for shipping software email', 'BAB'],
+    ['newsletter about delivery times', 'AIDA'],
+    ['welcome order confirmation email', 'BAB'],
+  ])('%s keeps a marketing framework', (copyType, framework) => {
+    const result = selectFramework(copyType, 'engage readers');
+    expect(result.framework).toBe(framework);
+    expect(result.path).not.toContain('transactional');
   });
 });
 

@@ -26,7 +26,7 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'knowledgeable, casual'"),
       constraints: z.string().optional().describe("Copy constraints, e.g. '150 words max, plain text'"),
       locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
-      facts: z.string().max(200000).optional().describe('One fact per line, optionally prefixed with an id like F3: (letters then digits) and ending with (source: ...)'),
+      facts: z.string().max(200000).optional().describe('One fact per line, optionally prefixed with an id like F3: and ending with (source: ...)'),
       voice_examples: z.string().max(200000).optional().describe('Approved copy samples separated by a line containing only ---'),
     },
     ({ type, goal, audience, product, brand_voice, constraints, locale, facts, voice_examples }) => {
@@ -49,23 +49,27 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
 
       if (locale !== undefined) {
         languageOf(locale);
-        brief.locale = locale;
+        brief.locale = new Intl.Locale(locale).baseName;
       }
 
       if (facts) {
-        const lines = facts.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-        const parsed = lines.map((line) => {
-          const idMatch = line.match(/^([A-Z]{1,3}\d+):\s*/);
+        const parsed = facts.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+          const idMatch = line.match(/^(F\d+):\s*/);
           const claim = idMatch ? line.slice(idMatch[0].length) : line;
-          const sourceMatch = claim.match(/\s*\(source:\s*(.*)\)\s*$/);
+          const sourceMatch = claim.match(/\s*\(source:\s*([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$/);
           return {
             id: idMatch?.[1],
-            claim: sourceMatch ? claim.slice(0, sourceMatch.index).trim() : claim,
+            claim: (sourceMatch ? claim.slice(0, sourceMatch.index) : claim).trim(),
             ...(sourceMatch ? { source: sourceMatch[1].trim() } : {}),
           };
-        });
-        // Explicit ids are kept; the others get the next free F<n>, so no two facts share an id.
-        const used = new Set(parsed.map((fact) => fact.id).filter(Boolean));
+        }).filter((fact) => fact.claim);
+        // Explicit ids are kept and must be unique; the others get the next free F<n>.
+        const used = new Set<string>();
+        for (const fact of parsed) {
+          if (!fact.id) continue;
+          if (used.has(fact.id)) throw new Error(`Duplicate fact id: ${fact.id}`);
+          used.add(fact.id);
+        }
         let next = 1;
         brief.facts = parsed.map((fact) => {
           if (fact.id) return { ...fact, id: fact.id };
@@ -116,7 +120,7 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
 
       if (locale !== undefined) {
         languageOf(locale);
-        context.locale = locale;
+        context.locale = new Intl.Locale(locale).baseName;
       }
 
       if (audience) {
@@ -161,8 +165,9 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       if (locale !== undefined) {
         languageOf(locale);
       }
+      const baseLocale = locale === undefined ? undefined : new Intl.Locale(locale).baseName;
 
-      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice, locale);
+      const { systemPrompt, userPrompt } = assembler.assembleAdapt(source_copy, target_format, brandVoice, baseLocale);
       const text = systemPrompt + '\n\n---\n\n' + userPrompt;
 
       return {

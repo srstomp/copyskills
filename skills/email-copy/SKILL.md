@@ -89,9 +89,9 @@ For cold outreach: check the first-touch structure in `references/cold-outreach.
 
 ### Step 4: Draft using framework structure and email patterns
 
-Apply the framework steps to the brief. Use the domain reference for structural patterns, section flows, and format rules.
+Apply the framework steps to the brief. Use the domain reference for structural patterns, section flows, and format rules. Transactional email has no framework: follow the order in `references/transactional.md` (what happened, the details, what next, where to get help).
 
-- Follow the framework's stage sequence
+- Follow the framework's stage sequence (transactional: the reference's order)
 - Apply section patterns and examples from the domain reference
 - Respect subject line character limits (check `references/subject-lines.md` or `references/cold-outreach.md`)
 - Write preview text that complements (does not repeat) the subject line

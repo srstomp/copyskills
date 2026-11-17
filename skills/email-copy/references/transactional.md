@@ -27,7 +27,7 @@ Stop there. No sign-off paragraph about how much the company values the reader.
 
 ## No promotion
 
-Keep cross-sells, discount codes, newsletter pitches and review requests out unless the brief asks for one, and then keep it below the transactional content and clearly separate. An email whose content is mainly promotional can count as marketing email, which needs consent in the EU and must meet the "primary purpose" rules of CAN-SPAM in the US.
+Keep cross-sells, discount codes, newsletter pitches and review requests out unless the brief asks for one, and then keep it below the transactional content and clearly separate. Promotional content can turn a transactional email into direct marketing. In the EU that generally needs prior consent, or the existing-customer exception with an opt-out; in the US, an email whose primary purpose is commercial must meet CAN-SPAM (opt-out, postal address). Rules vary by country, so if the brief asks for promotion in a transactional email, raise it as a `needs` item.
 
 ## Security and money emails
 
@@ -45,7 +45,7 @@ Most transactional emails need 40 to 120 words of body copy. A receipt's line it
 
 ## Example
 
-Brief facts: order 10482, shipped with PostNL, 1 to 2 working days in the Netherlands, tracking link placeholder, returns within 30 days, questions by reply. Locale en-GB.
+Brief: placeholders `{first_name}`, `{order_number}`, `{tracking_url}`. Facts: shipped with PostNL, usually 1 to 2 working days in the Netherlands, returns within 30 days, questions by reply. Locale en-GB.
 
 Before (persuasion arc and filler):
 > Great news, {first_name}! 🎉 Your exciting new running shoes are on their way to you! We know how much you've been looking forward to hitting the road. While you wait, why not check out our latest collection?
@@ -60,6 +60,6 @@ After:
 >
 > [Track your parcel]({tracking_url})
 >
-> Not right? You can return it within 30 days. Questions? Reply to this email.
+> You can return it within 30 days. If you have a question, reply to this email.
 
 Every statement maps to a brief fact; the reader learns what happened, when it arrives and what to do if something is wrong.

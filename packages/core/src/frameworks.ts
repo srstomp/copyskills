@@ -123,9 +123,6 @@ export function routeToDomain(copyType: string): string {
  * Detects email sub-type from copy type string.
  */
 function detectEmailSubtype(lower: string): 'transactional' | 'cold-outreach' | 'welcome-nurture' | 'newsletter' {
-  if (/\b(?:transactional|receipt|confirmation|order|shipped|shipping|delivery|password|reset|verify|verification|sign-in code|login code|invoice|notification|alert|reminder)\b/.test(lower)) {
-    return 'transactional';
-  }
   if (lower.includes('newsletter')) {
     return 'newsletter';
   }
@@ -145,9 +142,30 @@ function detectEmailSubtype(lower: string): 'transactional' | 'cold-outreach' | 
   ) {
     return 'welcome-nurture';
   }
+  if (TRANSACTIONAL_EMAIL.test(lower)) {
+    return 'transactional';
+  }
   // Default email sub-type is cold-outreach
   return 'cold-outreach';
 }
+
+/**
+ * Transactional email, by phrase rather than bare word, so marketing types such as
+ * "abandoned cart reminder" or "price drop alert" keep their framework.
+ * Includes Dutch and German terms (bestelbevestiging, factuur, Bestellbestätigung).
+ */
+const TRANSACTIONAL_EMAIL = new RegExp(
+  [
+    '\\b(?:transactional|receipt|invoice|refund|confirmation|otp|magic link|password|verif(?:y|ication))\\b',
+    '\\b(?:sign[- ]?in|log[- ]?in|one[- ]time|two[- ]factor|2fa) code\\b',
+    '\\border[- ](?:confirmation|confirmed|shipped|update|status)\\b',
+    '\\b(?:shipping|delivery|dispatch) (?:confirmation|notification|update)\\b',
+    '\\bpayment (?:failed|received|confirmation)\\b',
+    '\\bsecurity alert\\b',
+    '(?:bevestiging|bestätigung|factuur|rechnung|wachtwoord|passwort)',
+  ].join('|'),
+  'u',
+);
 
 /**
  * Detects marketing-copy sub-type from copy type string.
