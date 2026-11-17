@@ -199,6 +199,15 @@ describe('review regressions', () => {
       'Number 15 is not in the fact sheet',
     ]);
   });
+  test('a dash price is not a CSV row, and a quoted decimal in a CSV row keeps its reading', () => {
+    expect(clean().lint('€ 39,95 en 15,5%', { facts: 'Prijs: € 34,- (was € 39,95). Alcohol 15,5%' }).issues).toEqual([]);
+    expect(clean().lint('39 euro, 95 ml', { facts: 'Prijs: € 34,- (was € 39,95)' }).errors).toBe(2);
+    expect(clean().lint('€ 34,50 for 720 ml', { facts: 'DS45,Dassai 45,720,"34,50"' }).issues).toEqual([]);
+  });
+  test('batch masking keeps numbers that belong to a code', () => {
+    const items = ['DS45 Dassai is dry and clean.', 'DS46 Dassai is round and soft.', 'DS47 Dassai is light and floral.'];
+    expect(clean().lintBatch(items).issues.filter(i => i.rule === 'opener')).toEqual([]);
+  });
   test('large prices with thousands and decimal separators', () => {
     expect(clean().lint('€ 1.234,56', { facts: '1234.56' }).issues).toEqual([]);
     expect(clean().lint('€1,234.56', { facts: '1234,56' }).issues).toEqual([]);

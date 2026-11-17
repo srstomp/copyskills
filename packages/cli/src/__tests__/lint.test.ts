@@ -23,6 +23,14 @@ async function cli(args: string[]) {
   return { stdout, stderr, code };
 }
 describe('copydoc lint', () => {
+  test('notice only when the language has no pack; three-letter codes resolve', async () => {
+    const fr = await cli([file('fr.txt', 'Un saké sec.'), '--locale', 'fr-FR']);
+    expect(fr.stderr).toContain('no locale pack for "fr"');
+    const nld = await cli([file('nld.txt', 'Duik in de sake.'), '--locale', 'nld']);
+    expect(nld.stderr).toBe('');
+    expect(nld.stdout).toContain('ERROR phrase line 1: Banned pattern: duik in');
+    expect(nld.code).toBe(1);
+  });
   test('JSON result and exit 1 on errors, without API configuration', async () => {
     const result = await cli([file('long.txt', 'a'.repeat(61)), '--kind', 'title', '--locale', 'fr', '--json']);
     expect(result.code).toBe(1);

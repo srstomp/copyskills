@@ -197,8 +197,11 @@ export function createLinter(loader: SkillLoader): Linter {
     if (options.facts !== undefined) {
       // In a CSV row commas separate fields, not decimals. A row has an unspaced comma touching a
       // non-digit ("DS45,Dassai") or three comma-joined numbers ("45,720,16"); prose with "15,5%" has neither.
-      const isCsvRow = (line: string) => /[^\d\s],\S|\S,[^\d\s]/u.test(line) || /\d+,\d+,\d+/.test(line);
-      const factText = options.facts.split('\n').map(line => (isCsvRow(line) ? line.replace(/,/g, ' ') : line)).join('\n');
+      // A comma touching a letter or quote, or three comma-joined numbers, marks a CSV row; a row keeps
+      // both readings so a quoted "34,50" field still counts. Unspaced pairs like "300,720" read as one
+      // decimal and fail closed (the copy's 300 and 720 are reported).
+      const isCsvRow = (line: string) => /[\p{L}"'],\S|\S,[\p{L}"']/u.test(line) || /\d+,\d+,\d+/.test(line);
+      const factText = options.facts.split('\n').map(line => (isCsvRow(line) ? `${line} ${line.replace(/,/g, ' ')}` : line)).join('\n');
       const facts = new Set(numbers(factText).flatMap(n => numberValues(n[0])));
       for (const number of numbers(text)) {
         if (!numberValues(number[0]).some(value => facts.has(value))) issues.push({ rule: 'number', severity: 'error', message: `Number ${number[0]} is not in the fact sheet` });
@@ -218,7 +221,9 @@ export function createLinter(loader: SkillLoader): Linter {
       map.get(phrase)!.add(item);
     }
     items.forEach((text, item) => {
-      const masked = normalize(text).toLowerCase().replace(/(?<![\p{L}_])\d+(?:[.,]\d+)*/gu, '#');
+      // Mask whole numbers only: a number glued to a letter (DS45, v2.5) stays part of its token.
+      const masked = normalize(text).toLowerCase().replace(/\d+(?:[.,]\d+)*/gu,
+        (match: string, at: number, all: string) => (/[\p{L}_]$/u.test(all.slice(Math.max(0, at - 2), at)) ? match : '#'));
       const tokens = masked.match(/[\p{L}\p{N}']+|#/gu) ?? [];
       if (tokens.length >= 3) record(openers, tokens.slice(0, 3).join(' '), item);
       for (let i = 0; i <= tokens.length - 4; i++) {

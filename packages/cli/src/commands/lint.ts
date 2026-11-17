@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createLinter, type LintOptions, type LintResult, type SkillLoader } from '@copydoc/core';
+import { createLinter, languageOf, type LintOptions, type LintResult, type SkillLoader } from '@copydoc/core';
 
 export function printLintResult(result: LintResult): void {
   for (const issue of result.issues) {
@@ -57,7 +57,7 @@ export function lintCommand(loader: SkillLoader, targets: string[], flags: Recor
     const result = flags.items === 'lines'
       ? linter.lintBatch(texts[0].split(/\r?\n/).filter(line => line.trim()), options)
       : directory || files.length > 1 ? linter.lintBatch(texts, options) : linter.lint(texts[0], options);
-    const language = (options.locale ?? 'en').split('-')[0].toLowerCase();
+    const language = languageOf(options.locale ?? 'en');
     if (language !== 'en') {
       try {
         loader.resolveReference(`quality-frameworks/references/locales/${language}.md`);
