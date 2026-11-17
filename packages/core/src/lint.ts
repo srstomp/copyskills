@@ -159,7 +159,9 @@ export function createLinter(loader: SkillLoader): Linter {
       });
     }
     const reported: typeof matches = [];
-    for (const match of [...matches].sort((a, b) => (b.end - b.start) - (a.end - a.start))) {
+    // Errors first, so a warning can never hide an overlapping error; then longer matches first.
+    const rank = (m: (typeof matches)[number]) => (m.issue.severity === 'error' ? 0 : 1);
+    for (const match of [...matches].sort((a, b) => rank(a) - rank(b) || (b.end - b.start) - (a.end - a.start))) {
       if (!reported.some(other => other.issue.line === match.issue.line && other.start < match.end && match.start < other.end)) {
         reported.push(match);
       }

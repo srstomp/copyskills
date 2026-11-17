@@ -160,7 +160,7 @@ describe('Full pipeline integration', () => {
     const testText = 'We leverage seamless workflows.';
     const result = linter.lint(testText, { avoid: brief.brand_voice!.avoids });
     const phrases = result.issues.map(({ rule, severity, message }) => ({ rule, severity, message }));
-    expect(phrases).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: leverage' });
+    expect(phrases).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: leverag*' });
     expect(phrases).toContainEqual({ rule: 'phrase', severity: 'error', message: 'Banned pattern: seamless' });
   });
 

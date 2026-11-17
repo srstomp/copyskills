@@ -56,13 +56,10 @@ Dutch model copy has its own set of defaults. The lint lists below hold the ones
 
 ### Stock words {lint: error}
 
-- naadloos
-- naadloze
-- cruciaal
-- cruciale
-- smaakexplosie
-- smaaksensatie
-- smaakpapillen
+- crucia*
+- smaakexplosie*
+- smaaksensatie*
+- smaakpapil*
 
 ### Stock phrases {lint: error}
 
@@ -85,7 +82,6 @@ Dutch model copy has its own set of defaults. The lint lists below hold the ones
 
 ### Chat residue {lint: error}
 
-- "Zeker!"
 - "Goede vraag"
 - "hier is een herschreven"
 - "hier is een aangepaste"
@@ -96,21 +92,20 @@ Dutch model copy has its own set of defaults. The lint lists below hold the ones
 
 - "in de wereld van"
 - "een ware"
-- ontdek (a stock opener in shop copy; fine when the reader really discovers something)
-- ervaar
-- beleef
-- verdiepen
-- benutten
-- optimaliseren
-- essentieel
-- uniek
-- unieke
-- tijdloos
-- tijdloze
-- authentiek
-- authentieke
-- perfect
-- perfecte
+- "Zeker!" (chat residue at the start of a text; fine inside a sentence such as "Dat kan zeker!")
+- naadlo* (a tell as praise; fine for naadloze kleding)
+- ontdek* (a stock opener in shop copy; fine when the reader really discovers something)
+- ervar*
+- beleef*
+- beleven*
+- verdiep*
+- benut*
+- optimali*
+- essenti*
+- uniek*
+- tijdlo*
+- authentie*
+- perfect*
 - middenmoot
 - ijskoud
 - kortom

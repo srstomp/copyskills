@@ -47,13 +47,11 @@ Use the target query from the brief exactly as German searchers type it ("Sake k
 
 ### Stock words {lint: error}
 
-- Geschmackserlebnis
-- Geschmacksexplosion
-- Gaumenfreude
-- Gaumenschmaus
-- nahtlos
-- revolutionär
-- revolutionieren
+- Geschmackserlebnis*
+- Geschmacksexplosion*
+- Gaumenfreude*
+- Gaumenschmaus*
+- revolution*
 
 ### Stock phrases {lint: error}
 
@@ -77,7 +75,6 @@ Use the target query from the brief exactly as German searchers type it ("Sake k
 
 ### Chat residue {lint: error}
 
-- "Gerne!"
 - "Gute Frage"
 - "hier ist eine überarbeitete"
 - "ich hoffe, das hilft"
@@ -86,19 +83,19 @@ Use the target query from the brief exactly as German searchers type it ("Sake k
 
 ### Watch words {lint: warn}
 
-- entdecken
-- erleben
-- genießen
-- einzigartig
-- einzigartige
-- perfekt
-- perfekte
-- Highlight
-- umfassend
-- optimal
-- hochwertig
-- exklusiv
-- zeitlos
+- "Gerne!" (chat residue at the start of a text; fine in "Wir beraten Sie gerne!")
+- nahtlos* (a tell as praise; fine for nahtlose Strümpfe)
+- entdeck*
+- erleb*
+- genieß*
+- einzigartig*
+- perfekt*
+- Highlight*
+- umfassend*
+- optimal*
+- hochwertig*
+- exklusiv*
+- zeitlos*
 - " – " (Gedankenstrich: korrekt, aber sparsam verwenden)
 
 ### Staged contrasts {lint: warn}

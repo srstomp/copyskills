@@ -40,7 +40,7 @@ The strongest tells in current model copy. Act on one sighting.
 
 **Watch for:** not X but Y; not just, not only, not merely X, but Y; it's not X, it's Y; more than just X; X rather than Y used for weight; the contrast split over two sentences ("This isn't a gimmick. It's a tool."); a clipped negative tail (", no guesswork"). Every language has the same move: NL "niet alleen ... maar ook", "geen X, maar Y"; DE "nicht nur ... sondern auch", "kein X, sondern Y".
 
-**Problem:** The negative half names something nobody claimed so the positive half sounds bigger. State the point. Keep a contrast only when the negative half corrects a belief the reader really holds ("Umeshu is a liqueur, not a sake" is fine on a page where buyers expect sake), or when both halves carry information.
+**Problem:** The negative half names something nobody claimed so the positive half sounds bigger. State the point. Keep a contrast only when the negative half corrects a belief the reader really holds and the fact sheet supports both halves ("Nigori is unfiltered, so it is cloudy, not spoiled" on a page where buyers ask why it is cloudy), or when both halves carry information.
 
 > Before: It's not just a sake, it's a celebration of 150 years of craft.
 > After: The brewery has made sake in the same town since 1872.
@@ -187,7 +187,7 @@ Each pattern is a default choice that a person can also make on purpose. Leave a
 
 ## Lint lists
 
-`copydoc lint` parses the sections below for English copy (locale `en`). A heading marked `{lint: error}` lists patterns that are wrong in shop, product, app and email copy; `{lint: warn}` lists patterns that are tells only in some uses. `[X]` matches a few words; `...` inside a pattern matches a gap within one sentence. Other languages have their own lists in `locales/<language>.md`.
+`copydoc lint` parses the sections below for English copy (locale `en`). A heading marked `{lint: error}` lists patterns that are wrong in shop, product, app and email copy; `{lint: warn}` lists patterns that are tells only in some uses. `[X]` matches a few words; `...` inside a pattern matches a gap within one sentence; a word ending in `*` matches that word plus any letters (`delv*` catches delve, delves, delving). Other languages have their own lists in `locales/<language>.md`.
 
 ### Punctuation {lint: error}
 
@@ -197,15 +197,13 @@ Each pattern is a default choice that a person can also make on purpose. Leave a
 
 ### Stock words {lint: error}
 
-- delve
-- tapestry
+- delv*
 - testament
-- seamless
-- seamlessly
-- elevate
-- unleash
-- embark
-- revolutionize
+- elevate*
+- unleash*
+- embark*
+- revolutioni*
+- revolutionise*
 - game-changer
 - game-changing
 - cutting-edge
@@ -213,14 +211,13 @@ Each pattern is a default choice that a person can also make on purpose. Leave a
 - best-in-class
 - state-of-the-art
 - next-level
-- meticulously
-- vibrant
+- meticulous*
 - nestled
 - boasts
-- showcasing
+- showcas*
 - realm
 - synergy
-- leverage
+- leverag*
 
 ### Stock phrases {lint: error}
 
@@ -264,12 +261,15 @@ Each pattern is a default choice that a person can also make on purpose. Leave a
 
 ### Watch words {lint: warn}
 
+- tapestry (a tell as a metaphor; fine for a wall hanging)
+- seamless* (a tell as praise; fine for seamless clothing)
+- vibrant
 - journey (fine for a real trip; a tell as a metaphor)
 - landscape (fine for scenery; a tell as "the market landscape")
 - curated
 - artisanal
 - crafted
-- indulge
+- indulg*
 - unique
 - iconic
 - timeless
@@ -278,9 +278,9 @@ Each pattern is a default choice that a person can also make on purpose. Leave a
 - unforgettable
 - renowned
 - award-winning (state the award, year and body, or cut it)
-- empower
-- transform
-- streamline
+- empower*
+- transform*
+- streamlin*
 - robust
 - intuitive
 - powerful
