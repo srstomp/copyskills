@@ -9,7 +9,7 @@ const EXTENSION_STUB = `// Copydoc extension for Pi
 // capabilities within Pi. Install @copydoc/core as a dependency
 // to use this extension.
 
-import { createLoader, createAssembler, selectFramework, createAntiSlopChecker } from '@copydoc/core';
+import { createLoader, createAssembler, selectFramework, createLinter } from '@copydoc/core';
 import path from 'path';
 
 const skillsDir = path.resolve(__dirname, '../skills/copydoc');
@@ -17,8 +17,8 @@ const skillsDir = path.resolve(__dirname, '../skills/copydoc');
 export function createCopydocExtension() {
   const loader = createLoader(skillsDir);
   const assembler = createAssembler(loader, selectFramework);
-  const checker = createAntiSlopChecker(loader);
-  return { loader, assembler, checker };
+  const linter = createLinter(loader);
+  return { loader, assembler, linter };
 }
 `;
 

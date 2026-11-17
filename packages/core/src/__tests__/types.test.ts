@@ -2,8 +2,6 @@ import { describe, expect, test } from 'bun:test';
 import type {
   Brief,
   QualityScores,
-  AntiSlopIssue,
-  AntiSlopResult,
   FrameworkSelection,
   CopyOutput,
   AssembledPrompt,
@@ -219,46 +217,6 @@ describe('QualityScores interface', () => {
       overall: 8,
     };
     expect(typeof scores.overall).toBe('number');
-  });
-});
-
-describe('AntiSlopIssue interface', () => {
-  test('AntiSlopIssue has pattern and line fields', () => {
-    const issue: AntiSlopIssue = {
-      pattern: 'leverage',
-      line: 3,
-    };
-    expect(issue.pattern).toBe('leverage');
-    expect(issue.line).toBe(3);
-  });
-
-  test('AntiSlopIssue accepts optional suggestion', () => {
-    const issue: AntiSlopIssue = {
-      pattern: 'leverage',
-      line: 3,
-      suggestion: 'use "use" instead',
-    };
-    expect(issue.suggestion).toBe('use "use" instead');
-  });
-});
-
-describe('AntiSlopResult interface', () => {
-  test('AntiSlopResult has score and issues fields', () => {
-    const result: AntiSlopResult = {
-      score: 2,
-      issues: [{ pattern: 'leverage', line: 1 }],
-    };
-    expect(result.score).toBe(2);
-    expect(result.issues.length).toBe(1);
-  });
-
-  test('AntiSlopResult score can be 0 (no issues)', () => {
-    const result: AntiSlopResult = {
-      score: 0,
-      issues: [],
-    };
-    expect(result.score).toBe(0);
-    expect(result.issues).toEqual([]);
   });
 });
 

@@ -89,7 +89,7 @@ import {
   createBundledLoader,
   createAssembler,
   selectFramework,
-  createAntiSlopChecker,
+  createLinter,
 } from '@copydoc/core';
 
 const loader = createBundledLoader();
@@ -105,9 +105,9 @@ const { systemPrompt, userPrompt } = assembler.assemble({
 // Send to any LLM
 const copy = await yourLLM.generate(systemPrompt, userPrompt);
 
-// Check for AI patterns
-const checker = createAntiSlopChecker(loader);
-const { score, issues } = checker.check(copy);
+// Lint copy
+const linter = createLinter(loader);
+const { errors, warnings, issues } = linter.lint(copy, { locale: 'en' });
 ```
 
 ## Integrations
@@ -191,16 +191,15 @@ npx --yes @copydoc/integrations@0.1.1 install --tool codex --global
 | copy-critique | Evaluates existing copy. Scores, diagnoses, suggests concrete fixes |
 | copy-adapt | Repurposes copy across channels while preserving the core message |
 
-### Anti-Slop System
+### Copy Linter
 
-Every workflow includes a mandatory quality pass that catches AI writing patterns:
+The linter reports errors and warnings without an LLM or API key:
 
-- **50+ banned patterns**: "leverage", "unlock", "elevate", "seamless", em dashes, "In today's [X]..."
-- **Structural detection**: Uniform sentence length, repeated paragraph openings, tricolon lists
-- **The specificity test**: Could a competitor paste their name over this copy? If yes, it's slop.
-- **Humanization**: Varied sentence length, contractions, sentence fragments, concrete numbers over vague claims
+- Locale-specific phrases from markdown sections marked `{lint: error}` or `{lint: warn}`; brand phrases can be added with `avoid`.
+- Title and meta character budgets, repeated sentences, and numbers absent from a supplied fact sheet.
+- Repeated four-word sequences and three-word openers across batches.
 
-The anti-slop check runs after every draft. Copy scoring 3+ AI tells gets revised before output.
+English uses `anti-slop.md` plus `locales/en.md` when present. Other languages use their locale file when present. Locale variants such as `nl-BE` use the primary language (`nl`).
 
 ## MCP Server Details
 
@@ -221,8 +220,8 @@ copydoc://headlines/power-words         # Get power words by emotion
 **Tools** (active logic your agent calls):
 ```
 select_framework  { copy_type, goal }       ->  recommended framework + rationale
-check_anti_slop   { text, avoids? }         ->  AI pattern score + issues
-score_copy        { text, context? }        ->  ai_tell_score + issues (LLM dims return -1)
+lint_copy         { text?, items?, locale?, kind?, min?, max?, facts?, avoid? }
+                  -> { issues, errors, warnings }; provide exactly one of text or items
 ```
 
 **Prompts** (workflow templates for MCP clients):
@@ -238,12 +237,16 @@ adapt     { source_copy, target_format, brand_voice? }
 copydoc init              # Set up provider (Anthropic/OpenAI/Gemini) and API key
 copydoc write <desc>      # Generate copy with interactive brief gathering
 copydoc critique <input>  # Evaluate copy from file or inline text
+copydoc lint <file|dir>... [--locale nl-NL] [--kind title|meta|body]
+  [--min N] [--max N] [--facts facts.md] [--items lines] [--json]
 copydoc adapt <src> --to <fmt>  # Repurpose copy for a different channel
 copydoc list              # Show all available skills grouped by layer
 copydoc info <skill>      # Show skill details and references
 ```
 
-Supports Anthropic (default), OpenAI, and Google Gemini. Set a custom base URL for Cloudflare AI Gateway.
+`lint` needs no API key or config. One file is checked as one text; multiple files or a directory form a batch (directory .md/.txt files are sorted). `--items lines` checks each non-empty line of a single file as an item. Exit codes: 0 for no errors, 1 for lint errors, 2 for usage errors.
+
+Generation supports Anthropic (default), OpenAI, and Google Gemini. Set a custom base URL for Cloudflare AI Gateway.
 
 ## Input/Output Contract
 
@@ -283,7 +286,6 @@ metadata:
     clarity: 9
     specificity: 8
     voice_match: 8
-    ai_tell_score: 1
     overall: 8
 ```
 
@@ -310,7 +312,7 @@ metadata:
   |
   +-- reads 15 skill markdown files at runtime
   +-- assembles prompts from skills + brief context
-  +-- provides framework selection + anti-slop scoring
+  +-- provides framework selection + copy linting
 ```
 
 Skills are plain markdown files. No compilation, no transformation. The core library reads them at runtime and assembles structured prompts that any LLM can consume.

@@ -8,8 +8,6 @@ export const VERSION = '0.1.1';
 export type {
   Brief,
   QualityScores,
-  AntiSlopIssue,
-  AntiSlopResult,
   FrameworkSelection,
   CopyOutput,
   AssembledPrompt,
@@ -47,8 +45,8 @@ export function createBundledLoader() {
 
 export { selectFramework, routeToDomain } from './frameworks.js';
 
-export { createAntiSlopChecker } from './anti-slop.js';
-export type { AntiSlopChecker } from './anti-slop.js';
+export { createLinter } from './lint.js';
+export type { Severity, LintIssue, LintOptions, LintResult, Linter } from './lint.js';
 
 export { createAssembler } from './assembler.js';
 export type { Assembler } from './assembler.js';

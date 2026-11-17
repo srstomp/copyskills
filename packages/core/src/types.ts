@@ -36,18 +36,6 @@ export interface QualityScores {
   overall: number;
 }
 
-/** Anti-slop detection result */
-export interface AntiSlopIssue {
-  pattern: string;
-  line: number;
-  suggestion?: string;
-}
-
-export interface AntiSlopResult {
-  score: number;          // 0-10, capped
-  issues: AntiSlopIssue[];
-}
-
 /** Framework selection result */
 export interface FrameworkSelection {
   framework: string;      // e.g., 'PAS'

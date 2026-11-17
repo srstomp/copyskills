@@ -10,6 +10,7 @@ import { initCommand } from './commands/init';
 import { writeCommand } from './commands/write';
 import { critiqueCommand } from './commands/critique';
 import { adaptCommand } from './commands/adapt';
+import { lintCommand } from './commands/lint';
 
 export interface ParsedArgs {
   command: string;
@@ -31,7 +32,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (token.startsWith('--')) {
       const key = token.slice(2);
       const next = rest[i + 1];
-      if (next !== undefined && !next.startsWith('--')) {
+      if (key !== 'json' && next !== undefined && !next.startsWith('--')) {
         flags[key] = next;
         i += 2;
       } else {
@@ -57,7 +58,10 @@ function printHelp(): void {
   console.log('  Commands:');
   console.log('    init                   Set up API key and configuration');
   console.log('    write <description>    Generate copy from a description');
-  console.log('    critique <file-or-text>  Evaluate and score copy');
+  console.log('    critique <file-or-text>  Evaluate copy');
+  console.log('    lint <file|dir>...      Lint copy without an API key or config');
+  console.log('      --locale en --kind title|meta|body --min N --max N');
+  console.log('      --facts facts.md --items lines --json');
   console.log('    adapt <source> --to <format>  Adapt copy to a different format');
   console.log('    list                   List all available skills');
   console.log('    info <skill-name>      Show skill details and preview');
@@ -70,6 +74,10 @@ export async function runCli(argv: string[], loader: SkillLoader, configPath?: s
   const { command, args } = parsed;
 
   switch (command) {
+    case 'lint':
+      process.exitCode = lintCommand(loader, args, parsed.flags);
+      break;
+
     case 'list':
       listCommand(loader);
       break;

@@ -4,8 +4,6 @@ import type {
   Brief,
   QualityScores,
   CopyOutput,
-  AntiSlopIssue,
-  AntiSlopResult,
   FrameworkSelection,
   AssembledPrompt,
   SkillMetadata,
@@ -101,26 +99,6 @@ describe('@copydoc/core type exports', () => {
     expect(output.copy.primary).toBe('Your copy here');
     expect(output.metadata.framework_used).toBe('PAS');
     expect(output.metadata.quality_scores.overall).toBe(8);
-  });
-
-  test('AntiSlopIssue type includes pattern, line, optional suggestion', () => {
-    const issue: AntiSlopIssue = {
-      pattern: 'leverage',
-      line: 3,
-      suggestion: 'use "use" instead',
-    };
-    expect(issue.pattern).toBe('leverage');
-    expect(issue.line).toBe(3);
-    expect(issue.suggestion).toBe('use "use" instead');
-  });
-
-  test('AntiSlopResult type has score and issues array', () => {
-    const result: AntiSlopResult = {
-      score: 2,
-      issues: [{ pattern: 'leverage', line: 1 }],
-    };
-    expect(result.score).toBe(2);
-    expect(result.issues).toHaveLength(1);
   });
 
   test('FrameworkSelection type has framework, path, rationale', () => {

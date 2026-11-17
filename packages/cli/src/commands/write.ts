@@ -2,7 +2,8 @@ import { createInterface } from 'readline/promises';
 import fs from 'fs';
 import path from 'path';
 import type { SkillLoader, Brief } from '@copydoc/core';
-import { createAssembler, selectFramework, createAntiSlopChecker } from '@copydoc/core';
+import { createAssembler, selectFramework, createLinter } from '@copydoc/core';
+import { printLintResult } from './lint';
 import { loadConfig } from '../config';
 import { createProvider } from '../providers/adapter';
 
@@ -76,20 +77,9 @@ export async function writeCommand(
 
   console.log('\n');
 
-  const result = createAntiSlopChecker(loader).check(fullOutput);
+  const result = createLinter(loader).lint(fullOutput, { avoid: avoids });
 
-  console.log('--- Quality Check ---');
-  console.log(`AI-tell score: ${result.score}/10 (lower is better)`);
-  if (result.issues.length === 0) {
-    console.log('No issues found.');
-  } else {
-    console.log(`Issues found: ${result.issues.length}`);
-    for (const issue of result.issues.slice(0, 5)) {
-      const suggestion = issue.suggestion ? ` -> ${issue.suggestion}` : '';
-      console.log(`  Line ${issue.line}: "${issue.pattern}"${suggestion}`);
-    }
-  }
-
+  printLintResult(result);
   // Save output
   fs.mkdirSync(outputDir, { recursive: true });
   const timestamp = Date.now();
