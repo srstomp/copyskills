@@ -1,0 +1,177 @@
+{
+  "C1": {
+    "id": "nl-16",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200511225436/https://geldfit.nl/corona/",
+    "snapshot": "20200511",
+    "text": "Heb je moeite om de rekening te betalen? Wacht niet tot je herinneringen of waarschuwingen krijgt. Kom in actie en neem contact op met je energiebedrijf.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C2": {
+    "id": "nl-11",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20210614184848/https://www.ns.nl/klantenservice/betalen/correctietarief-en-instaptarief.html",
+    "snapshot": "20210614",
+    "text": "Weten we niet van welk station naar welke plaats je reist? Bijvoorbeeld omdat je bent vergeten in of uit te checken en dit niet zelf op tijd aanpast. Dan rekenen we een correctietarief of instaptarief.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C3": {
+    "id": "nl-15",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200919131608/https://www.rijksoverheid.nl/onderwerpen/schulden/schulden-aanpakken",
+    "snapshot": "20200919",
+    "text": "Het kabinet wil meer mensen uit de schulden helpen. Het gaat vooral om mensen die in een uitzichtloze situatie zitten.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C4": {
+    "id": "nl-13",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200915074527/https://www.rijksoverheid.nl/onderwerpen/schulden/vraag-en-antwoord/hoe-tref-ik-een-betalingsregeling-met-mijn-schuldeisers",
+    "snapshot": "20200915",
+    "text": "Gaan uw schuldeisers akkoord met uw voorstel? Dan is er sprake van een zogeheten minnelijk akkoord of minnelijke schuldregeling. Voor hulp kunt u terecht bij uw gemeente.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C5": {
+    "id": "nl-05",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200118032647/https://www.hema.nl/klantenservice/bezorgen-en-afhalen",
+    "snapshot": "20200118",
+    "text": "Kies je voor het gemak van thuisbezorgen, dan betaal je je bestelling vooraf. Geef tijdens het bestellen aan op welk adres je de artikelen wilt ontvangen.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C6": {
+    "id": "nl-12",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200115134142/https://www.ns.nl/klantenservice/fietsenstallingen",
+    "snapshot": "20200115",
+    "text": "Wil je je abonnement verlengen of opzeggen, heb je problemen met toegang tot jouw stalling of is je fietskluis beschadigd? Op deze pagina vind je antwoorden op veelgestelde vragen. We helpen je graag verder!",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C7": {
+    "id": "nl-04",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20210926015312/https://www.coolblue.nl/klantenservice/bestellen/bestellen/tweedekans-producten",
+    "snapshot": "20210926",
+    "text": "Een Tweedekans-product is een product dat door een klant is teruggestuurd of omgeruild. Het product wordt door ons gecontroleerd en als het in goede staat verkeert dan geven wij het een tweede kans.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C8": {
+    "id": "own-02",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Yuzu is frisser, bloemiger en een tikje bitter in de schil. Meng het met Japanse sake en je hebt het lekkerste wat je over ijs kunt schenken.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C9": {
+    "id": "own-06",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Brouwers met naam. Japanse brouwerijen, met de brouwer bij naam op elke pagina.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C10": {
+    "id": "nl-19",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20211113164823/https://www.amsterdam.nl/werk-inkomen/hulp-bij-laag-inkomen/hulp-bij-geldproblemen/",
+    "snapshot": "20211113",
+    "text": "Lukt het niet meer om uw huur, zorgverzekering of andere rekeningen te betalen? Misschien bent u (door corona) uw baan verloren. Of u gaat scheiden.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C11": {
+    "id": "nl-10",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20210608233421/https://www.bol.com/nl/klantenservice/a/5750008515133440/bestellen",
+    "snapshot": "20210608",
+    "text": "Zolang je artikel nog niet verzonden is, kun je annuleren via de link 'Artikel annuleren' in je account. We mailen je als de annulering gelukt is en na verwerking, betalen we je terug.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C12": {
+    "id": "nl-01-s",
+    "clean_id": "nl-01",
+    "lang": "nl",
+    "category": "nl ai-tell staged contrast",
+    "injected": "niet alleen dagelijks bereikbaar via telefoon en mail, maar ook via Twitter en Facebook",
+    "text": "We lossen je klacht graag op. Dat lukt het snelst wanneer je contact op neemt met onze klantenservice. We zijn niet alleen dagelijks bereikbaar via telefoon en mail, maar ook via Twitter en Facebook.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C13": {
+    "id": "nl-03",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20210516145133/https://www.coolblue.nl/klantenservice/bestellen/bestellen/reviews",
+    "snapshot": "20210516",
+    "text": "Het is helaas niet mogelijk om zelf jouw review te wijzigen of te verwijderen. De klantenservice kan dat wel voor je doen. Neem gerust even contact op.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C14": {
+    "id": "nl-09-s",
+    "clean_id": "nl-09",
+    "lang": "nl",
+    "category": "nl ai-tell cruciaal",
+    "injected": "cruciaal",
+    "text": "Bol.com vindt jouw privacy en veiligheid cruciaal en we doen er alles aan om phishing te voorkomen. Zo sporen we nepmails en websites op voordat deze worden verzonden of online worden gezet. Dit lukt helaas niet altijd.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C15": {
+    "id": "own-03",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Zonder investeerders, en met z’n drieën. Het plan: sake toegankelijker maken in Europa.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C16": {
+    "id": "own-08",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/home.ts",
+    "snapshot": "20261112",
+    "text": "Eén deel yuzu, twee delen bruiswater. Veel ijs. Dat is het hele recept.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C17": {
+    "id": "nl-17-s",
+    "clean_id": "nl-17",
+    "lang": "nl",
+    "category": "nl ai-tell duik in",
+    "injected": "Duik dan in de test",
+    "text": "Wil je weten hoe je er financieel voor staat? Duik dan in de test op Geldfit.nl. Je antwoorden laten zien of je wel of geen hulp nodig hebt bij je geldzaken.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C18": {
+    "id": "own-04",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Alleen yuzu. Eén vrucht, en die doen we goed. Geen citroenen, geen smaak van de maand.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C19": {
+    "id": "nl-07-s",
+    "clean_id": "nl-07",
+    "lang": "nl",
+    "category": "nl calque aan het einde van de dag",
+    "injected": "Aan het einde van de dag is dat wel",
+    "text": "De bezorging is gratis als je je bestelling komt afhalen in een van onze 500 HEMA winkels. Aan het einde van de dag is dat wel zo makkelijk en gezellig.",
+    "group": "nl",
+    "kind": "seeded"
+  }
+}
