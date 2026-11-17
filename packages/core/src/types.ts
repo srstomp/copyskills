@@ -12,6 +12,12 @@ export interface Brief {
     description?: string;
     differentiator?: string;
   };
+  locale?: string;        // BCP 47, e.g. 'nl-NL'; the copy is written natively in this language
+  facts?: Array<{         // the only facts the copy may state
+    id: string;
+    claim: string;
+    source?: string;
+  }>;
   brand_voice?: {
     tone?: string;
     avoids?: string[];
@@ -21,7 +27,6 @@ export interface Brief {
     length?: string;
     format?: string;
     cta?: string;
-    language?: string;
   };
 }
 

@@ -4,6 +4,16 @@ import { routeToDomain } from './frameworks.js';
 
 const ANTI_SLOP_PATH = 'quality-frameworks/references/anti-slop.md';
 
+/** The locale pack for a BCP 47 locale, or null when the language has none. */
+function loadLocalePack(loader: SkillLoader, locale: string): string | null {
+  const language = locale.split('-')[0].toLowerCase();
+  try {
+    return loader.resolveReference(`quality-frameworks/references/locales/${language}.md`);
+  } catch {
+    return null;
+  }
+}
+
 export interface Assembler {
   assemble(brief: Brief): AssembledPrompt;
   assembleCritique(text: string, context?: Partial<Brief>): AssembledPrompt;
@@ -44,6 +54,12 @@ export function createAssembler(
 
     systemParts.push('# Quality Rules (MANDATORY)');
     systemParts.push(antiSlopContent);
+
+    const localePack = brief.locale ? loadLocalePack(loader, brief.locale) : null;
+    if (localePack) {
+      systemParts.push(`# Language Rules: ${brief.locale} (MANDATORY)`);
+      systemParts.push(localePack);
+    }
 
     if (brief.brand_voice) {
       const bv = brief.brand_voice;
@@ -88,13 +104,21 @@ export function createAssembler(
       }
     }
 
+    if (brief.locale) {
+      userParts.push(`Language: ${brief.locale}. Write natively in this language; do not translate from another language.`);
+    }
+
+    if (brief.facts && brief.facts.length > 0) {
+      const factLines = brief.facts.map((f) => `- ${f.id}: ${f.claim}`);
+      userParts.push(`Facts (state only these; a fact you need that is missing goes in a list of questions, never a guess):\n${factLines.join('\n')}`);
+    }
+
     if (brief.constraints) {
       const c = brief.constraints;
       const constraintParts: string[] = [];
       if (c.length) constraintParts.push(`Length: ${c.length}`);
       if (c.format) constraintParts.push(`Format: ${c.format}`);
       if (c.cta) constraintParts.push(`CTA: ${c.cta}`);
-      if (c.language) constraintParts.push(`Language: ${c.language}`);
       if (constraintParts.length > 0) {
         userParts.push(`Constraints: ${constraintParts.join('. ')}`);
       }

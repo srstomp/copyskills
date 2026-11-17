@@ -44,15 +44,15 @@ describe('@copydoc/core type exports', () => {
         length: '150 words max',
         format: 'plain text email',
         cta: 'single CTA, link to booking page',
-        language: 'en-US',
       },
+      locale: 'en-US',
     };
     expect(brief.type).toBe('cold outreach email');
     expect(brief.goal).toBe('Book a demo call');
     expect(brief.audience?.who).toBe('Restaurant owners');
     expect(brief.product?.name).toBe('SakeBox');
     expect(brief.brand_voice?.avoids).toContain('artisanal');
-    expect(brief.constraints?.language).toBe('en-US');
+    expect(brief.locale).toBe('en-US');
   });
 
   test('QualityScores type has all 7 required dimensions', () => {

@@ -160,14 +160,12 @@ describe('assemble() - userPrompt contains brief fields', () => {
         length: '150 words',
         format: 'plain text',
         cta: 'Book a call',
-        language: 'English',
       },
     };
     const result = assembler.assemble(brief);
     expect(result.userPrompt).toContain('150 words');
     expect(result.userPrompt).toContain('plain text');
     expect(result.userPrompt).toContain('Book a call');
-    expect(result.userPrompt).toContain('English');
   });
 });
 
@@ -304,5 +302,39 @@ describe('createAssembler()', () => {
     expect(typeof assembler.assemble).toBe('function');
     expect(typeof assembler.assembleCritique).toBe('function');
     expect(typeof assembler.assembleAdapt).toBe('function');
+  });
+});
+
+describe('assemble() - locale and facts', () => {
+  test('a Dutch locale loads the Dutch pack and asks for native writing', () => {
+    const result = makeAssembler().assemble({ type: 'product description', goal: 'help buyers choose', locale: 'nl-NL' });
+    expect(result.systemPrompt).toContain('# Language Rules: nl-NL (MANDATORY)');
+    expect(result.systemPrompt).toContain('Engelse ziekte');
+    expect(result.userPrompt).toContain('Language: nl-NL. Write natively in this language');
+  });
+
+  test('a language without a pack adds no language rules but still names the locale', () => {
+    const result = makeAssembler().assemble({ type: 'product description', goal: 'help buyers choose', locale: 'fr-FR' });
+    expect(result.systemPrompt).not.toContain('# Language Rules');
+    expect(result.userPrompt).toContain('Language: fr-FR.');
+  });
+
+  test('no locale means no language section', () => {
+    const result = makeAssembler().assemble({ type: 'cold email', goal: 'book demo' });
+    expect(result.systemPrompt).not.toContain('# Language Rules');
+    expect(result.userPrompt).not.toContain('Language:');
+  });
+
+  test('facts are listed with their ids as the only facts to state', () => {
+    const result = makeAssembler().assemble({
+      type: 'product description',
+      goal: 'help buyers choose',
+      facts: [
+        { id: 'F1', claim: 'Brewery founded in 1872', source: 'catalogue' },
+        { id: 'F2', claim: '16% ABV' },
+      ],
+    });
+    expect(result.userPrompt).toContain('Facts (state only these');
+    expect(result.userPrompt).toContain('- F1: Brewery founded in 1872\n- F2: 16% ABV');
   });
 });

@@ -83,7 +83,7 @@ describe('Brief interface', () => {
     expect(brief.brand_voice?.examples).toEqual(['Example copy that matches desired voice']);
   });
 
-  test('Brief accepts constraints with optional length, format, cta, language', () => {
+  test('Brief accepts constraints with optional length, format, cta', () => {
     const brief: Brief = {
       type: 'cold outreach email',
       goal: 'Book a call',
@@ -91,13 +91,11 @@ describe('Brief interface', () => {
         length: '150 words max',
         format: 'plain text email',
         cta: 'single CTA, link to booking page',
-        language: 'en-US',
       },
     };
     expect(brief.constraints?.length).toBe('150 words max');
     expect(brief.constraints?.format).toBe('plain text email');
     expect(brief.constraints?.cta).toBe('single CTA, link to booking page');
-    expect(brief.constraints?.language).toBe('en-US');
   });
 
   test('Brief can have all optional fields omitted', () => {
