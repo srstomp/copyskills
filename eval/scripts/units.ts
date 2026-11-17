@@ -1,17 +1,17 @@
 import { join } from 'node:path';
-import { outputs, writeText, type Run, type Task, type Unit } from './parse';
+import { outputs, placeholderPattern, writeText, type Run, type Task, type Unit } from './parse';
 
 export function splitSentences(text: string): string[] {
   // Boundaries are inspected on a same-length mask so source text stays exact.
-  const masked = text.replace(/\{[^{}]*\}/g, value => value.replace(/[\s\S]/g, 'x'))
-    .replace(/^[ \t]*\d+\. /gm, value => value.replace('.', 'x'))
+  const placeholderMask = text.replace(placeholderPattern, value => value.replace(/[\s\S]/g, 'x'));
+  const masked = placeholderMask.replace(/^[ \t]*\d+\. /gm, value => value.replace('.', 'x'))
     .replace(/^[ \t]*#{1,6}\s+.*$/gm, value => value.replace(/[.!?…]/g, 'x'))
     .replace(/(?<![\p{L}\p{N}])(?:e\.g\.|bijv\.|o\.a\.|z\.B\.|ca\.|incl\.|nr\.|St\.)/giu, value => value.replace(/\./g, 'x'));
   const boundaries = new Set<number>([0, text.length]);
   for (const match of masked.matchAll(/[.!?…]+["'”’»\)\]\}]*\s+(?=[\p{Lu}\d"'“‘«]|$)/gu)) boundaries.add(match.index! + match[0].trimEnd().length);
   for (const match of masked.matchAll(/\n[ \t]*\n+/g)) boundaries.add(match.index!);
   // A heading or list starts a block; a heading also ends at its newline.
-  for (const match of text.matchAll(/^(?:[ \t]*(?:[-*] |\d+\. )|[ \t]*#{1,6}[ \t]+).*$/gm)) {
+  for (const match of placeholderMask.matchAll(/^(?:[ \t]*(?:[-*] |\d+\. )|[ \t]*#{1,6}[ \t]+).*$/gm)) {
     boundaries.add(match.index!);
     if (/^\s*#/.test(match[0])) boundaries.add(match.index! + match[0].length);
   }

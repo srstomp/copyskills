@@ -1,3 +1,4 @@
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { calibrationGroups, type CalibrationPassage, type LabelMap, type PairMap } from './bundles';
 import { jsonLines, random, readJSON, readText, shuffle, unitKey, writeJSON, writeText, type Run, type Unit } from './parse';
@@ -47,7 +48,7 @@ export interface ReadScore {
 
 export function readScore(run: Run, readerA: string, readerB: string): ReadScore {
   const units = jsonLines(join(run.dir, 'units.jsonl')).map(line => JSON.parse(line) as Unit);
-  const maps = Object.fromEntries(run.tasks.map(t => [t.id, readJSON<LabelMap>(join(run.dir, 'read', `${t.id}.map.json`))]));
+  const maps = Object.fromEntries(run.tasks.map(t => [t.id, readJSON<LabelMap>(join(run.dir, 'keys', `${t.id}.read.map.json`))]));
   const a = validateReader(jsonLines(readerA), maps, units, readerA);
   const b = validateReader(jsonLines(readerB), maps, units, readerB);
   const flagsA = new Set(a.flags), flagsB = new Set(b.flags);
@@ -86,7 +87,7 @@ export function judgeScore(run: Run, files: string[]): JudgeScore {
     const orders = [1, 2].map(order => {
       const file = files[judge * 2 + order - 1];
       const values = new Map<string, number>();
-      const maps = Object.fromEntries(run.tasks.map(t => [t.id, readJSON<PairMap>(join(run.dir, 'judge', `${t.id}.order${order}.map.json`))]));
+      const maps = Object.fromEntries(run.tasks.map(t => [t.id, readJSON<PairMap>(join(run.dir, 'keys', `${t.id}.order${order}.map.json`))]));
       for (const [index, line] of jsonLines(file).entries()) {
         const row = JSON.parse(line);
         const pair = maps[row.task]?.[row.pair];
@@ -132,10 +133,11 @@ export function ownerSheet(run: Run, seed = 1): void {
     return `${item.item}. ${item.text.replace(/\s*\n\s*/g, ' ')}\n\nContext: ${task.channel}; ${task.audience}\n\nanswer: natural / off`;
   }).join('\n\n');
   writeText(join(run.dir, 'owner-check.md'), '# Owner check\n\n' + sheet + '\n');
-  writeJSON(join(run.dir, 'owner-check.key.json'), { items });
+  writeJSON(join(run.dir, 'keys', 'owner-check.key.json'), { items });
+  rmSync(join(run.dir, 'owner-check.key.json'), { force: true });
 }
 export function ownerScore(run: Run, file: string): { matches: number; total: number; confirmed: number; agreed: number; pass: boolean } {
-  const { items } = readJSON<{ items: OwnerItem[] }>(join(run.dir, 'owner-check.key.json'));
+  const { items } = readJSON<{ items: OwnerItem[] }>(join(run.dir, 'keys', 'owner-check.key.json'));
   const answers = new Map<number, string>();
   const blocks = readText(file).split(/^(?=\d+\. )/m).slice(1);
   for (const block of blocks) {
@@ -158,12 +160,13 @@ export function calibrationScore(root: string, readerA: string, readerB: string)
   const maps: Record<string, LabelMap> = {};
   const units: Unit[] = [];
   const passages: (CalibrationPassage & { key: string; bundleGroup: string })[] = [];
-  for (const group of calibrationGroups) {
-    const map = readJSON<Record<string, CalibrationPassage>>(join(root, 'eval/calibration/read', `${group}.map.json`));
-    maps[group] = {};
+  for (const group of calibrationGroups) for (const half of [1, 2]) {
+    const bundle = `${group}-${half}`;
+    const map = readJSON<Record<string, CalibrationPassage>>(join(root, 'eval/calibration/keys', `${bundle}.map.json`));
+    maps[bundle] = {};
     Object.entries(map).forEach(([label, p], index) => {
-      const unit = { task: group, arm: 'calibration', n: index + 1, unit: 'p', text: p.text };
-      maps[group][label] = { arm: unit.arm, n: unit.n };
+      const unit = { task: bundle, arm: 'calibration', n: index + 1, unit: 'p', text: p.text };
+      maps[bundle][label] = { arm: unit.arm, n: unit.n };
       units.push(unit);
       passages.push({ ...p, key: unitKey(unit), bundleGroup: group });
     });
@@ -181,4 +184,29 @@ export function calibrationScore(root: string, readerA: string, readerB: string)
   });
   const owner = passages.filter(p => p.group === 'nl-owner');
   return { groups, owner: { readerA: rate(owner, key => a.has(key)), readerB: rate(owner, key => b.has(key)), agreed: rate(owner, key => a.has(key) && b.has(key)) } };
+}
+
+export interface FactcheckScore {
+  outputs: { task: string; arm: string; n: number; unsupported: string[] }[];
+}
+export function factcheckScore(run: Run, file: string): FactcheckScore {
+  const maps = Object.fromEntries(run.tasks.map(t => [t.id, readJSON<LabelMap>(join(run.dir, 'keys', `${t.id}.factcheck.map.json`))]));
+  const seen = new Set<string>();
+  const result: FactcheckScore = { outputs: [] };
+  for (const [index, line] of jsonLines(file).entries()) {
+    const row = JSON.parse(line);
+    if (!row || !Object.hasOwn(maps, row.task)) throw new Error(`${file}:${index + 1}: Unknown task ${row?.task}`);
+    const map = maps[row.task];
+    if (!Object.hasOwn(map, row.label)) throw new Error(`${file}:${index + 1}: Unknown label ${row.label}`);
+    if (!Array.isArray(row.unsupported) || !row.unsupported.every((v: unknown) => typeof v === 'string' && v.trim())) throw new Error(`${file}:${index + 1}: unsupported must be an array of non-empty claims`);
+    const key = JSON.stringify([row.task, row.label]);
+    if (seen.has(key)) throw new Error(`Duplicate fact-check ${key}`);
+    seen.add(key);
+    result.outputs.push({ task: row.task, ...map[row.label], unsupported: row.unsupported });
+  }
+  for (const [task, map] of Object.entries(maps)) for (const label of Object.keys(map)) {
+    if (!seen.has(JSON.stringify([task, label]))) throw new Error(`Missing fact-check ${task} ${label}; use unsupported: [] for zero claims`);
+  }
+  writeJSON(join(run.dir, 'factcheck-score.json'), result);
+  return result;
 }

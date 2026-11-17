@@ -1,11 +1,11 @@
 import { loadRun } from './parse';
 import { writeUnits } from './units';
-import { calibrationBundles, judgeBundles, readBundles } from './bundles';
-import { calibrationScore, judgeScore, ownerScore, ownerSheet, readScore } from './score';
+import { calibrationBundles, factcheckBundles, judgeBundles, readBundles } from './bundles';
+import { calibrationScore, factcheckScore, judgeScore, ownerScore, ownerSheet, readScore } from './score';
 import { runGuards } from './guards';
 import { format, report, table } from './report';
 
-const commands = ['units', 'read-bundles', 'read-score', 'judge-bundles', 'judge-score', 'guards', 'report', 'owner-sheet', 'owner-score', 'calib-bundles', 'calib-score'];
+const commands = ['factcheck-bundles', 'factcheck-score', 'units', 'read-bundles', 'read-score', 'judge-bundles', 'judge-score', 'guards', 'report', 'owner-sheet', 'owner-score', 'calib-bundles', 'calib-score'];
 export function main(argv = process.argv.slice(2)): void {
   const args = [...argv];
   let seed = 1;
@@ -21,7 +21,7 @@ export function main(argv = process.argv.slice(2)): void {
   }
   const [command, ...params] = args;
   if (!commands.includes(command)) throw new Error(`Unknown command: ${command ?? '(missing)'}. Commands: ${commands.join(', ')}`);
-  const counts: Record<string, number> = { units: 1, 'read-bundles': 1, 'read-score': 3, 'judge-bundles': 1, guards: 1, report: 1, 'owner-sheet': 1, 'owner-score': 2, 'calib-bundles': 0, 'calib-score': 2 };
+  const counts: Record<string, number> = { 'factcheck-bundles': 1, 'factcheck-score': 2, units: 1, 'read-bundles': 1, 'read-score': 3, 'judge-bundles': 1, guards: 1, report: 1, 'owner-sheet': 1, 'owner-score': 2, 'calib-bundles': 0, 'calib-score': 2 };
   if (command === 'judge-score' ? params.length < 3 || params.length % 2 !== 1 : params.length !== counts[command]) throw new Error(`Invalid arguments for ${command}`);
   if (command === 'calib-bundles') { calibrationBundles(process.cwd(), seed); return; }
   if (command === 'calib-score') {
@@ -33,6 +33,12 @@ export function main(argv = process.argv.slice(2)): void {
   const run = loadRun(params[0]);
   switch (command) {
     case 'units': console.log(`${writeUnits(run).length} units written`); break;
+    case 'factcheck-bundles': factcheckBundles(run, seed); break;
+    case 'factcheck-score': {
+      const result = factcheckScore(run, params[1]);
+      console.log(table(['Task', 'Arm', 'Output', 'Unsupported claims'], result.outputs.map(o => [o.task, o.arm, o.n, o.unsupported.length])));
+      break;
+    }
     case 'read-bundles': readBundles(run, seed); break;
     case 'judge-bundles': judgeBundles(run, seed); break;
     case 'read-score': {

@@ -50,6 +50,10 @@ export const jsonLines = (file: string): string[] => readText(file).split('\n').
 export const wordCount = (text: string): number => text.trim() ? text.trim().split(/\s+/u).length : 0;
 export const unitKey = (u: Pick<Unit, 'task' | 'arm' | 'n' | 'unit'>): string => JSON.stringify([u.task, u.arm, u.n, u.unit]);
 
+// Match double braces first so their inner single-brace substring is never a token.
+export const placeholderPattern = /\{\{[^{}]*\}\}|(?<!\{)\{[^{}]*\}(?!\})/g;
+export const placeholderTokens = (text: string): string[] => text.match(placeholderPattern) ?? [];
+
 export function frontMatter(text: string): { metadata: Record<string, unknown>; body: string } {
   const match = text.match(/^\uFEFF?---\n([\s\S]*?)\n---(?:\n|$)([\s\S]*)$/);
   if (!match) throw new Error('Expected YAML front matter');
@@ -91,7 +95,7 @@ export function parseTask(text: string): Task {
       if (d[`min_${kind}`] !== undefined && d[`max_${kind}`] !== undefined && d[`min_${kind}`]! > d[`max_${kind}`]!) throw new Error(`Invalid ${d.name} budget`);
     }
   }
-  if (!Array.isArray(metadata.placeholders) || !metadata.placeholders.every(p => typeof p === 'string' && /^\{[^{}\n]+\}$/.test(p))) throw new Error('Invalid task placeholders');
+  if (!Array.isArray(metadata.placeholders) || !metadata.placeholders.every(p => typeof p === 'string' && /^(?:\{\{[^{}\n]+\}\}|\{[^{}\n]+\})$/.test(p))) throw new Error('Invalid task placeholders');
   const parts = sections(body, new Set(['Brief', 'Facts', 'Unknown', 'Existing copy']));
   const facts = (parts.Facts ?? '').split('\n').flatMap(line => {
     const claim = line.match(/^F\d+:\s*(.*)$/)?.[1];

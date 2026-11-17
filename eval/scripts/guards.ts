@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createBundledLoader, createLinter, type LintIssue } from '../../packages/core/src/index.ts';
-import { outputs, readText, wordCount, writeJSON, type Run, type Task } from './parse';
+import { outputs, placeholderTokens, readText, wordCount, writeJSON, type Run, type Task } from './parse';
 
 const linter = createLinter(createBundledLoader());
 const words = (text: string): string[] => text.toLowerCase().replace(/[\p{P}\p{S}]/gu, '').split(/\s+/u).filter(Boolean);
@@ -35,8 +35,9 @@ export function checkOutput(task: Task, sections: Record<string, string>, genera
     lint.push(...linter.lint(text, { locale: task.locale, kind }).issues.filter(i => i.rule !== 'number' && i.severity === 'error').map(i => ({ ...i, message: `${d.name}: ${i.message}` })));
   }
   const text = task.deliverables.map(d => sections[d.name] ?? '').join('\n\n');
-  for (const placeholder of task.placeholders) if (!text.includes(placeholder)) hard.push(`Missing placeholder ${placeholder}`);
-  for (const token of new Set(text.match(/\{[^{}]*\}/g) ?? [])) if (!task.placeholders.includes(token)) hard.push(`Unknown placeholder ${token}`);
+  const tokens = new Set(placeholderTokens(text));
+  for (const placeholder of task.placeholders) if (!tokens.has(placeholder)) hard.push(`Missing placeholder ${placeholder}`);
+  for (const token of tokens) if (!task.placeholders.includes(token)) hard.push(`Unknown placeholder ${token}`);
   hard.push(...linter.lint(text, { locale: task.locale, facts: task.facts }).issues.filter(i => i.rule === 'number' && i.severity === 'error').map(i => i.message));
   const shared = longestSharedRun(text, generatorSample);
   return { hard, lint, lintErrors: lint.length, longestSharedRun: shared, copyFlag: shared >= 6 };

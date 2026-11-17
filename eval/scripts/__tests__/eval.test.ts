@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { loadRun, parseTask, parseOutput, writeJSON } from '../parse';
 import { splitSentences, outputUnits, writeUnits } from '../units';
-import { readBundles, judgeBundles, calibrationBundles } from '../bundles';
-import { normalizeQuote, validateReader, readScore, judgeScore, ownerSheet, ownerScore, calibrationScore } from '../score';
+import { readBundles, judgeBundles, calibrationBundles, factcheckBundles } from '../bundles';
+import { normalizeQuote, validateReader, readScore, judgeScore, ownerSheet, ownerScore, calibrationScore, factcheckScore } from '../score';
 import { checkOutput, runGuards, longestSharedRun } from '../guards';
 import { interval } from '../stats';
 import { report } from '../report';
@@ -67,9 +67,10 @@ test('headings stay whole and reordered deliverables keep task-defined unit IDs'
 
 describe('blind bundles', () => {
   test('read bundles show every unit once, approved samples and no provenance', () => {
+    for (const arm of ['A', 'B']) for (const n of [1, 2]) writeFileSync(join(run.dir, `out/${arm}/demo-nl/${n}.md`), `## title\nOverzicht ${arm}${n}\n## body\nBekijk ${arm}${n}. Open de lijst. Kies een regel. Lees de uitleg. Ga naar {link}.`);
     readBundles(run, 11);
     const bundle = readFileSync(join(run.dir, 'read/demo-nl.md'), 'utf8');
-    const map = json(join(run.dir, 'read/demo-nl.map.json'));
+    const map = json(join(run.dir, 'keys/demo-nl.read.map.json'));
     expect(bundle).toContain('nl-NL');
     expect(bundle).toContain('People checking their account');
     expect(bundle).toContain('Je krijgt een helder overzicht');
@@ -80,13 +81,18 @@ describe('blind bundles', () => {
     const lines = bundle.split('\n').filter(line => /^\[X\d+ /.test(line));
     expect(lines.length).toBe(24);
     expect(new Set(lines.map(line => line.split(']')[0])).size).toBe(24);
-    for (const label of Object.keys(map)) expect(lines.filter(l => l.startsWith(`[${label} `)).map(l => l.slice(l.indexOf(']') + 2))).toEqual([
-      'Je overzicht', 'Bekijk je overzicht.', 'Open de lijst.', 'Kies een regel.', 'Lees de uitleg.', 'Ga naar {link}.',
-    ]);
+    for (const label of Object.keys(map)) {
+      const { arm, n } = map[label];
+      expect(lines.filter(l => l.startsWith(`[${label} `))).toEqual([
+        `[${label} title] Overzicht ${arm}${n}`, `[${label} body#1] Bekijk ${arm}${n}.`,
+        `[${label} body#2] Open de lijst.`, `[${label} body#3] Kies een regel.`,
+        `[${label} body#4] Lees de uitleg.`, `[${label} body#5] Ga naar {link}.`,
+      ]);
+    }
     readBundles(run, 11);
     expect(readFileSync(join(run.dir, 'read/demo-nl.md'), 'utf8')).toBe(bundle);
     readBundles(run, 12);
-    expect(json(join(run.dir, 'read/demo-nl.map.json'))).not.toEqual(map);
+    expect(json(join(run.dir, 'keys/demo-nl.read.map.json'))).not.toEqual(map);
   });
   test('sample approval and arm enablement are required unless pendingSamples is true', () => {
     writeFileSync(join(root, 'eval/samples/demo/judge.md'), 'Status: pending-owner-approval\n\nPENDING VOICE');
@@ -100,9 +106,10 @@ describe('blind bundles', () => {
     expect(readFileSync(join(run.dir, 'read/demo-nl.md'), 'utf8')).not.toContain('PENDING VOICE');
   });
   test('judge bundles pair equal indices and swap every side', () => {
+    for (const arm of ['A', 'B']) for (const n of [1, 2]) writeFileSync(join(run.dir, `out/${arm}/demo-nl/${n}.md`), `## title\nOverview ${arm}${n}\n## body\nUnique copy ${arm}${n}.`);
     judgeBundles(run, 1);
-    const one = json(join(run.dir, 'judge/demo-nl.order1.map.json'));
-    const two = json(join(run.dir, 'judge/demo-nl.order2.map.json'));
+    const one = json(join(run.dir, 'keys/demo-nl.order1.map.json'));
+    const two = json(join(run.dir, 'keys/demo-nl.order2.map.json'));
     expect(Object.keys(one)).toEqual(['P1', 'P2']);
     expect(one.P1['1']).not.toBe(one.P2['1']);
     for (const pair of ['P1', 'P2']) {
@@ -110,6 +117,9 @@ describe('blind bundles', () => {
       expect(one[pair]['2']).toBe(two[pair]['1']);
     }
     const bundle = readFileSync(join(run.dir, 'judge/demo-nl.order1.md'), 'utf8');
+    expect(bundle.split('#### body\n\n').slice(1).map(part => part.split('\n\n')[0].trim())).toEqual(['Unique copy B1.', 'Unique copy A1.', 'Unique copy A2.', 'Unique copy B2.']);
+    expect(readFileSync(join(run.dir, 'judge/demo-nl.order2.md'), 'utf8').split('#### body\n\n').slice(1).map(part => part.split('\n\n')[0].trim())).toEqual(['Unique copy A1.', 'Unique copy B1.', 'Unique copy B2.', 'Unique copy A2.']);
+    expect(one).toEqual({ P1: { '1': 'B', '2': 'A' }, P2: { '1': 'A', '2': 'B' } });
     expect(bundle).toContain('Explain the account overview');
     expect(bundle.match(/### Copy [12]/g)).toEqual(['### Copy 1', '### Copy 2', '### Copy 1', '### Copy 2']);
     expect(bundle).not.toMatch(/arm [AB]|out\//i);
@@ -132,7 +142,7 @@ describe('reader and judge scoring', () => {
   test('exactly 5% invalid is tolerated, above 5% names the reader and failures', () => {
     readBundles(run, 1);
     const units = writeUnits(run);
-    const maps = { 'demo-nl': json(join(run.dir, 'read/demo-nl.map.json')) };
+    const maps = { 'demo-nl': json(join(run.dir, 'keys/demo-nl.read.map.json')) };
     const valid = readFileSync(join(fixtures, 'readerA.jsonl'), 'utf8').trim().split('\n')[0];
     expect(validateReader([...Array(19).fill(valid), '{broken'], maps, units, 'reader B').failures).toEqual([expect.stringContaining('line 20')]);
     expect(() => validateReader([...Array(18).fill(valid), '{broken'], maps, units, 'reader B')).toThrow(/reader B.*line 19/s);
@@ -148,25 +158,32 @@ describe('reader and judge scoring', () => {
     readBundles(run, 1);
     const result = readScore(run, join(fixtures, 'readerA.jsonl'), join(fixtures, 'readerB.jsonl'));
     const task = result.tasks.find(t => t.task === 'demo-nl')!;
-    expect(task.arms.A.agreed + task.arms.B.agreed).toBe(8);
-    expect(task.arms.A.flagsA + task.arms.B.flagsA).toBe(8);
-    expect(task.arms.A.flagsB + task.arms.B.flagsB).toBe(9);
-    expect(task.arms.A.units + task.arms.B.units).toBe(24);
-    expect(task.difference).toBe(task.arms.A.shareAgreed - task.arms.B.shareAgreed);
+    expect(task.arms.A).toMatchObject({ units: 12, flagsA: 4, flagsB: 5, agreed: 4, shareAgreed: 1 / 3 });
+    expect(task.arms.B).toMatchObject({ units: 12, flagsA: 4, flagsB: 4, agreed: 4, shareAgreed: 1 / 3 });
+    expect(task.difference).toBe(0);
     expect(json(join(run.dir, 'read-score.json')).tasks).toEqual(result.tasks);
-    // One arm: an output with 1/1 defects and another with 0/5 gives 0.5, not 1/6.
-    const map = json(join(run.dir, 'read/demo-nl.map.json'));
+    // One arm: an output with 1/1 defects and another with 0/6 gives 0.5, not 1/7.
+    const map = json(join(run.dir, 'keys/demo-nl.read.map.json'));
     const label = Object.keys(map).find(k => map[k].arm === 'A' && map[k].n === 1)!;
     const path = join(run.dir, 'out/A/demo-nl/1.md');
     writeFileSync(path, '## title\nJe overzicht\n## body\n');
     writeUnits(run);
     const flags = join(root, 'one.jsonl');
     writeFileSync(flags, JSON.stringify({ task: 'demo-nl', label, unit: 'title', quote: 'Je overzicht', reason: 'Voice', fix: 'Change' }));
-    expect(readScore(run, flags, flags).tasks[0].arms.A.shareAgreed).toBe(0.5);
+    const rescored = readScore(run, flags, flags).tasks[0];
+    expect(rescored.arms.A).toEqual({ units: 7, flagsA: 1, flagsB: 1, agreed: 1, shareAgreed: 0.5, outputs: [
+      { n: 1, units: 1, flagsA: 1, flagsB: 1, agreed: 1, shareAgreed: 1 },
+      { n: 2, units: 6, flagsA: 0, flagsB: 0, agreed: 0, shareAgreed: 0 },
+    ] });
+    expect(rescored.difference).toBe(0.5);
   });
   test('order flips average to B preference 0.5 and missing judgements fail', () => {
     judgeBundles(run, 1);
     const result = judgeScore(run, [join(fixtures, 'judgeX.order1.jsonl'), join(fixtures, 'judgeX.order2.jsonl')]);
+    expect(result.tasks[0].pairs).toEqual([
+      { judge: 1, pair: 'P1', orders: [1, 0], preference: 0.5 },
+      { judge: 1, pair: 'P2', orders: [0, 1], preference: 0.5 },
+    ]);
     expect(result.tasks.map(t => [t.task, t.preference, t.score])).toEqual([['demo-nl', 0.5, 0], ['demo-en', 0.5, 0]]);
     writeFileSync(join(root, 'missing.jsonl'), '');
     expect(() => judgeScore(run, [join(root, 'missing.jsonl'), join(fixtures, 'judgeX.order2.jsonl')])).toThrow(/missing/i);
@@ -178,7 +195,7 @@ test('maps preferences to arms, pools judges equally and handles ties', () => {
   const files: string[] = [];
   for (const judge of [1, 2]) for (const order of [1, 2]) {
     const rows = run.tasks.flatMap(t => {
-      const map = json(join(run.dir, `judge/${t.id}.order${order}.map.json`));
+      const map = json(join(run.dir, `keys/${t.id}.order${order}.map.json`));
       return ['P1', 'P2'].map(pair => ({ task: t.id, pair, prefer: judge === 2 ? 'tie' : map[pair]['1'] === 'B' ? 1 : 2, reason: 'Voice fits' }));
     });
     const path = join(root, `judge${judge}.order${order}.jsonl`);
@@ -238,7 +255,7 @@ describe('owner, calibration, report and CLI', () => {
     readScore(run, join(fixtures, 'readerA.jsonl'), join(fixtures, 'readerB.jsonl'));
     ownerSheet(run, 3);
     const sheet = readFileSync(join(run.dir, 'owner-check.md'), 'utf8');
-    const key = json(join(run.dir, 'owner-check.key.json'));
+    const key = json(join(run.dir, 'keys/owner-check.key.json'));
     expect(key.items.filter((i: any) => i.expected === 'off').length).toBe(8);
     expect(key.items.filter((i: any) => i.expected === 'natural').length).toBe(7);
     expect(key.items.every((i: any) => i.task === 'demo-nl')).toBe(true);
@@ -259,39 +276,51 @@ describe('owner, calibration, report and CLI', () => {
   test('calibration groups nl-owner with nl and reports clean false alarms and seeded recall', () => {
     mkdirSync(join(root, 'eval/calibration'), { recursive: true });
     const rows = [{ id: 'nl1', group: 'nl', text: 'Een heldere zin.' }, { id: 'owner', group: 'nl-owner', text: 'Goede eigen tekst.' }, { id: 'en1', group: 'en', text: 'Clear writing.' }, { id: 'dev1', group: 'en-dev', text: 'Check your API key.' }];
-    for (const kind of ['clean', 'seeded']) writeFileSync(join(root, `eval/calibration/${kind}.jsonl`), rows.map(row => JSON.stringify({ ...row, text: kind === 'seeded' ? `Bad ${row.text}` : row.text })).join('\n'));
+    for (const kind of ['clean', 'seeded']) writeFileSync(join(root, `eval/calibration/${kind}.jsonl`), rows.map(row => JSON.stringify({ ...row, ...(kind === 'seeded' ? { id: `${row.id}-s`, clean_id: row.id, text: `Bad ${row.text}` } : {}) })).join('\n'));
     calibrationBundles(root, 2);
     const flags: any[] = [];
-    for (const group of ['nl', 'en', 'en-dev']) {
-      const map = json(join(root, `eval/calibration/read/${group}.map.json`));
-      const bundle = readFileSync(join(root, `eval/calibration/read/${group}.md`), 'utf8');
+    const locations = new Map<string, string>();
+    for (const group of ['nl', 'en', 'en-dev']) for (const half of [1, 2]) {
+      const bundleId = `${group}-${half}`;
+      const map = json(join(root, `eval/calibration/keys/${bundleId}.map.json`));
+      const bundle = readFileSync(join(root, `eval/calibration/read/${bundleId}.md`), 'utf8');
+      expect(bundle).toBe(Object.entries(map).map(([label, item]: any) => `[${label} p] ${item.text}`).join('\n\n') + '\n');
+      for (const item of Object.values(map) as any[]) locations.set(`${item.kind}:${item.id}`, bundleId);
       expect(bundle).not.toMatch(/clean|seeded|nl-owner/);
-      for (const [label, item] of Object.entries(map) as [string, any][]) if (item.kind === 'seeded') flags.push({ task: group, label, unit: 'p', quote: item.text, reason: 'Defect', fix: 'Clean' });
+      for (const [label, item] of Object.entries(map) as [string, any][]) if (item.kind === 'seeded') flags.push({ task: bundleId, label, unit: 'p', quote: item.text, reason: 'Defect', fix: 'Clean' });
     }
+    expect(locations.size).toBe(8);
+    for (const row of rows) expect(locations.get(`clean:${row.id}`)).not.toBe(locations.get(`seeded:${row.id}-s`));
     const path = join(root, 'calib.jsonl');
     writeFileSync(path, flags.map(row => JSON.stringify(row)).join('\n'));
     const result = calibrationScore(root, path, path);
     expect(result.groups.map(g => [g.group, g.agreed.falseAlarm, g.agreed.recall, g.pass])).toEqual([['nl', 0, 1, true], ['en', 0, 1, true], ['en-dev', 0, 1, true]]);
     expect(result.owner.agreed).toBe(0.5);
-    const initial = readFileSync(join(root, 'eval/calibration/read/nl.md'), 'utf8');
+    const initial = readFileSync(join(root, 'eval/calibration/read/nl-1.md'), 'utf8');
     calibrationBundles(root, 2);
-    expect(readFileSync(join(root, 'eval/calibration/read/nl.md'), 'utf8')).toBe(initial);
+    expect(readFileSync(join(root, 'eval/calibration/read/nl-1.md'), 'utf8')).toBe(initial);
     writeFileSync(path, '');
     expect(calibrationScore(root, path, path).groups.map(g => [g.agreed.falseAlarm, g.agreed.recall, g.pass])).toEqual([[0, 0, false], [0, 0, false], [0, 0, false]]);
   });
+  function factEvidence() {
+    factcheckBundles(run);
+    const rows = run.tasks.flatMap(t => Object.keys(json(join(run.dir, `keys/${t.id}.factcheck.map.json`))).map(label => ({ task: t.id, label, unsupported: [] })));
+    const path = join(root, 'factcheck.jsonl');
+    writeFileSync(path, rows.map(row => JSON.stringify(row)).join('\n'));
+    return factcheckScore(run, path);
+  }
   test('report writes estimates, guard and budget details, and cannot keep fewer than 10 tasks', () => {
     readBundles(run, 1); judgeBundles(run, 1);
     readScore(run, join(fixtures, 'readerA.jsonl'), join(fixtures, 'readerB.jsonl'));
     judgeScore(run, [join(fixtures, 'judgeX.order1.jsonl'), join(fixtures, 'judgeX.order2.jsonl')]);
     runGuards(run);
+    factEvidence();
     const text = report(run);
-    expect(text).toContain('inconclusive');
-    expect(text).toContain('directional');
-    expect(text).toContain('Preference');
-    expect(text).toContain('Defects');
-    expect(text).toContain('Noisy guards');
+    expect(text).toContain('Outcome: **inconclusive**; directional only: 2 usable dev tasks');
+    expect(text).toContain('mean 0.0000, sd 0.0000, n tasks 2, one-sided 90% lower 0.0000, upper 0.0000');
+    expect(text).toContain('| demo-nl | 0.0000 | 0.0000 |');
+    expect(text).toContain('| demo-en | 0.0000 | 0.0000 |');
     expect(text).toContain('| demo-nl | A | 1 | 0 |');
-    expect(text).toContain('body');
     expect(text).toContain('| demo-nl | dev | body | 90 words | 0.1667 | 0.1667 |'); // 15 tokens / 90
     expect(readFileSync(join(run.dir, 'results.md'), 'utf8')).toBe(text);
   });
@@ -307,6 +336,7 @@ describe('owner, calibration, report and CLI', () => {
     const guards = runGuards(run);
     guards.outputs.forEach(o => { o.lintErrors = o.arm === 'B' ? Math.max(lintDifference, 0) : Math.max(-lintDifference, 0); });
     writeJSON(join(run.dir, 'guards.json'), guards);
+    factEvidence();
     return guards;
   }
   test('keeps positive preference with 10 dev tasks and rejects significant worsening', () => {
@@ -318,8 +348,36 @@ describe('owner, calibration, report and CLI', () => {
     expect(report(run)).toContain('Outcome: **revert**; agreed defects are worse');
     evidence(0.2, 0.1, 1);
     expect(report(run)).toContain('Outcome: **revert**; lint errors are worse');
+    evidence();
+    const fact = json(join(run.dir, 'factcheck-score.json'));
+    fact.outputs.forEach((o: any) => { o.unsupported = o.arm === 'B' ? ['Unsupported promise'] : []; });
+    writeJSON(join(run.dir, 'factcheck-score.json'), fact);
+    expect(report(run)).toContain('Outcome: **revert**; unsupported claims are worse beyond their interval');
+    expect(report(run)).toContain('| dev-0 | 0.0000 | 1.0000 | 1.0000 |');
     evidence(0, 0, 0);
     expect(report(run)).toContain('Outcome: **inconclusive**');
+  });
+  test('fact-check means and intervals use task differences and allow noise crossing zero', () => {
+    evidence();
+    const fact = json(join(run.dir, 'factcheck-score.json'));
+    fact.outputs.forEach((o: any) => {
+      const difference = Number(o.task.slice(4)) < 5 ? 0 : 2;
+      const count = (o.n === 1 ? 0 : 2) + (o.arm === 'B' ? difference : 0);
+      o.unsupported = Array(count).fill('Unsupported delivery promise');
+    });
+    writeJSON(join(run.dir, 'factcheck-score.json'), fact);
+    const text = report(run);
+    expect(text).toContain('| dev-0 | 1.0000 | 1.0000 | 0.0000 |');
+    expect(text).toContain('| dev-5 | 1.0000 | 3.0000 | 2.0000 |');
+    expect(text).toContain('B minus A: mean 1.0000, sd 1.0541, n tasks 10, one-sided 90% lower 0.5390, upper 1.4610');
+    expect(text).toContain('Outcome: **revert**; unsupported claims are worse');
+    fact.outputs.forEach((o: any) => {
+      const count = o.arm === 'A' ? 2 : Number(o.task.slice(4)) < 5 ? 0 : 4;
+      o.unsupported = Array(count).fill('Unsupported delivery promise');
+    });
+    writeJSON(join(run.dir, 'factcheck-score.json'), fact);
+    expect(report(run)).toContain('Outcome: **keep**');
+    expect(report(run)).toContain('B minus A: mean 0.0000, sd 2.1082, n tasks 10, one-sided 90% lower -0.9220, upper 0.9220');
   });
   test('dev candidate hard failures revert; holdout/report evidence cannot change outcome', () => {
     const guards = evidence();
@@ -333,15 +391,26 @@ describe('owner, calibration, report and CLI', () => {
     const noisyGuards = json(join(run.dir, 'guards.json'));
     noisyGuards.outputs.filter((o: any) => ['dev-0', 'dev-1'].includes(o.task) && o.arm === 'B').forEach((o: any) => { o.hard = ['Budget exceeded']; o.lintErrors = 999; });
     writeJSON(join(run.dir, 'guards.json'), noisyGuards);
+    const fact = json(join(run.dir, 'factcheck-score.json'));
+    fact.outputs.filter((o: any) => ['dev-0', 'dev-1'].includes(o.task) && o.arm === 'B').forEach((o: any) => { o.unsupported = ['Invented holdout claim']; });
+    writeJSON(join(run.dir, 'factcheck-score.json'), fact);
     const text = report(run);
     expect(text).toContain('Outcome: **inconclusive**; directional only: 8 usable dev tasks');
     expect(text).toContain('n tasks 8');
-    expect(text).toContain('| dev-0 | holdout | 0.2000 | 0.1000 | 999.0000 | 1: Budget exceeded; 2: Budget exceeded |');
-    expect(text).toContain('| dev-1 | report | 0.2000 | 0.1000 | 999.0000 | 1: Budget exceeded; 2: Budget exceeded |');
+    expect(text).toContain('| dev-0 | holdout | 0.2000 | 0.1000 | 999.0000 | 1.0000 | 1: Budget exceeded; 2: Budget exceeded |');
+    expect(text).toContain('| dev-1 | report | 0.2000 | 0.1000 | 999.0000 | 1.0000 | 1: Budget exceeded; 2: Budget exceeded |');
   });
   test('report tolerates absent scores but cannot keep missing evidence', () => {
     expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
     expect(report(run)).toContain('mean n/a, sd n/a, n tasks 0');
+    evidence();
+    rmSync(join(run.dir, 'factcheck-score.json'));
+    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
+    evidence();
+    const fact = json(join(run.dir, 'factcheck-score.json'));
+    fact.outputs.pop();
+    writeJSON(join(run.dir, 'factcheck-score.json'), fact);
+    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
     evidence();
     rmSync(join(run.dir, 'read-score.json'));
     expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
@@ -366,14 +435,17 @@ describe('owner, calibration, report and CLI', () => {
       return result.stdout.toString();
     };
     cli('read-bundles', 'demo');
-    expect(cli('read-score', 'demo', join(fixtures, 'readerA.jsonl'), join(fixtures, 'readerB.jsonl'))).toContain('| demo-nl | A | 12 |');
+    factEvidence();
+    cli('factcheck-bundles', 'demo');
+    expect(cli('factcheck-score', 'demo', join(root, 'factcheck.jsonl'))).toContain('| demo-nl | A | 1 | 0 |');
+    expect(cli('read-score', 'demo', join(fixtures, 'readerA.jsonl'), join(fixtures, 'readerB.jsonl'))).toContain('| demo-nl | A | 12 | 4 | 5 | 4 | 0.3333 | 0.0000 |');
     cli('judge-bundles', 'demo');
     expect(cli('judge-score', 'demo', join(fixtures, 'judgeX.order1.jsonl'), join(fixtures, 'judgeX.order2.jsonl'))).toContain('| demo-nl | 0.5000 | 0.0000 |');
     expect(cli('guards', 'demo')).toContain('| demo-nl | A | none | 0 |');
     expect(cli('report', 'demo')).toContain('Outcome: **inconclusive**; directional only: 2 usable dev tasks');
     cli('owner-sheet', 'demo');
     const sheet = readFileSync(join(run.dir, 'owner-check.md'), 'utf8');
-    const key = json(join(run.dir, 'owner-check.key.json'));
+    const key = json(join(run.dir, 'keys/owner-check.key.json'));
     let index = 0;
     writeFileSync(join(root, 'filled.md'), sheet.replace(/answer: natural \/ off/g, () => `answer: ${key.items[index++].expected}`));
     expect(cli('owner-score', 'demo', join(root, 'filled.md'))).toBe('Matches: 15/15; confirmed agreed flags: 8/8; pass\n');
@@ -381,5 +453,5 @@ describe('owner, calibration, report and CLI', () => {
     expect(invalid.exitCode).toBe(1);
     expect(invalid.stderr.toString()).toContain('filled.md:');
     expect(invalid.stderr.toString()).toContain('invalid flags (>5%)');
-  });
+  }, 20_000);
 });

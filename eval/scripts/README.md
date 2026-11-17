@@ -8,6 +8,8 @@ bun eval/scripts/eval.ts read-bundles <run> --seed 1
 bun eval/scripts/eval.ts read-score <run> readerA.jsonl readerB.jsonl
 bun eval/scripts/eval.ts judge-bundles <run> --seed 1
 bun eval/scripts/eval.ts judge-score <run> judgeX.order1.jsonl judgeX.order2.jsonl
+bun eval/scripts/eval.ts factcheck-bundles <run> --seed 1
+bun eval/scripts/eval.ts factcheck-score <run> factcheck.jsonl
 bun eval/scripts/eval.ts guards <run>
 bun eval/scripts/eval.ts report <run>
 bun eval/scripts/eval.ts owner-sheet <run> --seed 1
@@ -19,7 +21,8 @@ bun run test:eval
 
 `<run>` is an ID under `eval/runs/` or a path containing `/`. Supply each
 judge's order1 and order2 files consecutively. Generate bundles before scoring;
-read scoring uses their maps and `units.jsonl`. Regenerate and reread bundles
+read scoring uses maps in `<run>/keys/` and `units.jsonl`. Give readers only
+the bundle Markdown files; keep `keys/` and score files out of their context. Regenerate and reread bundles
 after changing outputs or seed. Owner sheets use the saved read-score snapshot;
 the caller must supply an A/A run since run.json has no A/A marker.
 
@@ -27,11 +30,20 @@ Choices where SPEC.md leaves the representation or edge case open:
 
 - Sample status is YAML front matter `status: approved` or a plain
   `Status: approved` line. Metadata is omitted from blind bundles. Pending samples
-  require `pendingSamples: true`; at least one arm must enable samples.
+  require `pendingSamples: true`; at least one arm must enable samples and the
+  task must have `samples` other than `none`.
 - Calibration rows are `{ "id", "group", "text" }`; group is `nl`, `nl-owner`,
   `en`, or `en-dev`. IDs are unique within each source file. Reader `task` is the
-  bundle group (`nl`, `en`, `en-dev`), label is `C<n>`, and unit is `p`.
+  bundle ID (`nl-1`, `nl-2`, `en-1`, `en-2`, `en-dev-1`, `en-dev-2`),
+  label is `C<n>`, and unit is `p`. Concatenate each reader's flags for all six
+  bundles into one JSONL file. Scores aggregate per language group. Twins use
+  `clean_id` (or matching `id`) and always go in opposite bundles. Calibration
+  maps are in `eval/calibration/keys/`.
   The nl-owner flagged share includes both clean and seeded passages.
+- Fact-check lines are `{ "task", "label", "unsupported": ["claim", ...] }`,
+  one per output including `unsupported: []` for zero claims. Missing, duplicate
+  or unknown labels are errors. Counts are averaged per task and arm; a positive
+  lower bound for B minus A triggers revert. Missing dev evidence prevents keep.
 - Seeded shuffling uses Mulberry32 and Fisher-Yates. Judge order1 alternates
   sides, with its starting side determined by the seed. Order2 swaps all sides.
 - Quote prefixes use 30 Unicode code points after normalization. Invalid reader
@@ -47,6 +59,6 @@ Choices where SPEC.md leaves the representation or edge case open:
   character denominators are labelled. Missing or zero budgets produce `n/a`.
   Only dev tasks contribute to decisions; holdout/report results remain separate.
 
-The report applies the measures represented by the three specified score files:
-preference, agreed defects, hard guards and lint. SPEC.md provides no input format
-for the protocol's separate unsupported-claim pass or calibration override.
+The report includes preference, agreed defects, hard guards, lint and the separate
+unsupported-claim pass. The protocol's calibration override still requires a
+session-level decision; no owner blind-pick input is specified here.

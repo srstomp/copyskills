@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { outputs, readJSON, wordCount, writeText, type Run } from './parse';
 import { interval, type Interval } from './stats';
-import type { ReadScore, JudgeScore } from './score';
+import type { ReadScore, JudgeScore, FactcheckScore } from './score';
 import type { Guards } from './guards';
 
 export const format = (value: number | null): string => value === null ? 'n/a' : value.toFixed(4);
@@ -17,6 +17,7 @@ export function report(run: Run): string {
   const read = optional<ReadScore>('read-score.json');
   const judge = optional<JudgeScore>('judge-score.json');
   const guards = optional<Guards>('guards.json');
+  const factcheck = optional<FactcheckScore>('factcheck-score.json');
   const dev = run.tasks.filter(t => t.set === 'dev');
   const devIds = new Set(dev.map(t => t.id));
   const preference = interval(judge?.tasks.filter(t => devIds.has(t.task)).map(t => t.score) ?? []);
@@ -31,6 +32,17 @@ export function report(run: Run): string {
     return [{ task: task.id, set: task.set, A: meanA, B: meanB, difference: meanB - meanA }];
   });
   const noisyInterval = interval(noisy.filter(t => devIds.has(t.task)).map(t => t.difference));
+  const facts = run.tasks.flatMap(task => {
+    const counts = run.config.arms.map(arm => {
+      const items = factcheck?.outputs.filter(o => o.task === task.id && o.arm === arm) ?? [];
+      if (items.length !== run.config.n || new Set(items.map(o => o.n)).size !== run.config.n || items.some(o => !Number.isInteger(o.n) || o.n < 1 || o.n > run.config.n || !Array.isArray(o.unsupported))) return null;
+      return items.reduce((sum, o) => sum + o.unsupported.length, 0) / items.length;
+    });
+    if (counts.some(c => c === null)) return [];
+    const [A, B] = counts as number[];
+    return [{ task: task.id, set: task.set, A, B, difference: B - A }];
+  });
+  const factInterval = interval(facts.filter(t => devIds.has(t.task)).map(t => t.difference));
   const failingB = guardOutputs.filter(o => o.arm === 'B' && o.hard.length);
   let outcome = 'inconclusive', reason = 'preference interval does not establish improvement';
   if (failingB.length) {
@@ -41,9 +53,11 @@ export function report(run: Run): string {
     outcome = 'revert'; reason = 'agreed defects are worse beyond their interval';
   } else if (noisyInterval.lower !== null && noisyInterval.lower > 0) {
     outcome = 'revert'; reason = 'lint errors are worse beyond their interval';
+  } else if (factInterval.lower !== null && factInterval.lower > 0) {
+    outcome = 'revert'; reason = 'unsupported claims are worse beyond their interval';
   } else {
-    const usable = dev.filter(t => judge?.tasks.some(s => s.task === t.id) && read?.tasks.some(s => s.task === t.id) && noisy.some(s => s.task === t.id)).length;
-    if (!read || !judge || !guards || preference.n !== dev.length || defects.n !== dev.length || noisyInterval.n !== dev.length) {
+    const usable = dev.filter(t => judge?.tasks.some(s => s.task === t.id) && read?.tasks.some(s => s.task === t.id) && noisy.some(s => s.task === t.id) && facts.some(s => s.task === t.id)).length;
+    if (!read || !judge || !guards || !factcheck || preference.n !== dev.length || defects.n !== dev.length || noisyInterval.n !== dev.length || factInterval.n !== dev.length) {
       reason = 'missing scoring or guard evidence; cannot establish all checks';
     } else if (usable < 10) {
       reason = `directional only: ${usable} usable dev tasks; at least 10 required to keep`;
@@ -62,9 +76,12 @@ export function report(run: Run): string {
   text += `\n## Noisy guards\n\nLint errors per output, averaged within each task. B minus A: ${describe(noisyInterval)}.\n\n`;
   text += table(['Dev task', 'A errors/output', 'B errors/output', 'B minus A'], noisy.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
   text += table(['Dev task', 'Arm', 'Output', 'Lint errors'], guardOutputs.map(o => [o.task, o.arm, o.n, o.lintErrors])) + '\n\n';
+  text += `Unsupported claims per output, averaged within each task. B minus A: ${describe(factInterval)}.\n\n`;
+  text += table(['Task', 'A claims/output', 'B claims/output', 'B minus A'], facts.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
+  text += table(['Task', 'Arm', 'Output', 'Unsupported claims'], factcheck?.outputs.filter(o => devIds.has(o.task)).map(o => [o.task, o.arm, o.n, o.unsupported.length]) ?? []) + '\n\n';
   text += '## Holdout and report tasks\n\nExcluded from the dev estimates and outcome.\n\n';
-  text += table(['Task', 'Set', 'Preference', 'Defects A minus B', 'Lint B minus A', 'B hard failures'], run.tasks.filter(t => t.set !== 'dev').map(task => [
-    task.id, task.set, format(judge?.tasks.find(t => t.task === task.id)?.score ?? null), format(read?.tasks.find(t => t.task === task.id)?.difference ?? null), format(noisy.find(t => t.task === task.id)?.difference ?? null),
+  text += table(['Task', 'Set', 'Preference', 'Defects A minus B', 'Lint B minus A', 'Claims B minus A', 'B hard failures'], run.tasks.filter(t => t.set !== 'dev').map(task => [
+    task.id, task.set, format(judge?.tasks.find(t => t.task === task.id)?.score ?? null), format(read?.tasks.find(t => t.task === task.id)?.difference ?? null), format(noisy.find(t => t.task === task.id)?.difference ?? null), format(facts.find(t => t.task === task.id)?.difference ?? null),
     guards ? guards.outputs.filter(o => o.task === task.id && o.arm === 'B' && o.hard.length).map(o => `${o.n}: ${o.hard.join('; ')}`).join('; ') || '0' : 'n/a',
   ])) + '\n\n';
   text += '## Words / budget\n\nMean of words divided by max_words (or min_words if no maximum). Character-only budgets are labelled chars; these ratios are descriptive, not a word-budget check.\n\n';

@@ -1,15 +1,15 @@
-import { existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { frontMatter, jsonLines, outputs, random, readText, shuffle, writeJSON, writeText, type Run, type Task } from './parse';
 import { writeUnits } from './units';
 
 export interface LabelMap { [label: string]: { arm: string; n: number } }
 export interface PairMap { [pair: string]: { '1': string; '2': string } }
-export interface CalibrationPassage { id: string; group: 'nl' | 'nl-owner' | 'en' | 'en-dev'; text: string; kind: 'clean' | 'seeded' }
+export interface CalibrationPassage { id: string; group: 'nl' | 'nl-owner' | 'en' | 'en-dev'; text: string; clean_id?: string; kind: 'clean' | 'seeded' }
 export const calibrationGroups = ['nl', 'en', 'en-dev'] as const;
 
 function samples(run: Run, task: Task): string {
-  if (!Object.values(run.config.samples).some(Boolean)) return '';
+  if (task.samples === 'none' || !Object.values(run.config.samples).some(Boolean)) return '';
   const file = join(run.root, 'eval/samples', task.project, 'judge.md');
   if (!existsSync(file)) return '';
   let body = readText(file);
@@ -41,7 +41,8 @@ export function readBundles(run: Run, seed = 1): void {
       text += `\n## ${label}\n\n` + units.filter(u => u.task === task.id && u.arm === item.arm && u.n === item.n).map(u => `[${label} ${u.unit}] ${u.text.replace(/\s*\n\s*/g, ' ')}`).join('\n') + '\n';
     });
     writeText(join(run.dir, 'read', `${task.id}.md`), text);
-    writeJSON(join(run.dir, 'read', `${task.id}.map.json`), map);
+    writeJSON(join(run.dir, 'keys', `${task.id}.read.map.json`), map);
+    rmSync(join(run.dir, 'read', `${task.id}.map.json`), { force: true });
   }
 }
 
@@ -65,7 +66,8 @@ export function judgeBundles(run: Run, seed = 1): void {
         });
       }
       writeText(join(run.dir, 'judge', `${task.id}.order${order}.md`), text);
-      writeJSON(join(run.dir, 'judge', `${task.id}.order${order}.map.json`), map);
+      writeJSON(join(run.dir, 'keys', `${task.id}.order${order}.map.json`), map);
+      rmSync(join(run.dir, 'judge', `${task.id}.order${order}.map.json`), { force: true });
     }
   }
 }
@@ -84,15 +86,49 @@ export function calibrationBundles(root = process.cwd(), seed = 1): void {
     }
   }
   const next = random(seed);
+  const clean = new Map(passages.filter(p => p.kind === 'clean').map(p => [p.id, p]));
+  for (const p of passages.filter(p => p.kind === 'seeded')) {
+    const twin = clean.get(p.clean_id ?? p.id);
+    if (!twin || twin.group !== p.group) throw new Error(`Missing clean twin for ${p.id}`);
+  }
   for (const group of calibrationGroups) {
-    const items = shuffle(passages.filter(p => (p.group === 'nl-owner' ? 'nl' : p.group) === group), next);
-    const map: Record<string, CalibrationPassage> = {};
-    const text = items.map((p, i) => {
-      const label = `C${i + 1}`;
-      map[label] = p;
-      return `[${label} p] ${p.text.replace(/\s*\n\s*/g, ' ')}`;
-    }).join('\n\n') + '\n';
-    writeText(join(root, 'eval/calibration/read', `${group}.md`), text);
-    writeJSON(join(root, 'eval/calibration/read', `${group}.map.json`), map);
+    const items = passages.filter(p => (p.group === 'nl-owner' ? 'nl' : p.group) === group);
+    const halves: CalibrationPassage[][] = [[], []];
+    const locations = new Map<string, number>();
+    shuffle(items.filter(p => p.kind === 'clean'), next).forEach((p, i) => {
+      locations.set(p.id, i % 2);
+      halves[i % 2].push(p);
+    });
+    for (const p of items.filter(p => p.kind === 'seeded')) halves[1 - locations.get(p.clean_id ?? p.id)!].push(p);
+    halves.forEach((half, i) => {
+      const map: Record<string, CalibrationPassage> = {};
+      const text = shuffle(half, next).map((p, index) => {
+        const label = `C${index + 1}`;
+        map[label] = p;
+        return `[${label} p] ${p.text.replace(/\s*\n\s*/g, ' ')}`;
+      }).join('\n\n') + '\n';
+      const bundle = `${group}-${i + 1}`;
+      writeText(join(root, 'eval/calibration/read', `${bundle}.md`), text);
+      writeJSON(join(root, 'eval/calibration/keys', `${bundle}.map.json`), map);
+    });
+    // Old combined bundles expose twins together; old maps expose the answers.
+    rmSync(join(root, 'eval/calibration/read', `${group}.md`), { force: true });
+    rmSync(join(root, 'eval/calibration/read', `${group}.map.json`), { force: true });
+  }
+}
+
+export function factcheckBundles(run: Run, seed = 1): void {
+  const all = outputs(run);
+  const next = random(seed);
+  for (const task of run.tasks) {
+    const map: LabelMap = {};
+    let text = `Locale: ${task.locale}\nAudience: ${task.audience}\nRegister: ${task.register}\n\n## Brief\n\n${task.brief}\n\n## Facts\n\n${task.facts}\n\n## Unknown\n\n${task.unknown}\n`;
+    shuffle(all.filter(o => o.task === task.id), next).forEach((output, i) => {
+      const label = `F${i + 1}`;
+      map[label] = { arm: output.arm, n: output.n };
+      text += `\n## ${label}\n\n` + task.deliverables.map(d => `### ${d.name}\n\n${output.sections[d.name] ?? ''}`).join('\n\n') + '\n';
+    });
+    writeText(join(run.dir, 'factcheck', `${task.id}.md`), text);
+    writeJSON(join(run.dir, 'keys', `${task.id}.factcheck.map.json`), map);
   }
 }
