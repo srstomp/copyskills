@@ -9,7 +9,7 @@ Generates email copy from a brief using the correct persuasion framework, domain
 
 ## Overview
 
-This skill covers every major email copy format: cold outreach, welcome sequences, onboarding sequences, nurture sequences, re-engagement sequences, newsletters, transactional emails, and subject lines. Each format has a mapped persuasion framework and a domain reference file. The workflow is identical to the marketing-copy skill: identify sub-type, load the right framework, draft against patterns, de-slop, check, return.
+This skill covers every major email copy format: cold outreach, welcome sequences, onboarding sequences, nurture sequences, re-engagement sequences, newsletters, transactional emails, and subject lines. Each format has a domain reference file and, except transactional email, a mapped persuasion framework. The workflow is identical to the marketing-copy skill: identify sub-type, load the right framework, draft against patterns, de-slop, check, return.
 
 Email copy has constraints that other copy types do not: subject line character budgets, preview text, mobile-first line length, and sequence arc logic (each email must work standalone AND advance the series). These constraints are non-negotiable and checked before output is returned.
 
@@ -26,7 +26,7 @@ Identify the sub-type from the brief's `type` field before selecting a framework
 | `nurture-sequence` | Nurture/drip sequence | PAS | `references/sequences.md` |
 | `re-engagement` | Re-engagement sequence | PAS or BAB | `references/sequences.md` |
 | `newsletter` | Newsletter (curated, original, or hybrid) | AIDA per section | `references/newsletters.md` |
-| `transactional` | Transactional email (receipts, confirmations, alerts) | AIDA (lean) | `references/newsletters.md` |
+| `transactional` | Transactional email (order, shipping, receipts, password resets, sign-in codes, alerts) | None: no persuasion arc | `references/transactional.md` |
 | `subject-line` | Subject line only | 4Us + headline formulas | `references/subject-lines.md` |
 
 When the brief type is ambiguous, ask for clarification before proceeding.
@@ -39,7 +39,7 @@ Load these files from the shared framework skills (`persuasion-frameworks`, `qua
 |-----------|-----------|---------|
 | PAS (Problem-Agitate-Solution) | `../persuasion-frameworks/references/pas.md` | Cold outreach, nurture sequences, re-engagement |
 | BAB (Before-After-Bridge) | `../persuasion-frameworks/references/bab.md` | Welcome sequences, onboarding sequences |
-| AIDA | `../persuasion-frameworks/references/aida.md` | Newsletters (per section), transactional |
+| AIDA | `../persuasion-frameworks/references/aida.md` | Newsletters (per section) |
 | 4Us quality check | `../quality-frameworks/references/four-us.md` | Subject lines, newsletter headlines |
 | Headline patterns | `../headline-formulas/references/proven-patterns.md` | Subject lines |
 | Anti-slop | `../quality-frameworks/references/anti-slop.md` | De-slop pass (Step 5, mandatory) |
@@ -67,7 +67,8 @@ Using the Framework Mapping table, load the single most relevant framework file.
 
 - Cold outreach and nurture: load `../persuasion-frameworks/references/pas.md`
 - Welcome and onboarding: load `../persuasion-frameworks/references/bab.md`
-- Newsletter sections and transactional: load `../persuasion-frameworks/references/aida.md`
+- Newsletter sections: load `../persuasion-frameworks/references/aida.md`
+- Transactional: no framework; skip to Step 3
 - Subject lines: load `../quality-frameworks/references/four-us.md` AND `../headline-formulas/references/proven-patterns.md`
 
 Read the framework. Note its steps, examples, and common mistakes before drafting.
@@ -79,7 +80,8 @@ Load the domain-specific reference file for this email type:
 - Sequences (welcome, onboarding, nurture, re-engagement): `references/sequences.md`
 - Cold outreach and cold follow-up: `references/cold-outreach.md`
 - Subject lines: `references/subject-lines.md`
-- Newsletters and transactional: `references/newsletters.md`
+- Newsletters: `references/newsletters.md`
+- Transactional: `references/transactional.md`
 
 For sequences: check the cadence guidelines in `references/sequences.md` before drafting. Sending day 1 content on day 3 timing breaks the arc.
 
