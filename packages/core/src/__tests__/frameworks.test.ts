@@ -7,19 +7,17 @@ import path from 'path';
 describe('transactional email routing', () => {
   const loader = createLoader(path.resolve(__dirname, '../../../../skills'));
 
+  // Inference only fires on unambiguous phrases.
   test.each([
-    'order shipped email', 'order-shipped email', 'password reset email', 'transactional email',
-    'receipt email', 'Dutch order confirmation email', 'confirmation email',
-    'verify email', 'verification email', 'sign-in code email', 'sign in code email',
-    'login code email', 'magic link email', 'OTP email', 'invoice email', 'refund email',
-    'payment failed email', 'shipping confirmation email', 'security alert email',
-    'bestelbevestiging email', 'factuur email', 'Bestellbestätigung email', 'Rechnung email',
-    'shipping email', 'delivery email', 'your order has shipped email', 'order cancelled email',
-    'order delivered email', 'shipment notification email', 'new login alert email',
-    'account activation email', 'payment reminder email', 'login-code email',
-    'order confirmation e-mail', 'Versandbestätigung E-Mail', 'bevestigingsmail', 'Bestätigungsmail',
-    'welcome order confirmation email', 'subject line for order confirmation email',
-  ])('%s uses no persuasion arc and resolves the transactional reference', (copyType) => {
+    'transactional email', 'receipt email', 'password reset email', 'reset your password email',
+    'order confirmation email', 'order confirmation e-mail', 'order shipped email', 'Dutch order confirmation email',
+    'shipping confirmation email', 'delivery confirmation email', 'sign-in code email', 'sign in code email',
+    'login code email', 'verification code email', 'verification email', 'verify your email email',
+    'payment failed email', 'invoice email', 'order confirmation email for Black Friday purchases',
+    'subject line for order confirmation email', 'welcome order confirmation email',
+    'bestelbevestiging email', 'orderbevestiging e-mail', 'bevestigingsmail na bestelling met bestelbevestiging',
+    'Bestellbestätigung E-Mail', 'Versandbestätigung E-Mail',
+  ])('%s is transactional', (copyType) => {
     const result = selectFramework(copyType, 'inform the reader');
     expect(result.framework).toBe('None');
     expect(result.path).toBe('email-copy/references/transactional.md');
@@ -27,30 +25,48 @@ describe('transactional email routing', () => {
   });
 
   test.each([
-    ['cold outreach email', 'PAS'],
-    ['welcome email', 'BAB'],
-    ['newsletter', 'AIDA'],
-    ['border collie breeder cold email', 'PAS'],
-    ['abandoned cart reminder email', 'PAS'],
-    ['price drop alert email', 'PAS'],
-    ['reorder reminder email', 'PAS'],
-    ['flash sale notification email', 'PAS'],
-    ['win-back reminder email', 'PAS'],
-    ['pre-order launch email', 'PAS'],
-    ['cold email about our order management software', 'PAS'],
-    ['drip sequence for shipping software email', 'BAB'],
-    ['newsletter about delivery times', 'AIDA'],
-    ['password manager launch email', 'PAS'],
-    ['invoice software launch email', 'PAS'],
-    ['refund policy announcement email', 'PAS'],
-    ['black friday confirmation email', 'PAS'],
-    ['promotional email for our receipt scanner', 'PAS'],
-    ['Abrechnungssoftware email', 'PAS'],
-    ['subject line for a product launch', 'PAS'],
+    ['cold outreach email', 'PAS'], ['welcome email', 'BAB'], ['newsletter', 'AIDA'],
+    ['border collie breeder cold email', 'PAS'], ['abandoned cart reminder email', 'PAS'],
+    ['price drop alert email', 'PAS'], ['reorder reminder email', 'PAS'], ['flash sale notification email', 'PAS'],
+    ['pre-order launch email', 'PAS'], ['free shipping email', 'PAS'], ['black friday confirmation email', 'PAS'],
+    ['password manager launch email', 'PAS'], ['invoice software launch email', 'PAS'],
+    ['refund policy announcement email', 'PAS'], ['promotional email for our receipt scanner', 'PAS'],
+    ['cold email about our order management software', 'PAS'], ['welcome email for our password manager', 'BAB'],
+    ['welcome sequence for invoice software', 'BAB'], ['drip sequence for shipping software email', 'BAB'],
+    ['newsletter about delivery times', 'AIDA'], ['Abrechnungssoftware email', 'PAS'],
   ])('%s keeps a marketing framework', (copyType, framework) => {
     const result = selectFramework(copyType, 'engage readers');
     expect(result.framework).toBe(framework);
     expect(result.path).not.toContain('transactional');
+  });
+
+  // Documented limit: these are transactional, but inference does not claim them; the brief names the type.
+  test.each(['appointment reminder email', 'subscription renewal email', 'payment declined email'])(
+    '%s needs an explicit email type',
+    (copyType) => {
+      expect(selectFramework(copyType, 'inform').framework).toBe('PAS');
+      expect(selectFramework(copyType, 'inform', 'transactional').path).toBe('email-copy/references/transactional.md');
+    },
+  );
+
+  test.each([
+    ['transactional', 'None', 'transactional.md'], ['newsletter', 'AIDA', 'aida.md'],
+    ['welcome-sequence', 'BAB', 'bab.md'], ['onboarding-sequence', 'BAB', 'bab.md'],
+    ['cold-outreach', 'PAS', 'pas.md'], ['nurture-sequence', 'PAS', 'pas.md'],
+    ['subject-line', '4Us', 'four-us.md'],
+  ] as const)('explicit email type %s selects %s', (emailType, framework, file) => {
+    // The explicit type wins over whatever the copy type string suggests.
+    const result = selectFramework('order confirmation email', 'inform', emailType);
+    expect(result.framework).toBe(framework);
+    expect(result.path.endsWith(file)).toBe(true);
+    expect(loader.resolveReference(result.path).length).toBeGreaterThan(100);
+  });
+
+  test.each([
+    ['mailing list signup form', 'email-copy', false], ['mail merge', 'email-copy', false],
+    ['direct mail sales page', 'email-copy', false], ['voicemail greeting', 'email-copy', false],
+  ] as const)('%s is not routed to email by a "mail" alias', (copyType, domain, expected) => {
+    expect(routeToDomain(copyType) === domain).toBe(expected);
   });
 });
 

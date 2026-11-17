@@ -1,6 +1,6 @@
 import type { Brief, AssembledPrompt } from './types.js';
 import type { SkillLoader } from './loader.js';
-import { routeToDomain } from './frameworks.js';
+import { routeToDomain, type EmailType } from './frameworks.js';
 import { languageOf } from './locale.js';
 
 const ANTI_SLOP_PATH = 'quality-frameworks/references/anti-slop.md';
@@ -24,7 +24,7 @@ export interface Assembler {
 
 export function createAssembler(
   loader: SkillLoader,
-  frameworkSelector: (copyType: string, goal: string) => { framework: string; path: string; rationale: string },
+  frameworkSelector: (copyType: string, goal: string, emailType?: EmailType) => { framework: string; path: string; rationale: string },
 ): Assembler {
   /** Adds the locale pack, when the language has one, to a system prompt. */
   function pushLocalePack(systemParts: string[], locale: string | undefined): void {
@@ -37,13 +37,13 @@ export function createAssembler(
 
   function assemble(brief: Brief): AssembledPrompt {
     // 1. Route brief.type to domain skill
-    const domain = routeToDomain(brief.type);
+    const domain = brief.email_type !== undefined ? 'email-copy' : routeToDomain(brief.type);
 
     // 2. Load domain skill (SKILL.md body)
     const domainSkill = loader.getSkill(domain);
 
     // 3. Select framework
-    const framework = frameworkSelector(brief.type, brief.goal);
+    const framework = frameworkSelector(brief.type, brief.goal, brief.email_type);
 
     // 4. Load framework reference
     const frameworkContent = loader.resolveReference(framework.path);

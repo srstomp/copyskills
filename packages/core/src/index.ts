@@ -41,7 +41,8 @@ export function createBundledLoader() {
   return createLoader(resolveSkillsDir());
 }
 
-export { selectFramework, routeToDomain } from './frameworks.js';
+export { selectFramework, routeToDomain, EMAIL_TYPES } from './frameworks.js';
+export type { EmailType } from './frameworks.js';
 
 export { createLinter } from './lint.js';
 export { languageOf } from './locale.js';

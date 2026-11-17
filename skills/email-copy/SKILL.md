@@ -15,7 +15,7 @@ Email copy has constraints that other copy types do not: subject line character 
 
 ## Email Type Identification
 
-Identify the sub-type from the brief's `type` field before selecting a framework.
+Identify the sub-type before selecting a framework. If the brief has `email_type`, use it as given; otherwise infer it from the `type` field. Reminders, renewals and declined-payment emails are transactional even when the type does not say so.
 
 | Brief type | Sub-type | Framework | Domain reference |
 |------------|----------|-----------|-----------------|

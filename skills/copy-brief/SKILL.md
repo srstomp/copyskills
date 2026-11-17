@@ -64,7 +64,7 @@ constraints:
 
 **Recommended fields** (proceed with a quality flag if missing): `locale`, `product.name`, `audience.pain`, `brand_voice`
 
-**Optional fields** (sensible defaults apply): `seo`, `deliverables`, `constraints`
+**Optional fields** (sensible defaults apply): `seo`, `deliverables`, `constraints`, `email_type` (for email: `transactional`, `newsletter`, `cold-outreach`, `welcome-sequence` and the other types in email-copy; set it whenever the type is not obvious from `type`)
 
 ## Fact sheet
 

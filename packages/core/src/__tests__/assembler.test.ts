@@ -388,3 +388,12 @@ describe('framework header', () => {
     expect(result.systemPrompt).not.toContain('# Persuasion Framework: None');
   });
 });
+
+describe('explicit email type', () => {
+  test('email_type routes a type without the word email to the email skill and its framework', () => {
+    const result = makeAssembler().assemble({ type: 'appointment reminder', goal: 'inform', email_type: 'transactional' });
+    expect(result.systemPrompt).toContain('# Email Copy');
+    expect(result.systemPrompt).toContain('# Transactional Email');
+    expect(result.systemPrompt).not.toContain('# Persuasion Framework');
+  });
+});

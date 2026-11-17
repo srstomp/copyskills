@@ -92,7 +92,7 @@ describe('copydoc lint', () => {
       expect(result.code).toBe(2);
       expect(result.stderr).toMatch(/lint:/);
     }
-  });
+  }, 20000); // spawns the CLI ten times
 });
 
 describe('lint review regressions', () => {

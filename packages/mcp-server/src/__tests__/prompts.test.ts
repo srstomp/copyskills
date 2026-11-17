@@ -545,3 +545,13 @@ describe('fact parsing performance', () => {
     expect(performance.now() - started).toBeLessThan(2000);
   });
 });
+
+describe('email_type', () => {
+  test('write passes an explicit email type and rejects unknown ones', async () => {
+    const server = makeServer();
+    registerPrompts(server, createLoader(SKILLS_DIR));
+    const text = (await getPrompt(server, 'write', { type: 'appointment reminder email', goal: 'inform', email_type: 'transactional' })).messages[0].content.text;
+    expect(text).toContain('# Transactional Email');
+    await expect(getPrompt(server, 'write', { type: 'x email', goal: 'y', email_type: 'promo' })).rejects.toThrow();
+  });
+});

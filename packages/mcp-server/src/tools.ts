@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SkillLoader } from '@copydoc/core';
-import { selectFramework, createLinter } from '@copydoc/core';
+import { selectFramework, createLinter, EMAIL_TYPES } from '@copydoc/core';
 import { z } from 'zod';
 
 /** Register framework selection and locale-aware copy linting tools. */
@@ -12,9 +12,10 @@ export function registerTools(server: McpServer, loader: SkillLoader): void {
     {
       copy_type: z.string().describe("The type of copy to write, e.g. 'cold outreach email'"),
       goal: z.string().describe("The conversion goal, e.g. 'book a demo'"),
+      email_type: z.enum(EMAIL_TYPES).optional().describe('Explicit email type, e.g. transactional; overrides inference from copy_type'),
     },
-    ({ copy_type, goal }) => {
-      const result = selectFramework(copy_type, goal);
+    ({ copy_type, goal, email_type }) => {
+      const result = selectFramework(copy_type, goal, email_type);
       return {
         content: [
           {

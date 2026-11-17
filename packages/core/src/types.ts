@@ -1,3 +1,5 @@
+import type { EmailType } from './frameworks.js';
+
 /** Brief - the input contract for copy generation */
 export interface Brief {
   type: string;           // e.g., 'cold outreach email', 'landing page hero'
@@ -12,6 +14,7 @@ export interface Brief {
     description?: string;
     differentiator?: string;
   };
+  email_type?: EmailType; // explicit email type; overrides inference from `type`
   locale?: string;        // BCP 47, e.g. 'nl-NL'; the copy is written natively in this language
   facts?: Array<{         // the only facts the copy may state
     id: string;

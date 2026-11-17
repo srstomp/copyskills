@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { SkillLoader, Brief } from '@copydoc/core';
-import { selectFramework, createAssembler, languageOf } from '@copydoc/core';
+import { selectFramework, createAssembler, languageOf, EMAIL_TYPES } from '@copydoc/core';
 import { z } from 'zod';
 
 /**
@@ -25,15 +25,20 @@ export function registerPrompts(server: McpServer, loader: SkillLoader): void {
       product: z.string().optional().describe("Product name and description, e.g. 'SakeBox - direct from 40+ breweries'"),
       brand_voice: z.string().optional().describe("Brand voice descriptor, e.g. 'knowledgeable, casual'"),
       constraints: z.string().optional().describe("Copy constraints, e.g. '150 words max, plain text'"),
+      email_type: z.enum(EMAIL_TYPES).optional().describe('Explicit email type, e.g. transactional; overrides inference from type'),
       locale: z.string().max(200).optional().describe("BCP 47 locale, e.g. 'nl-NL'"),
       facts: z.string().max(200000).optional().describe('One fact per line, optionally prefixed with an id like F3: and ending with (source: ...)'),
       voice_examples: z.string().max(200000).optional().describe('Approved copy samples separated by a line containing only ---'),
     },
-    ({ type, goal, audience, product, brand_voice, constraints, locale, facts, voice_examples }) => {
+    ({ type, goal, audience, product, brand_voice, constraints, email_type, locale, facts, voice_examples }) => {
       const brief: Brief = {
         type,
         goal,
       };
+
+      if (email_type) {
+        brief.email_type = email_type;
+      }
 
       if (audience) {
         brief.audience = { who: audience };
