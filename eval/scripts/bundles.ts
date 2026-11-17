@@ -75,7 +75,9 @@ export function calibrationBundles(root = process.cwd(), seed = 1): void {
   for (const kind of ['clean', 'seeded'] as const) {
     const ids = new Set<string>();
     for (const line of jsonLines(join(root, `eval/calibration/${kind}.jsonl`))) {
-      const passage = JSON.parse(line) as CalibrationPassage;
+      const raw = JSON.parse(line) as CalibrationPassage & { lang?: CalibrationPassage['group'] };
+      // The calibration files name the group `lang`; accept either.
+      const passage = { ...raw, group: raw.group ?? raw.lang } as CalibrationPassage;
       if (typeof passage.id !== 'string' || ids.has(passage.id) || !['nl', 'nl-owner', 'en', 'en-dev'].includes(passage.group) || typeof passage.text !== 'string' || !passage.text.trim()) throw new Error(`Invalid ${kind} calibration passage`);
       ids.add(passage.id);
       passages.push({ ...passage, kind });
