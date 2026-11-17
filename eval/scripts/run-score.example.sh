@@ -1,7 +1,8 @@
 #!/bin/bash
 # After generation: units, guards, bundles, then all scoring jobs detached. Rerun to resume.
 set -u
-ROOT=/Users/steve/Projects/copyskills; R=$ROOT/eval/runs/2026-11-18-aa2; S=$R/scores
+ROOT=/Users/steve/Projects/copyskills; R=${1:-$ROOT/eval/runs/2026-11-18-aa2}; S=$R/scores
+# Opus scorers may read only the bundles and write only the scores folder (dontAsk denies the rest).
 mkdir -p $S $R/prompts/score /tmp/eval-gen-cwd
 cd $ROOT
 [ -s $R/units.jsonl ] || bun eval/scripts/eval.ts units $R
@@ -28,7 +29,7 @@ while read -r job; do
   [ -s "$S/$job.jsonl" ] && grep -q "exit: 0" "$S/$job.log" 2>/dev/null && continue
   while [ "$(jobs -rp | wc -l)" -ge 8 ]; do sleep 3; done
   case $job in
-    *-opus-*) ( cd /tmp/eval-gen-cwd && claude -p --model claude-opus-5-5 --permission-mode bypassPermissions "$(cat $R/prompts/score/$job.md)" > $S/$job.log 2>&1 < /dev/null; echo "exit: $?" >> $S/$job.log ) & ;;
+    *-opus-*) ( cd /tmp/eval-gen-cwd && claude -p --model claude-opus-5-5 --permission-mode dontAsk --allowedTools "Read(/$R/read/**)" "Read(/$R/judge/**)" "Read(/$R/factcheck/**)" "Edit(/$S/**)" -- "$(cat $R/prompts/score/$job.md)" > $S/$job.log 2>&1 < /dev/null; echo "exit: $?" >> $S/$job.log ) & ;;
     *) ( codex exec -s workspace-write --skip-git-repo-check -m gpt-6.1-sol -C $ROOT "$(cat $R/prompts/score/$job.md)" > $S/$job.log 2>&1 < /dev/null; echo "exit: $?" >> $S/$job.log ) & ;;
   esac
 done < $R/prompts/score-queue.txt
