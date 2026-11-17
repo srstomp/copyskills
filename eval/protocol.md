@@ -32,6 +32,7 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
 - n = 4 generations per task per arm. Generations are paired by task and index (A1 with B1, and so on) for pairwise judging.
 - 15 dev tasks × 4 × 2 arms = 120 outputs per experiment.
 - Generators see the suite and the task file only, never another arm's output.
+- **One task per generator run.** A/A run 1 (2026-11-17) batched five tasks per run; one run's luck then moved five task scores together, the t-interval over tasks was far too narrow, and an A/A run read as a significant preference for A (mean -0.11, upper bound -0.05). Each run now writes exactly one task, A and B runs for the same task and index are queued next to each other, and generation runs headless (`claude -p`) from a detached script (`eval/runs/<run>/run-gen.sh`).
 
 ## 4. Measures (two co-primary)
 **Primary 1: blind pairwise preference.**
