@@ -222,10 +222,11 @@ describe('guards and statistics', () => {
     expect(bad.hard.join('\n')).toContain('Number 99');
     expect(checkOutput(task, {}, '').hard.join('\n')).toMatch(/title.*missing|missing.*title/i);
     const empty = checkOutput(task, { title: '  ', body: ' ' }, '');
-    expect(empty.hard.join('\n')).toMatch(/empty/i);
+    expect(empty.hard).toEqual(['title: empty deliverable', 'body: empty deliverable', 'Missing placeholder {link}']);
     expect(empty.budget).toEqual([]); // an empty section is structural, not also a missed minimum
-    expect(checkOutput(task, { title: '😀'.repeat(41), body: 'word '.repeat(91) + '{link}' }, '').budget.join('\n')).toMatch(/title: max_chars/);
-    expect(checkOutput(task, { title: 'Okay', body: 'word '.repeat(91) + '{link}' }, '').budget.join('\n')).toMatch(/body: max_words/);
+    const long = checkOutput(task, { title: '😀'.repeat(41), body: 'word '.repeat(91) + '{link}' }, '');
+    expect(long.budget).toEqual(['title: max_chars 40, got 41', 'body: max_words 90, got 92']);
+    expect(long.hard).toEqual([]); // a missed limit is never also structural
     expect(checkOutput(task, { title: 'Okay', body: 'Archive 99 items in your overview via {link}.' }, '').hard.join('\n')).toContain('Number 99');
   });
   test('number errors stay out of noisy errors and copy check finds contiguous words', () => {
@@ -460,7 +461,11 @@ describe('owner, calibration, report and CLI', () => {
     const old = evidence();
     old.outputs.forEach((o: any) => { delete o.budget; });
     writeJSON(join(run.dir, 'guards.json'), old);
-    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
+    expect(() => report(run)).toThrow('rerun `guards`');
+    // ...even when an old-format file would otherwise revert on a missed limit kept in `hard`.
+    old.outputs.find((o: any) => o.arm === 'B')!.hard = ['body: max_words 90, got 95'];
+    writeJSON(join(run.dir, 'guards.json'), old);
+    expect(() => report(run)).toThrow('rerun `guards`');
     evidence();
     run.tasks[0].set = 'holdout';
     run.tasks[1].set = 'report';

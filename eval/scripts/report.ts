@@ -22,6 +22,8 @@ export function report(run: Run): string {
   const devIds = new Set(dev.map(t => t.id));
   const preference = interval(judge?.tasks.filter(t => devIds.has(t.task)).map(t => t.score) ?? []);
   const defects = interval(read?.tasks.filter(t => devIds.has(t.task)).map(t => t.difference) ?? []);
+  // Older guards.json files kept missed limits in `hard`; deciding on them would count a missed limit as structural.
+  if (guards?.outputs.some(o => !Array.isArray(o.budget))) throw new Error('guards.json has no limit data (older format); rerun `guards` for this run');
   const guardOutputs = guards?.outputs.filter(o => devIds.has(o.task)) ?? [];
   const noisy = run.tasks.flatMap(task => {
     const a = guards?.outputs.filter(o => o.task === task.id && o.arm === 'A') ?? [];
@@ -38,7 +40,7 @@ export function report(run: Run): string {
   const budgets = run.tasks.flatMap(task => {
     const shares = run.config.arms.map(arm => {
       const items = guards?.outputs.filter(o => o.task === task.id && o.arm === arm) ?? [];
-      if (items.length !== run.config.n || new Set(items.map(o => o.n)).size !== run.config.n || items.some(o => !Array.isArray(o.budget))) return null;
+      if (items.length !== run.config.n || new Set(items.map(o => o.n)).size !== run.config.n) return null;
       return items.filter(o => o.budget.length).length / items.length;
     });
     if (shares.some(v => v === null)) return [];
@@ -101,7 +103,7 @@ export function report(run: Run): string {
   for (const o of failingB) text += `- ${o.task} B${o.n}: ${o.hard.join('; ')}\n`;
   text += `\n## Limits\n\nShare of outputs that miss a character or word limit, per task. B minus A: ${describe(budgetInterval)}.\n\n`;
   text += table(['Dev task', 'A share', 'B share', 'B minus A'], budgets.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
-  for (const o of guardOutputs.filter(o => o.budget?.length)) text += `- ${o.task} ${o.arm}${o.n}: ${o.budget.join('; ')}\n`;
+  for (const o of guardOutputs.filter(o => o.budget.length)) text += `- ${o.task} ${o.arm}${o.n}: ${o.budget.join('; ')}\n`;
   text += `\n## Noisy guards\n\nLint errors per output, averaged within each task. B minus A: ${describe(noisyInterval)}.\n\n`;
   text += table(['Dev task', 'A errors/output', 'B errors/output', 'B minus A'], noisy.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
   text += table(['Dev task', 'Arm', 'Output', 'Lint errors'], guardOutputs.map(o => [o.task, o.arm, o.n, o.lintErrors])) + '\n\n';
@@ -111,7 +113,7 @@ export function report(run: Run): string {
   text += '## Holdout and report tasks\n\nExcluded from the dev estimates and outcome.\n\n';
   text += table(['Task', 'Set', 'Preference', 'Defects A minus B', 'Lint B minus A', 'Claims B minus A', 'B structural and limit failures'], run.tasks.filter(t => t.set !== 'dev').map(task => [
     task.id, task.set, format(judge?.tasks.find(t => t.task === task.id)?.score ?? null), format(read?.tasks.find(t => t.task === task.id)?.difference ?? null), format(noisy.find(t => t.task === task.id)?.difference ?? null), format(facts.find(t => t.task === task.id)?.difference ?? null),
-    guards ? guards.outputs.filter(o => o.task === task.id && o.arm === 'B' && (o.hard.length || o.budget?.length)).map(o => `${o.n}: ${[...o.hard, ...(o.budget ?? [])].join('; ')}`).join('; ') || '0' : 'n/a',
+    guards ? guards.outputs.filter(o => o.task === task.id && o.arm === 'B' && (o.hard.length || o.budget.length)).map(o => `${o.n}: ${[...o.hard, ...o.budget].join('; ')}`).join('; ') || '0' : 'n/a',
   ])) + '\n\n';
   text += '## Words / budget\n\nMean of words divided by max_words (or min_words if no maximum). Character-only budgets are labelled chars; these ratios are descriptive, not a word-budget check.\n\n';
   const all = outputs(run);
