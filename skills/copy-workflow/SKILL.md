@@ -83,6 +83,7 @@ Check the de-slopped draft. Each check passes or fails; do not score.
 
 1. **Facts.** Every factual claim maps to a fact id in the brief's fact sheet. No contested point is stated. Every locale states the same facts.
 2. **Brief.** Every deliverable is present and within its budget; the goal, audience, CTA and any SEO finding in the brief are addressed.
+   **Count, do not estimate.** A limit missed by one word or one character fails this check. With a shell, count each deliverable mechanically (`wc -w` for words, `wc -m` for characters); where a platform counts its own way (X counts every URL as 23 characters), apply the platform's rule. Without one, count paragraph by paragraph (for a title, subject or other short string: character by character), add the counts up, and stay at least 10% inside every limit, because a count done by reading is off by a few percent: for 400 to 600 words, land between 440 and 540; for a 140-word maximum, stop at 126; for a 60-character maximum, stop at 54. If the draft sits outside that margin, cut or extend it from the fact sheet before you return it; never pad with filler.
 3. **Tells.** A careful native reader of each language could not point at a sentence and say a model wrote it.
 4. **Domain checks.** Any pass/fail checks the domain skill lists (character limits for ads, the 4Us for headlines).
 

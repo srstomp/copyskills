@@ -1,0 +1,197 @@
+{
+  "C1": {
+    "id": "nl-07",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200118032647/https://www.hema.nl/klantenservice/bezorgen-en-afhalen",
+    "snapshot": "20200118",
+    "text": "De bezorging is gratis als je je bestelling komt afhalen in een van onze 500 HEMA winkels. Wel zo makkelijk en gezellig.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C2": {
+    "id": "own-09",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/home.ts",
+    "snapshot": "20261112",
+    "text": "Als eerste nieuwe flessen, en 10% korting op je eerste bestelling. Eén mail per maand. Nieuwe flessen, recepten, af en toe een meme.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C3": {
+    "id": "nl-15-s",
+    "clean_id": "nl-15",
+    "lang": "nl",
+    "category": "nl calque in een notendop",
+    "injected": "In een notendop: het gaat vooral om",
+    "text": "Het kabinet wil meer mensen uit de schulden helpen. In een notendop: het gaat vooral om mensen die in een uitzichtloze situatie zitten.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C4": {
+    "id": "nl-05-s",
+    "clean_id": "nl-05",
+    "lang": "nl",
+    "category": "nl ai-tell naadloos",
+    "injected": "naadloze",
+    "text": "Kies je voor het naadloze gemak van thuisbezorgen, dan betaal je je bestelling vooraf. Geef tijdens het bestellen aan op welk adres je de artikelen wilt ontvangen.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C5": {
+    "id": "nl-14",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200928092520/https://www.rijksoverheid.nl/onderwerpen/schulden/vraag-en-antwoord/hoe-kom-ik-van-mijn-schulden-af",
+    "snapshot": "20200928",
+    "text": "Voor gratis advies en hulp bij het oplossen van uw schulden gaat u naar uw gemeente. Elke gemeente heeft hiervoor een eigen regeling. U kunt ook naar het Juridisch Loket of het maatschappelijk werk.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C6": {
+    "id": "own-01",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Het begon met één fles op een borrel en een vriend die volhield dat het “eigenlijk gewoon een citroen” was.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C7": {
+    "id": "nl-09",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20201206164011/https://www.bol.com/nl/klantenservice/a/5692744588591104/nepmails",
+    "snapshot": "20201206",
+    "text": "Bol.com vindt jouw privacy en veiligheid erg belangrijk en we doen er alles aan om phishing te voorkomen. Zo sporen we nepmails en websites op voordat deze worden verzonden of online worden gezet. Dit lukt helaas niet altijd.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C8": {
+    "id": "nl-19-s",
+    "clean_id": "nl-19",
+    "lang": "nl",
+    "category": "nl register slip je/u",
+    "injected": "je huur",
+    "text": "Lukt het niet meer om je huur, zorgverzekering of andere rekeningen te betalen? Misschien bent u (door corona) uw baan verloren. Of u gaat scheiden.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C9": {
+    "id": "nl-06",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20210318054047/https://www.hema.nl/klantenservice/gebak",
+    "snapshot": "20210318",
+    "text": "Belangrijke momenten vieren is natuurlijk veel leuker met gebak. Wees er op tijd bij: gebak bestellen kan minimaal 2 en maximaal 14 dagen vooraf op hema.nl. Zo heb je de zekerheid van dagvers gebak.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C10": {
+    "id": "nl-02",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200920171942/https://www.coolblue.nl/klantenservice/bestellen/bestellen/klachten",
+    "snapshot": "20200920",
+    "text": "Klanttevredenheid is een heuse obsessie voor ons. Maar soms slaan zelfs wij de plank volkomen mis. En daar ben jij dan de dupe van.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C11": {
+    "id": "own-07",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Jouw beurt. Kies een fles, of laat drie smaakvragen er een voor je kiezen.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C12": {
+    "id": "own-05",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Eerst geproefd. Elke fles in de winkel is er een die we zelf voor vrienden zouden inschenken.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C13": {
+    "id": "nl-20",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200101202002/https://www.zalando.nl/faq/",
+    "snapshot": "20200101",
+    "text": "Op zoek naar een antwoord? Onze zelfhulpsectie is de snelste manier om hulp te krijgen. Hier kun je bestellingen volgen en annuleren, of een retourzending aangeven.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C14": {
+    "id": "nl-13-s",
+    "clean_id": "nl-13",
+    "lang": "nl",
+    "category": "nl register slip je/u",
+    "injected": "kun je",
+    "text": "Gaan uw schuldeisers akkoord met uw voorstel? Dan is er sprake van een zogeheten minnelijk akkoord of minnelijke schuldregeling. Voor hulp kun je terecht bij uw gemeente.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C15": {
+    "id": "nl-01",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200920171942/https://www.coolblue.nl/klantenservice/bestellen/bestellen/klachten",
+    "snapshot": "20200920",
+    "text": "We lossen je klacht graag op. Dat lukt het snelst wanneer je contact op neemt met onze klantenservice. We zijn dagelijks bereikbaar via telefoon, mail, Twitter en Facebook.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C16": {
+    "id": "nl-11-s",
+    "clean_id": "nl-11",
+    "lang": "nl",
+    "category": "nl register slip je/u",
+    "injected": "u reist",
+    "text": "Weten we niet van welk station naar welke plaats u reist? Bijvoorbeeld omdat je bent vergeten in of uit te checken en dit niet zelf op tijd aanpast. Dan rekenen we een correctietarief of instaptarief.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C17": {
+    "id": "nl-18",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20220210060734/https://www.amsterdam.nl/werk-inkomen/hulp-bij-laag-inkomen/hulp-bij-geldproblemen/gratis-hulp-bij-dringende-geldproblemen/",
+    "snapshot": "20220210",
+    "text": "U hebt geldproblemen door de coronacrisis. Of u hebt al langer schulden. U kunt uw huur, zorgverzekering of andere rekeningen niet meer betalen.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C18": {
+    "id": "nl-08",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20210308204513/https://www.bol.com/nl/klantenservice/a/5694955355897856/retouren-laten-ophalen",
+    "snapshot": "20210308",
+    "text": "Als je Select hebt, komen we alle artikelen die door bol.com geleverd worden gratis bij je ophalen. Voor artikelen van partners is dit helaas nog niet mogelijk. Meld het artikel retour in je account en je ziet vanzelf of je kunt kiezen voor een 'ophaalafspraak'.",
+    "group": "nl",
+    "kind": "clean"
+  },
+  "C19": {
+    "id": "own-10",
+    "lang": "nl-owner",
+    "source_url": "/Users/steve/Projects/sakebase/platform/apps/yuzusake/src/content/nl/about.ts",
+    "snapshot": "20261112",
+    "text": "Kreeg de titel in Londen, in oktober 2023. Bouwt de internetkant, vanuit Amsterdam. Van callcentermedewerker tot head of sales. De verkoper is ook de CFO.",
+    "group": "nl-owner",
+    "kind": "clean"
+  },
+  "C20": {
+    "id": "nl-03-s",
+    "clean_id": "nl-03",
+    "lang": "nl",
+    "category": "nl register slip u/je",
+    "injected": "voor u doen",
+    "text": "Het is helaas niet mogelijk om zelf jouw review te wijzigen of te verwijderen. De klantenservice kan dat wel voor u doen. Neem gerust even contact op.",
+    "group": "nl",
+    "kind": "seeded"
+  },
+  "C21": {
+    "id": "nl-17",
+    "lang": "nl",
+    "source_url": "https://web.archive.org/web/20200511225436/https://geldfit.nl/corona/",
+    "snapshot": "20200511",
+    "text": "Wil je weten hoe je er financieel voor staat? Doe dan de test op Geldfit.nl. Je antwoorden laten zien of je wel of geen hulp nodig hebt bij je geldzaken.",
+    "group": "nl",
+    "kind": "clean"
+  }
+}

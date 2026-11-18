@@ -1,0 +1,67 @@
+{
+  "C1": {
+    "id": "en-01-s",
+    "clean_id": "en-01",
+    "lang": "en",
+    "category": "en ai-tell not just X but Y",
+    "injected": "not just difficult to understand, but difficult to act on",
+    "text": "Government has a tendency to publish content that is more focused on what it wants to say than what the user needs to know. This makes content not just difficult to understand, but difficult to act on.",
+    "group": "en",
+    "kind": "seeded"
+  },
+  "C2": {
+    "id": "en-09",
+    "lang": "en",
+    "source_url": "https://web.archive.org/web/20210610095715/https://styleguide.mailchimp.com/voice-and-tone/",
+    "snapshot": "20210610",
+    "text": "We are plainspoken. We understand the world our customers are living in: one muddled by hyperbolic language, upsells, and over-promises. We strip all that away and value clarity above all.",
+    "group": "en",
+    "kind": "clean"
+  },
+  "C3": {
+    "id": "en-02",
+    "lang": "en",
+    "source_url": "https://web.archive.org/web/20210513195114/https://www.gov.uk/guidance/content-design/writing-for-gov-uk",
+    "snapshot": "20210513",
+    "text": "Do not publish everything you can online. Publish only what someone needs to know so they can complete their task. Nothing more.",
+    "group": "en",
+    "kind": "clean"
+  },
+  "C4": {
+    "id": "en-03",
+    "lang": "en",
+    "source_url": "https://web.archive.org/web/20210513195114/https://www.gov.uk/guidance/content-design/writing-for-gov-uk",
+    "snapshot": "20210513",
+    "text": "A website only works if people can find what they need quickly, complete their task and leave without having to think about it too much.",
+    "group": "en",
+    "kind": "clean"
+  },
+  "C5": {
+    "id": "en-05-s",
+    "clean_id": "en-05",
+    "lang": "en",
+    "category": "en ai-tell fast-paced world",
+    "injected": "In today's fast-paced world, there",
+    "text": "In today's fast-paced world, there are many weird and wonderful superstitions about money across the world. But have you ever thought about why you throw money in a fountain or put a 5p in your Christmas pud?",
+    "group": "en",
+    "kind": "seeded"
+  },
+  "C6": {
+    "id": "en-07",
+    "lang": "en",
+    "source_url": "https://web.archive.org/web/20210212103104/https://monzo.com/blog/2021/01/03/origins-of-money-superstitions/",
+    "snapshot": "20210212",
+    "text": "It's all a bit of harmless fun, of course. But some of these traditions go back centuries and have their own fascinating histories. So here's eight you might not know about.",
+    "group": "en",
+    "kind": "clean"
+  },
+  "C7": {
+    "id": "en-08",
+    "lang": "en",
+    "source_url": "https://web.archive.org/web/20210610095715/https://styleguide.mailchimp.com/voice-and-tone/",
+    "snapshot": "20210610",
+    "text": "Your tone also changes depending on the emotional state of the person you’re addressing. You wouldn’t want to use the same tone of voice with someone who’s scared or upset as you would with someone who’s laughing.",
+    "group": "en",
+    "kind": "clean"
+  }
+}

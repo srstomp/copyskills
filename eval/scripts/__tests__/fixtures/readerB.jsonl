@@ -1,0 +1,9 @@
+{"task": "demo-nl", "label": "X1", "unit": "title", "quote": "Je overzicht", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X1", "unit": "body#1", "quote": "Bekijk je overzicht.", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X1", "unit": "body#2", "quote": "Open de lijst.", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X1", "unit": "body#3", "quote": "Kies een regel.", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X2", "unit": "title", "quote": "Je overzicht", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X2", "unit": "body#1", "quote": "Bekijk je overzicht.", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X2", "unit": "body#2", "quote": "Open de lijst.", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X2", "unit": "body#3", "quote": "Kies een regel.", "reason": "SECRET READER REASON", "fix": "Rewrite this sentence."}
+{"task": "demo-nl", "label": "X3", "unit": "body#4", "quote": "Lees de uitleg.", "reason": "SECRET READER REASON", "fix": "Read this."}
