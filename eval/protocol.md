@@ -82,6 +82,11 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
      - plinkr (owner approved 2026-11-18): resident app strings as samples for resident email tasks, and the resident emails as samples for app tasks; portal strings for coach tasks.
      - reggy (owner approved 2026-11-18): the shipped invitation mail, shipped UI strings and the PRODUCT.md voice rules for its email and error tasks.
    - Usable dev tasks: yuzusake 3, sakedeal EN 2 (product page, long form), plinkr up to 6, reggy 2: 13 (all dev tasks except sakedeal-02 and sakedeal-03).
+   - **Result (2026-11-18, batch 1):** no effect on preference (+0.014, interval −0.083 to 0.112); reverted on one misnamed section. Batch 2 not run. A read of the pairs and the skills shows why:
+     - Samples reach the writer and change a few phrases ("een tikje bitter", "één deel op twee delen bruiswater, veel ijs"), but as borrowed wording and added flourishes ("Vrijdag om 17.00 uur is zijn moment", "ask for a raise"), which judges mark as forced.
+     - The suite gives no procedure for samples: one paragraph in anti-slop.md, tied to `brand_voice.examples`. copy-workflow Steps 4 to 7 never mention them, the Step 6 check has no voice check, and the native reader gets the copy and the locale file only, so its edits pull voice-matched sentences back to plain.
+     - Judges decide on errors and clarity; voice match is named in 1 of 24 reasons read.
+   - **Follow-up (queued as 3):** same samples in both arms; arm B's suite adds a voice procedure (name three to five concrete traits from the samples before drafting, pass the samples to the native reader, check voice in Step 6, reuse no phrase).
 2. **Shared guidance without sake examples** (sake stays only in commerce-copy). Expected: neutral on sake tasks, better on plinkr and reggy.
 Deferred until 1 and 2 have run: native drafting vs translate-then-edit, and the cross-family native read as a required gate (that one cannot be judged on the defect measure, because the gate removes what the same readers flag; it would be judged on preference plus an owner blind pick).
 Linter changes are judged on the calibration set (precision and recall per rule), not on copy experiments.
