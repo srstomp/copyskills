@@ -22,7 +22,7 @@ deliverables:
 placeholders: []
 target_query: null
 replaces: "plinkr/portal/src/config/translations/nl.json (keys empty_inactive_clients_body, empty_documents_body, success_create_invite, modal_platform_budget_delete_note_body, button_platform_budget_delete_submit, project_timeline_overview_onboarding_step1_description)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

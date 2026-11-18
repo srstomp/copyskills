@@ -20,7 +20,7 @@ deliverables:
 placeholders: ["{workspace}", "{key_name}", "{environment}", "{scopes}"]
 target_query: null
 replaces: null
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

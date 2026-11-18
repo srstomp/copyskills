@@ -1,7 +1,7 @@
 #!/bin/bash
 # After generation: units, guards, bundles, then all scoring jobs detached. Rerun to resume.
 set -u
-ROOT=/Users/steve/Projects/copyskills; R=${1:-$ROOT/eval/runs/2026-11-18-aa2}; S=$R/scores
+ROOT=/Users/steve/Projects/copyskills; R=$ROOT/eval/runs/${1:?usage: run-score.example.sh <run>}; S=$R/scores
 # Opus scorers may read only the bundles and write only the scores folder (dontAsk denies the rest).
 mkdir -p $S $R/prompts/score /tmp/eval-gen-cwd
 cd $ROOT
@@ -10,9 +10,9 @@ cd $ROOT
 [ -d $R/read ] || bun eval/scripts/eval.ts read-bundles $R
 [ -d $R/judge ] || bun eval/scripts/eval.ts judge-bundles $R
 [ -d $R/factcheck ] || bun eval/scripts/eval.ts factcheck-bundles $R
-python3 -I - <<'PY'
-import json,re
-root='/Users/steve/Projects/copyskills'; R=f'{root}/eval/runs/2026-11-18-aa2'
+R="$R" python3 -I - <<'PY'
+import json,os,re
+root='/Users/steve/Projects/copyskills'; R=os.environ['R']
 rd=open(f'{root}/eval/prompts/reader.md').read(); jd=open(f'{root}/eval/prompts/judge.md').read(); fc=open(f'{root}/eval/prompts/factcheck.md').read()
 q=[]
 for t in json.load(open(f'{R}/run.json'))['tasks']:

@@ -38,21 +38,21 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
 **Primary 1: blind pairwise preference.**
 - Question: "Which of these would a skilled native copywriter for this brand and this audience have written?" The judge also sees the task's audience and register line and, where the task has them, voice samples from a subset disjoint from the generator's (so surface imitation of the generator's samples earns nothing).
 - Two judges from different families: gpt-6.1-sol (Codex) and Opus 5.5 (Agent). Both orders; a judge that flips with order scores 0.5 for that pair.
-- Score per task = mean preference for B over its 4 pairs and 2 judges, minus 0.5 (so 0 means no preference). Report the mean over tasks with a one-sided 90% t-interval on the per-task scores.
+- Score per task = mean preference for B over its 4 pairs and 2 judges, minus 0.5 (so 0 means no preference). Report the mean over tasks with a one-sided 95% t-interval on the per-task scores.
 
 **Primary 2: share of units with an agreed native defect.**
 - Unit = one sentence (prose) or one UI string or subject line.
 - Two readers (same models), blind to arm and source. Each gets the copy, the locale, the audience and register line, and the task's voice samples where it has them. Matching the samples is not a defect; departing from them is a voice break.
 - Each reader returns, per unit, flag or no flag, with a free-text reason and a fix. A unit counts when both readers flag it.
-- Per task: flagged units ÷ units; the difference is A minus B (positive means B has fewer defects); then the mean over tasks, so long pages do not swamp microcopy. Same one-sided 90% t-interval on per-task differences.
+- Per task: flagged units ÷ units; the difference is A minus B (positive means B has fewer defects); then the mean over tasks, so long pages do not swamp microcopy. Same one-sided 95% t-interval on per-task differences.
 - Typography (°C spacing, quotes, dashes, Title Case) is not counted here: it belongs to lint, a guard.
 - Integrity check: a reader's quoted unit must be found in the output (after normalising quotes and spaces); if more than 5% cannot be found, that reading is rerun.
 
 **Reported, not decided on:** words ÷ budget per deliverable (shows bland or truncated copy), per-reader flag rates, and the copy check below.
 
-**Hard guards (zero tolerance, deterministic):** every deliverable present and inside its budget, placeholders present and unchanged, no number missing from the fact sheet (`copydoc lint --facts`). Any failure in arm B fails the experiment.
+**Hard guards (zero tolerance, deterministic):** every deliverable present and inside its budget, placeholders present and unchanged, no number missing from the fact sheet (`copydoc lint --facts`). B fails the experiment when more of its dev outputs fail than A's (owner ruling 2026-11-18: an A/A run showed about 1 in 60 outputs fails a budget by chance).
 
-**Noisy guards (fail only when B is worse beyond the one-sided 90% interval):** unsupported claims marked by one reader in a separate pass with the fact sheet (60 extra reads per arm), lint errors per locale, and the agreed-defect share (primary 2).
+**Noisy guards (fail only when B is worse beyond the one-sided 95% interval):** unsupported claims marked by one reader in a separate pass with the fact sheet (60 extra reads per arm), and lint errors per locale. The agreed-defect share is reported only (see §5).
 
 **Copy check (reported):** runs of 6 or more words shared with any voice sample, in both arms.
 
@@ -62,13 +62,13 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
 - **Owner check (about 10 minutes), after the A/A run:** 15 NL units from real A/A outputs, shown blind: 8 the readers agreed were defects and 7 neither flagged. The owner marks each "natural" or "off". This tests what the primary measure counts. Pass: at least 12 of 15 match the owner and at least 6 of the 8 agreed flags are confirmed "off" (a smoke test, not a precision estimate).
 - **Retest:** the same A/A outputs read twice; flag agreement between the two readings is reported.
 - If calibration fails, the defect measure is reported only, and decisions rest on pairwise preference plus an owner blind pick.
+- **Result (2026-11-18):** passage calibration passed (run 2, split bundles). The owner check failed: 10 of 15 matched (12 needed); 6 of 8 agreed flags were confirmed. The owner also called 3 of the 7 unflagged units off, so the readers miss defects the owner sees. From now on the agreed-defect share is reported only and decides nothing; a keep also needs an owner blind pick.
 
 ## 6. A/A and the decision rule
 - **A/A run first:** the current suite against itself, full dev set. Check that both intervals cover zero (no effect where none exists) and use the run for the owner check and the reader retest.
-- **Three outcomes per experiment.** Preference is the only keep trigger; defects and the guards are must-not-worsen checks.
-  - **Keep** when the lower bound of the one-sided 90% t-interval on preference (B minus 0.5) is above zero, no hard guard fails, and no noisy guard is worse beyond its interval.
-  - **Revert** when preference is below zero beyond its interval, a hard guard fails, or a noisy guard is worse beyond its interval.
-  - **Inconclusive** otherwise: one more batch of 4 generations per task, pooled. If still inconclusive, the change is not adopted (the suite stays simpler) and the result is recorded as inconclusive, not as a loss.
+- **Decision rule (owner ruling 2026-11-18, after A/A run 2 kept a change against itself at one-sided 90%).** Preference is the only keep trigger; the guards are must-not-worsen checks. All intervals are one-sided 95% t-intervals over dev tasks.
+  - **Batch 1 never keeps.** It reverts when preference is below zero beyond its interval, B has more failing outputs on the hard guards than A, or a noisy guard is worse beyond its interval. Otherwise it needs a second batch.
+  - **Batch 2** is a fresh, independent run (new generations, new reads and judgements; run.json `"pool"` names batch 1). Revert on the same triggers as batch 1. **Keep** when the pooled per-task preference (mean of the two batch scores per task) has a lower bound above zero and batch 2's own mean preference is above zero, followed by an owner blind pick. Otherwise **inconclusive**: the change is not adopted (the suite stays simpler) and the result is recorded as inconclusive, not as a loss.
 - One change per experiment.
 - An experiment with fewer than 10 usable tasks is reported as directional only and cannot keep a change.
 
@@ -77,9 +77,9 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
    - Samples are defined per project and audience, across channels, and never include the copy a task replaces:
      - yuzusake: the deck, split by item (bottles A–C as samples, bottle D the task, D's approved text held out as the parity reference and used as tie-breaker when preference is inconclusive).
      - sakedeal: the warm/cold article (EN) for EN tasks only. Sakedeal NL tasks get no samples (the NL article reads translated) and are excluded from this experiment.
-     - plinkr (needs owner approval of shipped copy as voice): resident app strings as samples for resident email tasks, and the resident emails as samples for app tasks; portal strings for coach tasks.
-     - reggy (needs owner approval): the shipped invitation mail, shipped UI strings and the PRODUCT.md voice rules for its email and error tasks.
-   - Usable dev tasks: yuzusake 3, sakedeal EN 2 (product page, long form), plinkr up to 6, reggy 2: about 13 with both approvals, 5 without. Under 10, the result is directional only.
+     - plinkr (owner approved 2026-11-18): resident app strings as samples for resident email tasks, and the resident emails as samples for app tasks; portal strings for coach tasks.
+     - reggy (owner approved 2026-11-18): the shipped invitation mail, shipped UI strings and the PRODUCT.md voice rules for its email and error tasks.
+   - Usable dev tasks: yuzusake 3, sakedeal EN 2 (product page, long form), plinkr up to 6, reggy 2: 13 (all dev tasks except sakedeal-02 and sakedeal-03).
 2. **Shared guidance without sake examples** (sake stays only in commerce-copy). Expected: neutral on sake tasks, better on plinkr and reggy.
 Deferred until 1 and 2 have run: native drafting vs translate-then-edit, and the cross-family native read as a required gate (that one cannot be judged on the defect measure, because the gate removes what the same readers flag; it would be judged on preference plus an owner blind pick).
 Linter changes are judged on the calibration set (precision and recall per rule), not on copy experiments.

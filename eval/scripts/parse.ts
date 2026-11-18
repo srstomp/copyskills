@@ -34,6 +34,8 @@ export interface RunConfig {
   tasks: string[];
   samples: { A: boolean; B: boolean };
   pendingSamples?: boolean;
+  /** Second batch: the run folder name (sibling) of the first batch whose preference scores are pooled with this one. */
+  pool?: string;
 }
 export interface Run { root: string; dir: string; config: RunConfig; tasks: Task[] }
 export interface Output { arm: string; task: string; n: number; sections: Record<string, string> }

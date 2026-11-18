@@ -24,7 +24,7 @@ deliverables:
 placeholders: []
 target_query: null
 replaces: "plinkr/portal/src/config/translations/nl.json (keys error_generic_long, error_fetch_network_generic, error_email_update, error_file_generic, error_number_generic)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

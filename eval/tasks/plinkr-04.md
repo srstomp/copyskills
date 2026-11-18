@@ -26,7 +26,7 @@ deliverables:
 placeholders: ["{{firstName}}"]
 target_query: null
 replaces: "plinkr/portal/src/config/translations/nl.json (keys welcome_morning, start_title, start_description, start_intake_subtitle, start_intake_demo1_subtitle, income_intro_button_label, success_update_password, success_update_email)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

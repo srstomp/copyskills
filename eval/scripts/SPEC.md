@@ -29,11 +29,11 @@ Deterministic parts of the eval in `eval/protocol.md`. TypeScript run with Bun: 
    Output `guards.json` and a table: per task and arm, hard failures (list), lint errors, longest shared run.
 
 7. `report <run>`: reads read-score, judge-score, guards and factcheck-score (whichever exist; missing or incomplete dev evidence prevents keep) and writes `results.md`:
-   - Preference: mean task score, sd, n tasks, and the one-sided 90% lower bound `mean - t(0.90, n-1) * sd / sqrt(n)` (hard-code the t quantiles for df 1..40).
-   - Defects: mean per-task difference A minus B with its one-sided 90% lower and upper bounds.
+   - Preference: mean task score, sd, n tasks, and the one-sided 95% lower bound `mean - t(0.95, n-1) * sd / sqrt(n)` (hard-code the t quantiles for df 1..40).
+   - Defects (reported only; they trigger nothing since the owner check failed): mean per-task difference A minus B with its one-sided 95% lower and upper bounds.
    - Hard guards: count of failing outputs per arm; any failure in B is listed.
-   - Noisy guards: lint errors and unsupported-claim counts per output, mean per task and arm, difference B minus A with its one-sided 90% t interval across dev tasks. Revert if either lower bound is above zero. Fact-check evidence requires exactly one entry for every generation of both arms of every dev task.
-   - Outcome per protocol section 6: keep, revert or inconclusive, with the reason in one line. Also report words ÷ budget per deliverable (mean per arm).
+   - Noisy guards: lint errors and unsupported-claim counts per output, mean per task and arm, difference B minus A with its one-sided 95% t interval across dev tasks. Revert if either lower bound is above zero. Fact-check evidence requires exactly one entry for every generation of both arms of every dev task.
+   - Outcome per protocol section 6: a run without `pool` gives revert or "second batch needed", never keep. A run with `pool` (run.json: the sibling run folder of batch 1) pools per-task preference with batch 1's judge-score.json and gives keep, revert or inconclusive, with the reason in one line. Also report words ÷ budget per deliverable (mean per arm).
    Only dev tasks count; holdout and report tasks are listed separately and never change the outcome.
 
 8. `owner-sheet <run>`: from read-score of an A/A run, picks 8 units both readers flagged and 7 units neither flagged, nl tasks only, seeded random, shuffled; writes `owner-check.md` (numbered items: the unit text and one line of context: the task's channel and audience; a line `answer: natural / off` to fill in, no reader reasons shown) and `keys/owner-check.key.json`. `owner-score <run> <owner-check.md>` reads the filled answers and prints matches, and confirmed agreed flags out of 8.

@@ -1,4 +1,5 @@
-status: pending-owner-approval (shipped copy; the owner has not yet approved it as a voice sample)
+status: approved
+approval: shipped copy, owner approved it as a voice sample on 2026-11-18
 
 # Reggy voice samples for the judge
 

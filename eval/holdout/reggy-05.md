@@ -19,7 +19,7 @@ deliverables:
 placeholders: []
 target_query: null
 replaces: "reggy-app/src/routes/$ws.domains.tsx:171-180 (empty state, Domains screen)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

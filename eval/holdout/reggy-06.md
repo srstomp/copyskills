@@ -31,7 +31,7 @@ deliverables:
 placeholders: ["{brand}", "{email}"]
 target_query: null
 replaces: "reggy-api/infra/lambda/unsubscribe/brand.ts:133-152 (nl catalogue, Dutch unsubscribe page and confirmation)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

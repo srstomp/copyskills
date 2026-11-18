@@ -22,7 +22,7 @@ deliverables:
 placeholders: ["{{organization_name}}", "{{resident_name}}", "{{check_date_label}}", "{{resident_contact_phone}}", "{{resident_contact_email}}", "{{referrer_name}}", "{{referrer_organization}}", "{{referrer_contact_email}}"]
 target_query: null
 replaces: "plinkr/ffc/lambdas/send-email/index.ts (organisation mail)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

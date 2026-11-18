@@ -241,11 +241,11 @@ describe('guards and statistics', () => {
     const s = interval([1, 2, 3, 4, 5]);
     expect(s.mean).toBe(3);
     expect(s.sd).toBeCloseTo(Math.sqrt(2.5), 12);
-    expect(s.lower).toBeCloseTo(3 - 1.533206274 * Math.sqrt(2.5) / Math.sqrt(5), 8);
-    expect(s.upper).toBeCloseTo(3 + 1.533206274 * Math.sqrt(2.5) / Math.sqrt(5), 8);
+    expect(s.lower).toBeCloseTo(3 - 2.131846786 * Math.sqrt(2.5) / Math.sqrt(5), 8);
+    expect(s.upper).toBeCloseTo(3 + 2.131846786 * Math.sqrt(2.5) / Math.sqrt(5), 8);
     expect(interval([1]).lower).toBeNull();
     expect(interval([]).mean).toBeNull();
-    expect(interval(Array.from({ length: 42 }, (_, i) => i)).lower).toBeCloseTo(20.5 - 1.303077053 * Math.sqrt(150.5) / Math.sqrt(42), 8);
+    expect(interval(Array.from({ length: 42 }, (_, i) => i)).lower).toBeCloseTo(20.5 - 1.683851013 * Math.sqrt(150.5) / Math.sqrt(42), 8);
   });
 });
 
@@ -317,7 +317,7 @@ describe('owner, calibration, report and CLI', () => {
     factEvidence();
     const text = report(run);
     expect(text).toContain('Outcome: **inconclusive**; directional only: 2 usable dev tasks');
-    expect(text).toContain('mean 0.0000, sd 0.0000, n tasks 2, one-sided 90% lower 0.0000, upper 0.0000');
+    expect(text).toContain('mean 0.0000, sd 0.0000, n tasks 2, one-sided 95% lower 0.0000, upper 0.0000');
     expect(text).toContain('| demo-nl | 0.0000 | 0.0000 |');
     expect(text).toContain('| demo-en | 0.0000 | 0.0000 |');
     expect(text).toContain('| demo-nl | A | 1 | 0 |');
@@ -339,13 +339,17 @@ describe('owner, calibration, report and CLI', () => {
     factEvidence();
     return guards;
   }
-  test('keeps positive preference with 10 dev tasks and rejects significant worsening', () => {
+  function firstBatch(preference: number) {
+    const dir = join(run.dir, '..', 'demo-batch1');
+    mkdirSync(dir, { recursive: true });
+    writeJSON(join(dir, 'judge-score.json'), { tasks: run.tasks.map(t => ({ task: t.id, preference: preference + 0.5, score: preference, pairs: [] })) });
+    run.config.pool = 'demo-batch1';
+  }
+  test('one batch never keeps; a pooled second batch keeps; defects never decide', () => {
     evidence();
-    expect(report(run)).toContain('Outcome: **keep**');
+    expect(report(run)).toContain('Outcome: **second batch needed**');
     evidence(-0.2);
     expect(report(run)).toContain('Outcome: **revert**; preference is below zero');
-    evidence(0.2, -0.1);
-    expect(report(run)).toContain('Outcome: **revert**; agreed defects are worse');
     evidence(0.2, 0.1, 1);
     expect(report(run)).toContain('Outcome: **revert**; lint errors are worse');
     evidence();
@@ -355,7 +359,25 @@ describe('owner, calibration, report and CLI', () => {
     expect(report(run)).toContain('Outcome: **revert**; unsupported claims are worse beyond their interval');
     expect(report(run)).toContain('| dev-0 | 0.0000 | 1.0000 | 1.0000 |');
     evidence(0, 0, 0);
-    expect(report(run)).toContain('Outcome: **inconclusive**');
+    expect(report(run)).toContain('Outcome: **second batch needed**');
+    // Second batch: pooled per-task preference (0.2 + 0.2) / 2 clears zero and batch 2 leans towards B.
+    evidence(0.2, -0.1);
+    firstBatch(0.2);
+    const text = report(run);
+    expect(text).toContain('Outcome: **keep**; pooled preference lower bound is above zero');
+    expect(text).toContain('Pooled with demo-batch1: mean 0.2000');
+    expect(text).toContain('## Defects (reported only)');
+    // Pooled mean is positive (0.3) but the second batch alone does not lean towards B.
+    evidence(0, 0);
+    firstBatch(0.6);
+    expect(report(run)).toContain('Outcome: **inconclusive**; pooled preference does not establish improvement');
+    // A missing first-batch task blocks keep.
+    evidence();
+    firstBatch(0.2);
+    const first = json(join(run.dir, '..', 'demo-batch1', 'judge-score.json'));
+    first.tasks.pop();
+    writeJSON(join(run.dir, '..', 'demo-batch1', 'judge-score.json'), first);
+    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
   });
   test('fact-check means and intervals use task differences and allow noise crossing zero', () => {
     evidence();
@@ -369,15 +391,15 @@ describe('owner, calibration, report and CLI', () => {
     const text = report(run);
     expect(text).toContain('| dev-0 | 1.0000 | 1.0000 | 0.0000 |');
     expect(text).toContain('| dev-5 | 1.0000 | 3.0000 | 2.0000 |');
-    expect(text).toContain('B minus A: mean 1.0000, sd 1.0541, n tasks 10, one-sided 90% lower 0.5390, upper 1.4610');
+    expect(text).toContain('B minus A: mean 1.0000, sd 1.0541, n tasks 10, one-sided 95% lower 0.3890, upper 1.6110');
     expect(text).toContain('Outcome: **revert**; unsupported claims are worse');
     fact.outputs.forEach((o: any) => {
       const count = o.arm === 'A' ? 2 : Number(o.task.slice(4)) < 5 ? 0 : 4;
       o.unsupported = Array(count).fill('Unsupported delivery promise');
     });
     writeJSON(join(run.dir, 'factcheck-score.json'), fact);
-    expect(report(run)).toContain('Outcome: **keep**');
-    expect(report(run)).toContain('B minus A: mean 0.0000, sd 2.1082, n tasks 10, one-sided 90% lower -0.9220, upper 0.9220');
+    expect(report(run)).toContain('Outcome: **second batch needed**');
+    expect(report(run)).toContain('B minus A: mean 0.0000, sd 2.1082, n tasks 10, one-sided 95% lower -1.2221, upper 1.2221');
   });
   test('dev candidate hard failures revert; holdout/report evidence cannot change outcome', () => {
     const guards = evidence();
@@ -419,7 +441,8 @@ describe('owner, calibration, report and CLI', () => {
     expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
     evidence();
     rmSync(join(run.dir, 'read-score.json'));
-    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
+    // Defects are reported only, so a missing read score does not block a decision.
+    expect(report(run)).toContain('Outcome: **second batch needed**');
   });
   test('real CLI accepts seed, writes units, rejects unknown command and invalid inputs', () => {
     const entry = resolve(import.meta.dir, '../eval.ts');

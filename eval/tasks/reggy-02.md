@@ -26,7 +26,7 @@ deliverables:
 placeholders: []
 target_query: null
 replaces: "reggy-app/src/human-error.js:20-24; reggy-api/infra/lambda/emails-send/service.ts:1203,1329; reggy-api/infra/lambda/domains/service.ts:1235; reggy-api/infra/lambda/campaigns/service.ts:2809; reggy-api/infra/lambda/billing-subscription/service.ts:360"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

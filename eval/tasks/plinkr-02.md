@@ -18,7 +18,7 @@ deliverables:
 placeholders: ["{{resident_name}}", "{{check_date_label}}", "{{self_handler_name}}", "{{referrer_name}}", "{{referrer_organization}}", "{{referrer_email}}"]
 target_query: null
 replaces: "plinkr/ffc/lambdas/send-email/index.ts (resident mail, self-handle case)"
-samples: pending-owner-approval
+samples: project
 ---
 
 ## Brief

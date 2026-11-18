@@ -408,3 +408,11 @@ Mean of words divided by max_words (or min_words if no maximum). Character-only 
 | reggy-02 | dev | tenant_not_provisioned_error | 110 chars | 0.1591 | 0.1523 |
 | reggy-02 | dev | campaign_locked_error | 90 chars | 0.1306 | 0.1361 |
 | reggy-02 | dev | payment_method_error | 90 chars | 0.1500 | 0.1361 |
+
+## Owner check (scored 2026-11-18)
+
+Matches 10/15 (pass needs 12); agreed flags confirmed "off" 6/8 (pass needs 6). Overall: **fail**.
+- Readers flagged, owner called natural: item 4 (plinkr-04, "geldzorgen meten") and item 14 (plinkr-01, "akkoord geven op gegevensdeling").
+- Neither reader flagged, owner called off: item 2 (plinkr-03 empty state), item 3 (yuzusake-04 highball line), item 6 (plinkr-04 intake subtitle).
+
+Consequence (protocol §5): the agreed-defect share is reported only and decides nothing; a keep needs an owner blind pick.
