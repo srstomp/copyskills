@@ -34,6 +34,8 @@ while read -r job; do
   esac
 done < $R/prompts/score-queue.txt
 wait
+# Never let an older score decide: remove previous scores and results first; a failed step then counts as missing evidence.
+rm -f $R/read-score.json $R/judge-score.json $R/factcheck-score.json $R/results.md
 cat $S/read-opus-*.jsonl > $S/all-read-opus.jsonl; cat $S/read-sol-*.jsonl > $S/all-read-sol.jsonl
 for w in opus sol; do for o in order1 order2; do cat $S/judge-$w-$o-*.jsonl > $S/all-judge-$w-$o.jsonl; done; done
 cat $S/fact-*.jsonl > $S/all-fact.jsonl

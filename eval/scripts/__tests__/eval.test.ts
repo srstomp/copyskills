@@ -371,6 +371,30 @@ describe('owner, calibration, report and CLI', () => {
     evidence(0, 0);
     firstBatch(0.6);
     expect(report(run)).toContain('Outcome: **inconclusive**; pooled preference does not establish improvement');
+    // Pooling is per task: batch 2 alone would keep, but pooled with a mixed batch 1 it does not.
+    evidence(0.1, 0);
+    firstBatch(0);
+    const mixed = json(join(run.dir, '..', 'demo-batch1', 'judge-score.json'));
+    mixed.tasks.forEach((t: any, i: number) => { t.score = i % 2 ? 0.1 : -0.5; });
+    writeJSON(join(run.dir, '..', 'demo-batch1', 'judge-score.json'), mixed);
+    const pooledText = report(run);
+    expect(pooledText).toContain('Pooled with demo-batch1: mean -0.0500, sd 0.1581, n tasks 10');
+    expect(pooledText).toContain('Outcome: **inconclusive**; pooled preference does not establish improvement');
+    // Missing evidence on an otherwise eligible pooled keep blocks keep.
+    evidence();
+    firstBatch(0.2);
+    rmSync(join(run.dir, 'factcheck-score.json'));
+    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
+    // Duplicated output indices in guards hide a missing output and block keep.
+    const dup = evidence();
+    firstBatch(0.2);
+    dup.outputs.find(o => o.arm === 'B' && o.n === 2)!.n = 1;
+    writeJSON(join(run.dir, 'guards.json'), dup);
+    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
+    // A pool that names this run itself is rejected.
+    evidence();
+    run.config.pool = 'demo';
+    expect(() => report(run)).toThrow('pool must name another run folder');
     // A missing first-batch task blocks keep.
     evidence();
     firstBatch(0.2);

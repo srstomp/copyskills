@@ -26,7 +26,8 @@ export function report(run: Run): string {
   const noisy = run.tasks.flatMap(task => {
     const a = guards?.outputs.filter(o => o.task === task.id && o.arm === 'A') ?? [];
     const b = guards?.outputs.filter(o => o.task === task.id && o.arm === 'B') ?? [];
-    if (a.length !== run.config.n || b.length !== run.config.n) return [];
+    const complete = (items: typeof a) => items.length === run.config.n && new Set(items.map(o => o.n)).size === run.config.n;
+    if (!complete(a) || !complete(b)) return [];
     const meanA = a.reduce((sum, o) => sum + o.lintErrors, 0) / a.length;
     const meanB = b.reduce((sum, o) => sum + o.lintErrors, 0) / b.length;
     return [{ task: task.id, set: task.set, A: meanA, B: meanB, difference: meanB - meanA }];
@@ -49,6 +50,7 @@ export function report(run: Run): string {
   // Protocol section 6: one batch can revert but never keep. Keep needs a second, independent batch (run.json "pool"):
   // the pooled per-task preference must clear zero at one-sided 95% and the second batch alone must lean towards B.
   // Agreed defects are reported only: the owner check of the readers failed (2026-11-18), so they trigger nothing.
+  if (run.config.pool !== undefined && (!/^[\w.-]+$/.test(run.config.pool) || join(dirname(run.dir), run.config.pool) === run.dir)) throw new Error(`run.json pool must name another run folder, got ${run.config.pool}`);
   const first = run.config.pool ? readJSON<JudgeScore>(join(dirname(run.dir), run.config.pool, 'judge-score.json')) : undefined;
   const pooled = first ? interval(dev.map(task => {
     const a = first.tasks.find(t => t.task === task.id)?.score, b = judge?.tasks.find(t => t.task === task.id)?.score;
