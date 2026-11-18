@@ -87,6 +87,12 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
      - The suite gives no procedure for samples: one paragraph in anti-slop.md, tied to `brand_voice.examples`. copy-workflow Steps 4 to 7 never mention them, the Step 6 check has no voice check, and the native reader gets the copy and the locale file only, so its edits pull voice-matched sentences back to plain.
      - Judges decide on errors and clarity; voice match is named in 1 of 24 reasons read.
    - **Follow-up (queued as 3):** same samples in both arms; arm B's suite adds a voice procedure (name three to five concrete traits from the samples before drafting, pass the samples to the native reader, check voice in Step 6, reuse no phrase).
+   - **Follow-up result (2026-11-18, two batches, runs `2026-11-18-voice-b1` and `-b2`):** inconclusive, not adopted. Both arms had the samples and the counting rule; arm B added the voice procedure (the text is `eval/runs/2026-11-18-voice-b1/candidate.diff`).
+     - Preference: batch 1 −0.019, batch 2 +0.096, pooled +0.039 (one-sided 95% interval −0.037 to 0.114). Per-task scores change sign between batches (plinkr-02 +0.50 then −0.06; plinkr-04 −0.06 then +0.50), so the spread is run-to-run noise, not a task effect.
+     - No structural failures in 208 outputs. Limits: one miss in 208 (yuzusake-04 A2, 383 words for a 400-word minimum), against 3 in 80 before the counting rule.
+     - Unsupported claims per output were lower in arm B in both batches (B minus A −0.173, interval −0.279 to −0.067; then −0.115, interval −0.272 to 0.041). This is a guard, not a keep criterion, and it was not predicted; treat it as a lead.
+     - Not checked: whether arm B's writers carried out the procedure (the logs hold only the final line).
+     - Read: with these judges and 13 tasks, voice changes of this size cannot be told from noise. Two experiments on voice have now ended without a result; a third needs a different measure (an owner blind pick on voice) before more runs.
 2. **Shared guidance without sake examples** (sake stays only in commerce-copy). Expected: neutral on sake tasks, better on plinkr and reggy.
 Deferred until 1 and 2 have run: native drafting vs translate-then-edit, and the cross-family native read as a required gate (that one cannot be judged on the defect measure, because the gate removes what the same readers flag; it would be judged on preference plus an owner blind pick).
 Linter changes are judged on the calibration set (precision and recall per rule), not on copy experiments.
