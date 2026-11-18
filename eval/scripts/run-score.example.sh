@@ -26,7 +26,8 @@ for t in json.load(open(f'{R}/run.json'))['tasks']:
 open(f'{R}/prompts/score-queue.txt','w').write('\n'.join(q)+'\n')
 PY
 while read -r job; do
-  [ -s "$S/$job.jsonl" ] && grep -q "exit: 0" "$S/$job.log" 2>/dev/null && continue
+  # Finished means: exit 0 and every line of the score file is JSON; anything else runs again.
+  [ -s "$S/$job.jsonl" ] && grep -q "exit: 0" "$S/$job.log" 2>/dev/null && python3 -I -c "import json,sys; [json.loads(l) for l in open(sys.argv[1]) if l.strip()]" "$S/$job.jsonl" 2>/dev/null && continue
   while [ "$(jobs -rp | wc -l)" -ge 8 ]; do sleep 3; done
   case $job in
     *-opus-*) ( cd /tmp/eval-gen-cwd && claude -p --model claude-opus-5-5 --permission-mode dontAsk --allowedTools "Read(/$R/read/**)" "Read(/$R/judge/**)" "Read(/$R/factcheck/**)" "Edit(/$S/**)" -- "$(cat $R/prompts/score/$job.md)" > $S/$job.log 2>&1 < /dev/null; echo "exit: $?" >> $S/$job.log ) & ;;
