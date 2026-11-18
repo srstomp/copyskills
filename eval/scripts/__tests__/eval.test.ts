@@ -215,15 +215,17 @@ describe('guards and statistics', () => {
     expect(checkOutput(task, { title: '😀😀', body: 'Bekijk de 7 items in je overzicht via {link}.' }, '').hard).toEqual([]);
     expect(checkOutput(task, { title: `  ${'😀'.repeat(40)}  `, body: 'Bekijk de 7 items in je overzicht via {link}.' }, '').hard).toEqual([]);
     const bad = checkOutput(task, { title: 'x', body: '99 {changed}' }, '99 changed');
-    expect(bad.hard.join('\n')).toMatch(/title.*min_chars/);
-    expect(bad.hard.join('\n')).toMatch(/body.*min_words/);
+    expect(bad.budget).toEqual(['title: min_chars 2, got 1', 'body: min_words 8, got 2']);
+    expect(bad.hard.join('\n')).not.toMatch(/min_|max_/);
     expect(bad.hard.join('\n')).toContain('Missing placeholder {link}');
     expect(bad.hard.join('\n')).toContain('Unknown placeholder {changed}');
     expect(bad.hard.join('\n')).toContain('Number 99');
     expect(checkOutput(task, {}, '').hard.join('\n')).toMatch(/title.*missing|missing.*title/i);
-    expect(checkOutput(task, { title: '  ', body: ' ' }, '').hard.join('\n')).toMatch(/empty/i);
-    expect(checkOutput(task, { title: '😀'.repeat(41), body: 'word '.repeat(91) + '{link}' }, '').hard.join('\n')).toMatch(/max_chars/);
-    expect(checkOutput(task, { title: 'Okay', body: 'word '.repeat(91) + '{link}' }, '').hard.join('\n')).toMatch(/max_words/);
+    const empty = checkOutput(task, { title: '  ', body: ' ' }, '');
+    expect(empty.hard.join('\n')).toMatch(/empty/i);
+    expect(empty.budget).toEqual([]); // an empty section is structural, not also a missed minimum
+    expect(checkOutput(task, { title: '😀'.repeat(41), body: 'word '.repeat(91) + '{link}' }, '').budget.join('\n')).toMatch(/title: max_chars/);
+    expect(checkOutput(task, { title: 'Okay', body: 'word '.repeat(91) + '{link}' }, '').budget.join('\n')).toMatch(/body: max_words/);
     expect(checkOutput(task, { title: 'Okay', body: 'Archive 99 items in your overview via {link}.' }, '').hard.join('\n')).toContain('Number 99');
   });
   test('number errors stay out of noisy errors and copy check finds contiguous words', () => {
@@ -429,19 +431,41 @@ describe('owner, calibration, report and CLI', () => {
     const guards = evidence();
     guards.outputs.find(o => o.arm === 'B')!.hard = ['Missing placeholder {link}'];
     writeJSON(join(run.dir, 'guards.json'), guards);
-    expect(report(run)).toContain('Outcome: **revert**; candidate B has more hard guard failures than A (1 vs 0)');
+    expect(report(run)).toContain('Outcome: **revert**; candidate B has more structural failures than A (1 vs 0 outputs)');
     expect(report(run)).toContain('- dev-0 B1: Missing placeholder {link}');
     // Equal failure counts in both arms (the A/A base rate) do not revert.
     const both = evidence();
-    both.outputs.find(o => o.arm === 'A')!.hard = ['Budget exceeded'];
+    both.outputs.find(o => o.arm === 'A')!.hard = ['title: missing deliverable'];
     both.outputs.find(o => o.arm === 'B')!.hard = ['Missing placeholder {link}'];
     writeJSON(join(run.dir, 'guards.json'), both);
-    expect(report(run)).not.toContain('Outcome: **revert**; candidate B has more hard guard failures');
+    expect(report(run)).toContain('Outcome: **second batch needed**');
+    // Limits: one missed limit in one task is inside the interval and does not revert...
+    const one = evidence();
+    one.outputs.find(o => o.arm === 'B')!.budget = ['body: max_words 90, got 95'];
+    writeJSON(join(run.dir, 'guards.json'), one);
+    const oneText = report(run);
+    expect(oneText).toContain('Outcome: **second batch needed**');
+    expect(oneText).toContain('B minus A: mean 0.0500, sd 0.1581, n tasks 10, one-sided 95% lower -0.0417, upper 0.1417');
+    expect(oneText).toContain('| dev-0 | 0.0000 | 0.5000 | 0.5000 |');
+    expect(oneText).toContain('- dev-0 B1: body: max_words 90, got 95');
+    // ...but B missing limits in every task does, and A missing them does not.
+    const all = evidence();
+    all.outputs.filter(o => o.arm === 'B' && o.n === 1).forEach(o => { o.budget = ['body: max_words 90, got 95']; });
+    writeJSON(join(run.dir, 'guards.json'), all);
+    expect(report(run)).toContain('Outcome: **revert**; character or word limits are missed more often beyond their interval');
+    all.outputs.forEach(o => { o.budget = o.arm === 'A' ? ['body: max_words 90, got 95'] : []; });
+    writeJSON(join(run.dir, 'guards.json'), all);
+    expect(report(run)).toContain('Outcome: **second batch needed**');
+    // A guards file without limit data (older format) cannot support a decision.
+    const old = evidence();
+    old.outputs.forEach((o: any) => { delete o.budget; });
+    writeJSON(join(run.dir, 'guards.json'), old);
+    expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');
     evidence();
     run.tasks[0].set = 'holdout';
     run.tasks[1].set = 'report';
     const noisyGuards = json(join(run.dir, 'guards.json'));
-    noisyGuards.outputs.filter((o: any) => ['dev-0', 'dev-1'].includes(o.task) && o.arm === 'B').forEach((o: any) => { o.hard = ['Budget exceeded']; o.lintErrors = 999; });
+    noisyGuards.outputs.filter((o: any) => ['dev-0', 'dev-1'].includes(o.task) && o.arm === 'B').forEach((o: any) => { o.hard = ['Missing placeholder {link}']; o.budget = ['Budget exceeded']; o.lintErrors = 999; });
     writeJSON(join(run.dir, 'guards.json'), noisyGuards);
     const fact = json(join(run.dir, 'factcheck-score.json'));
     fact.outputs.filter((o: any) => ['dev-0', 'dev-1'].includes(o.task) && o.arm === 'B').forEach((o: any) => { o.unsupported = ['Invented holdout claim']; });
@@ -449,8 +473,8 @@ describe('owner, calibration, report and CLI', () => {
     const text = report(run);
     expect(text).toContain('Outcome: **inconclusive**; directional only: 8 usable dev tasks');
     expect(text).toContain('n tasks 8');
-    expect(text).toContain('| dev-0 | holdout | 0.2000 | 0.1000 | 999.0000 | 1.0000 | 1: Budget exceeded; 2: Budget exceeded |');
-    expect(text).toContain('| dev-1 | report | 0.2000 | 0.1000 | 999.0000 | 1.0000 | 1: Budget exceeded; 2: Budget exceeded |');
+    expect(text).toContain('| dev-0 | holdout | 0.2000 | 0.1000 | 999.0000 | 1.0000 | 1: Missing placeholder {link}; Budget exceeded; 2: Missing placeholder {link}; Budget exceeded |');
+    expect(text).toContain('| dev-1 | report | 0.2000 | 0.1000 | 999.0000 | 1.0000 | 1: Missing placeholder {link}; Budget exceeded; 2: Missing placeholder {link}; Budget exceeded |');
   });
   test('report tolerates absent scores but cannot keep missing evidence', () => {
     expect(report(run)).toContain('Outcome: **inconclusive**; missing scoring or guard evidence');

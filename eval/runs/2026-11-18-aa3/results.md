@@ -28,15 +28,44 @@ A minus B: mean -0.0038, sd 0.0450, n tasks 15, one-sided 95% lower -0.0242, upp
 | yuzusake-03 | -0.1250 | -0.0357 |
 | yuzusake-04 | 0.2500 | 0.0146 |
 
-## Hard guards
+## Structural guards
+
+Missing or empty deliverables, placeholders, numbers not in the facts.
 
 | Arm | Failing dev outputs | Total dev outputs |
 | --- | --- | --- |
-| A | 4 | 60 |
-| B | 3 | 60 |
+| A | 0 | 60 |
+| B | 0 | 60 |
 
+
+## Limits
+
+Share of outputs that miss a character or word limit, per task. B minus A: mean -0.0167, sd 0.1997, n tasks 15, one-sided 95% lower -0.1075, upper 0.0742.
+
+| Dev task | A share | B share | B minus A |
+| --- | --- | --- | --- |
+| plinkr-01 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-02 | 0.2500 | 0.0000 | -0.2500 |
+| plinkr-03 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-04 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-05 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-06 | 0.0000 | 0.0000 | 0.0000 |
+| reggy-01 | 0.0000 | 0.0000 | 0.0000 |
+| reggy-02 | 0.0000 | 0.0000 | 0.0000 |
+| sakedeal-01 | 0.0000 | 0.0000 | 0.0000 |
+| sakedeal-02 | 0.0000 | 0.0000 | 0.0000 |
+| sakedeal-03 | 0.0000 | 0.0000 | 0.0000 |
+| yuzusake-01 | 0.0000 | 0.0000 | 0.0000 |
+| yuzusake-02 | 0.0000 | 0.5000 | 0.5000 |
+| yuzusake-03 | 0.0000 | 0.0000 | 0.0000 |
+| yuzusake-04 | 0.7500 | 0.2500 | -0.5000 |
+
+- plinkr-02 A2: body: max_words 110, got 125
 - yuzusake-02 B2: description: max_words 140, got 143
 - yuzusake-02 B3: description: max_words 140, got 141
+- yuzusake-04 A2: article: min_words 400, got 394
+- yuzusake-04 A3: article: min_words 400, got 399
+- yuzusake-04 A4: article: min_words 400, got 395
 - yuzusake-04 B2: article: min_words 400, got 378
 
 ## Noisy guards
@@ -331,7 +360,7 @@ Unsupported claims per output, averaged within each task. B minus A: mean 0.0333
 
 Excluded from the dev estimates and outcome.
 
-| Task | Set | Preference | Defects A minus B | Lint B minus A | Claims B minus A | B hard failures |
+| Task | Set | Preference | Defects A minus B | Lint B minus A | Claims B minus A | B structural and limit failures |
 | --- | --- | --- | --- | --- | --- | --- |
 
 ## Words / budget

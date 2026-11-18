@@ -1,6 +1,6 @@
 # Results: 2026-11-18-exp1-b1
 
-Outcome: **revert**; candidate B has more hard guard failures than A (3 vs 2).
+Outcome: **revert**; candidate B has more structural failures than A (1 vs 0 outputs).
 
 ## Preference
 
@@ -26,14 +26,39 @@ A minus B: mean 0.0090, sd 0.0546, n tasks 13, one-sided 95% lower -0.0180, uppe
 | yuzusake-03 | -0.1875 | 0.0714 |
 | yuzusake-04 | 0.0625 | 0.0010 |
 
-## Hard guards
+## Structural guards
+
+Missing or empty deliverables, placeholders, numbers not in the facts.
 
 | Arm | Failing dev outputs | Total dev outputs |
 | --- | --- | --- |
-| A | 2 | 52 |
-| B | 3 | 52 |
+| A | 0 | 52 |
+| B | 1 | 52 |
 
 - plinkr-06 B3: crisis_banner: missing deliverable
+
+## Limits
+
+Share of outputs that miss a character or word limit, per task. B minus A: mean 0.0000, sd 0.1768, n tasks 13, one-sided 95% lower -0.0874, upper 0.0874.
+
+| Dev task | A share | B share | B minus A |
+| --- | --- | --- | --- |
+| plinkr-01 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-02 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-03 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-04 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-05 | 0.0000 | 0.0000 | 0.0000 |
+| plinkr-06 | 0.0000 | 0.0000 | 0.0000 |
+| reggy-01 | 0.2500 | 0.0000 | -0.2500 |
+| reggy-02 | 0.0000 | 0.0000 | 0.0000 |
+| sakedeal-01 | 0.0000 | 0.0000 | 0.0000 |
+| yuzusake-01 | 0.0000 | 0.0000 | 0.0000 |
+| yuzusake-02 | 0.2500 | 0.0000 | -0.2500 |
+| yuzusake-03 | 0.0000 | 0.0000 | 0.0000 |
+| yuzusake-04 | 0.0000 | 0.5000 | 0.5000 |
+
+- reggy-01 A2: body_verified: max_words 60, got 61
+- yuzusake-02 A3: description: max_words 140, got 143
 - yuzusake-04 B1: article: min_words 400, got 386
 - yuzusake-04 B3: article: min_words 400, got 391
 
@@ -293,7 +318,7 @@ Unsupported claims per output, averaged within each task. B minus A: mean 0.0000
 
 Excluded from the dev estimates and outcome.
 
-| Task | Set | Preference | Defects A minus B | Lint B minus A | Claims B minus A | B hard failures |
+| Task | Set | Preference | Defects A minus B | Lint B minus A | Claims B minus A | B structural and limit failures |
 | --- | --- | --- | --- | --- | --- | --- |
 
 ## Words / budget
@@ -366,10 +391,10 @@ Mean of words divided by max_words (or min_words if no maximum). Character-only 
 | yuzusake-03 | dev | age_no_line | 120 chars | 0.1125 | 0.1250 |
 | yuzusake-04 | dev | article | 600 words | 0.7267 | 0.6700 |
 
-## Note (2026-11-18, Opus 5.5)
+## Note (2026-11-18)
 
-The revert comes from the hard-guard count alone, 3 vs 2:
-- B: two articles short of 400 words (386, 391) and one misnamed section (`## banner` for `crisis_banner`; the text was there).
-- A: two outputs over budget by 1 and 3 words.
-
-A/A run 3 had A 4, B 3, so this difference is within chance. Preference (+0.014, 95% interval −0.083 to 0.112) shows no effect of voice samples in this batch. Per project, plinkr leans to samples (5 of 6 tasks positive) and yuzusake, sakedeal and reggy lean against; that is a post-hoc split over 13 tasks and decides nothing. Batch 2 was not run because batch 1 reverted.
+Re-scored under the owner's ruling of 2026-11-18 (limits judged by interval, structural failures by count). The earlier report reverted on a limit count of 3 vs 2.
+- Limits: no difference (B minus A 0.000, interval −0.087 to 0.087).
+- Structural: one B output (plinkr-06, generation 3) headed its banner `## banner` instead of `## crisis_banner`; the text was there. That one output is the whole revert. No other output in this run or in A/A runs 2 and 3 (292 outputs) failed structurally, so this is one event and cannot be tied to voice samples.
+- Preference: +0.014 (95% interval −0.083 to 0.112): no effect of voice samples in this batch. Per project, plinkr leans to samples (5 of 6 tasks positive) and yuzusake, sakedeal and reggy lean against; a post-hoc split over 13 tasks that decides nothing.
+Batch 2 was not run (owner agreed 2026-11-18): first find out how the skills use samples.

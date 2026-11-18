@@ -10,7 +10,7 @@ answer: off
 
 Context: app; Residents with money worries using the Plinkr app, possibly with low digital skill; plain language matters (the repo sets no language-level rule)
 
-answer: off
+answer: natural
 
 3. Kozaemon Yuzu en Yoigokochi Yuzu smaken het best als highball 1:2.
 

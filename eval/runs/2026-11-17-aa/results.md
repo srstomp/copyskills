@@ -416,3 +416,5 @@ Matches 10/15 (pass needs 12); agreed flags confirmed "off" 6/8 (pass needs 6). 
 - Neither reader flagged, owner called off: item 2 (plinkr-03 empty state), item 3 (yuzusake-04 highball line), item 6 (plinkr-04 intake subtitle).
 
 Consequence (protocol §5): the agreed-defect share is reported only and decides nothing; a keep needs an owner blind pick.
+
+Correction (owner, 2026-11-18): item 2 is natural after all, so 11/15 match; still a fail. Item 3 is off because of the bare ratio "1:2". Item 6 was not explained.

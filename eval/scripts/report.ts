@@ -33,6 +33,19 @@ export function report(run: Run): string {
     return [{ task: task.id, set: task.set, A: meanA, B: meanB, difference: meanB - meanA }];
   });
   const noisyInterval = interval(noisy.filter(t => devIds.has(t.task)).map(t => t.difference));
+  // Share of a task's outputs that miss a character or word limit, per arm. Limits are missed by chance in about 6% of
+  // outputs (A/A runs), so they revert only when B is worse beyond its interval, like the other noisy guards.
+  const budgets = run.tasks.flatMap(task => {
+    const shares = run.config.arms.map(arm => {
+      const items = guards?.outputs.filter(o => o.task === task.id && o.arm === arm) ?? [];
+      if (items.length !== run.config.n || new Set(items.map(o => o.n)).size !== run.config.n || items.some(o => !Array.isArray(o.budget))) return null;
+      return items.filter(o => o.budget.length).length / items.length;
+    });
+    if (shares.some(v => v === null)) return [];
+    const [A, B] = shares as number[];
+    return [{ task: task.id, set: task.set, A, B, difference: B - A }];
+  });
+  const budgetInterval = interval(budgets.filter(t => devIds.has(t.task)).map(t => t.difference));
   const facts = run.tasks.flatMap(task => {
     const counts = run.config.arms.map(arm => {
       const items = factcheck?.outputs.filter(o => o.task === task.id && o.arm === arm) ?? [];
@@ -45,7 +58,7 @@ export function report(run: Run): string {
   });
   const factInterval = interval(facts.filter(t => devIds.has(t.task)).map(t => t.difference));
   const failingB = guardOutputs.filter(o => o.arm === 'B' && o.hard.length);
-  // An A/A run showed about 1 in 60 outputs fails a budget by chance, so B reverts only when it fails more often than A.
+  // Structural failures (missing section, placeholder, number not in the facts): B reverts when it has more failing outputs than A.
   const failingA = guardOutputs.filter(o => o.arm === 'A' && o.hard.length);
   // Protocol section 6: one batch can revert but never keep. Keep needs a second, independent batch (run.json "pool"):
   // the pooled per-task preference must clear zero at one-sided 95% and the second batch alone must lean towards B.
@@ -58,16 +71,18 @@ export function report(run: Run): string {
   }).filter(v => !Number.isNaN(v))) : undefined;
   let outcome = run.config.pool ? 'inconclusive' : 'second batch needed', reason = run.config.pool ? 'pooled preference does not establish improvement; the change is not adopted' : 'one batch cannot keep a change; run a second batch with "pool" set to this run';
   if (failingB.length > failingA.length) {
-    outcome = 'revert'; reason = `candidate B has more hard guard failures than A (${failingB.length} vs ${failingA.length})`;
+    outcome = 'revert'; reason = `candidate B has more structural failures than A (${failingB.length} vs ${failingA.length} outputs)`;
   } else if (preference.upper !== null && preference.upper < 0) {
     outcome = 'revert'; reason = 'preference is below zero beyond its interval';
+  } else if (budgetInterval.lower !== null && budgetInterval.lower > 0) {
+    outcome = 'revert'; reason = 'character or word limits are missed more often beyond their interval';
   } else if (noisyInterval.lower !== null && noisyInterval.lower > 0) {
     outcome = 'revert'; reason = 'lint errors are worse beyond their interval';
   } else if (factInterval.lower !== null && factInterval.lower > 0) {
     outcome = 'revert'; reason = 'unsupported claims are worse beyond their interval';
   } else {
     const usable = dev.filter(t => judge?.tasks.some(s => s.task === t.id) && noisy.some(s => s.task === t.id) && facts.some(s => s.task === t.id)).length;
-    if (!judge || !guards || !factcheck || preference.n !== dev.length || noisyInterval.n !== dev.length || factInterval.n !== dev.length || (pooled && pooled.n !== dev.length)) {
+    if (!judge || !guards || !factcheck || preference.n !== dev.length || noisyInterval.n !== dev.length || budgetInterval.n !== dev.length || factInterval.n !== dev.length || (pooled && pooled.n !== dev.length)) {
       outcome = 'inconclusive'; reason = 'missing scoring or guard evidence; cannot establish all checks';
     } else if (usable < 10) {
       outcome = 'inconclusive'; reason = `directional only: ${usable} usable dev tasks; at least 10 required to keep`;
@@ -80,10 +95,13 @@ export function report(run: Run): string {
   if (pooled) text += `Pooled with ${run.config.pool}: ${describe(pooled)}.\n\n`;
   text += `## Defects (reported only)\n\nA minus B: ${describe(defects)}.\n\n`;
   text += table(['Dev task', 'Preference score', 'Defects A minus B'], dev.map(task => [task.id, format(judge?.tasks.find(t => t.task === task.id)?.score ?? null), format(read?.tasks.find(t => t.task === task.id)?.difference ?? null)])) + '\n\n';
-  text += '## Hard guards\n\n';
+  text += '## Structural guards\n\nMissing or empty deliverables, placeholders, numbers not in the facts.\n\n';
   text += guards ? table(['Arm', 'Failing dev outputs', 'Total dev outputs'], run.config.arms.map(arm => [arm, guardOutputs.filter(o => o.arm === arm && o.hard.length).length, guardOutputs.filter(o => o.arm === arm).length])) : 'n/a: guards.json is missing.';
   text += '\n\n';
   for (const o of failingB) text += `- ${o.task} B${o.n}: ${o.hard.join('; ')}\n`;
+  text += `\n## Limits\n\nShare of outputs that miss a character or word limit, per task. B minus A: ${describe(budgetInterval)}.\n\n`;
+  text += table(['Dev task', 'A share', 'B share', 'B minus A'], budgets.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
+  for (const o of guardOutputs.filter(o => o.budget?.length)) text += `- ${o.task} ${o.arm}${o.n}: ${o.budget.join('; ')}\n`;
   text += `\n## Noisy guards\n\nLint errors per output, averaged within each task. B minus A: ${describe(noisyInterval)}.\n\n`;
   text += table(['Dev task', 'A errors/output', 'B errors/output', 'B minus A'], noisy.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
   text += table(['Dev task', 'Arm', 'Output', 'Lint errors'], guardOutputs.map(o => [o.task, o.arm, o.n, o.lintErrors])) + '\n\n';
@@ -91,9 +109,9 @@ export function report(run: Run): string {
   text += table(['Task', 'A claims/output', 'B claims/output', 'B minus A'], facts.filter(t => devIds.has(t.task)).map(t => [t.task, format(t.A), format(t.B), format(t.difference)])) + '\n\n';
   text += table(['Task', 'Arm', 'Output', 'Unsupported claims'], factcheck?.outputs.filter(o => devIds.has(o.task)).map(o => [o.task, o.arm, o.n, o.unsupported.length]) ?? []) + '\n\n';
   text += '## Holdout and report tasks\n\nExcluded from the dev estimates and outcome.\n\n';
-  text += table(['Task', 'Set', 'Preference', 'Defects A minus B', 'Lint B minus A', 'Claims B minus A', 'B hard failures'], run.tasks.filter(t => t.set !== 'dev').map(task => [
+  text += table(['Task', 'Set', 'Preference', 'Defects A minus B', 'Lint B minus A', 'Claims B minus A', 'B structural and limit failures'], run.tasks.filter(t => t.set !== 'dev').map(task => [
     task.id, task.set, format(judge?.tasks.find(t => t.task === task.id)?.score ?? null), format(read?.tasks.find(t => t.task === task.id)?.difference ?? null), format(noisy.find(t => t.task === task.id)?.difference ?? null), format(facts.find(t => t.task === task.id)?.difference ?? null),
-    guards ? guards.outputs.filter(o => o.task === task.id && o.arm === 'B' && o.hard.length).map(o => `${o.n}: ${o.hard.join('; ')}`).join('; ') || '0' : 'n/a',
+    guards ? guards.outputs.filter(o => o.task === task.id && o.arm === 'B' && (o.hard.length || o.budget?.length)).map(o => `${o.n}: ${[...o.hard, ...(o.budget ?? [])].join('; ')}`).join('; ') || '0' : 'n/a',
   ])) + '\n\n';
   text += '## Words / budget\n\nMean of words divided by max_words (or min_words if no maximum). Character-only budgets are labelled chars; these ratios are descriptive, not a word-budget check.\n\n';
   const all = outputs(run);

@@ -21,6 +21,8 @@ AI tells (from locales/nl.md and anti-slop.md):
 - "naadloos", "cruciaal", "essentieel" used as praise
 - a rhythmic triplet of adjectives: "fris, verrassend en verfijnd"
 - a closing one-line punchline after a full paragraph: "Proef het verschil."
+Owner-confirmed (owner check, 2026-11-18):
+- a bare ratio in consumer copy: "smaken het best als highball 1:2" (for: één deel yuzusake op twee delen soda)
 Register slips:
 - one "u" or "uw" in a passage that otherwise uses "je/jij" (or the reverse)
 

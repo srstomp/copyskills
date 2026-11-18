@@ -50,7 +50,9 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
 
 **Reported, not decided on:** words ÷ budget per deliverable (shows bland or truncated copy), per-reader flag rates, and the copy check below.
 
-**Hard guards (zero tolerance, deterministic):** every deliverable present and inside its budget, placeholders present and unchanged, no number missing from the fact sheet (`copydoc lint --facts`). B fails the experiment when more of its dev outputs fail than A's (owner ruling 2026-11-18: an A/A run showed about 1 in 60 outputs fails a budget by chance).
+**Structural guards (deterministic):** every deliverable present and non-empty, placeholders present and unchanged, no number missing from the fact sheet. B fails the experiment when more of its dev outputs fail than A's. In 360 A/A outputs none failed structurally, so in practice one failure in B reverts.
+
+**Limits (deterministic, judged like a noisy guard):** character and word limits. About 6% of outputs miss a limit in every arm of every run, so the count comparison first used here reverted on chance (experiment 1, batch 1: 3 vs 2). Owner ruling 2026-11-18: per task, the share of outputs that miss a limit; B fails only when B minus A is above zero beyond its one-sided 95% interval.
 
 **Noisy guards (fail only when B is worse beyond the one-sided 95% interval):** unsupported claims marked by one reader in a separate pass with the fact sheet (60 extra reads per arm), and lint errors per locale. The agreed-defect share is reported only (see §5).
 
@@ -62,12 +64,12 @@ Long form: one dev task is a 400–600 word article for sakedeal (EN) or yuzusak
 - **Owner check (about 10 minutes), after the A/A run:** 15 NL units from real A/A outputs, shown blind: 8 the readers agreed were defects and 7 neither flagged. The owner marks each "natural" or "off". This tests what the primary measure counts. Pass: at least 12 of 15 match the owner and at least 6 of the 8 agreed flags are confirmed "off" (a smoke test, not a precision estimate).
 - **Retest:** the same A/A outputs read twice; flag agreement between the two readings is reported.
 - If calibration fails, the defect measure is reported only, and decisions rest on pairwise preference plus an owner blind pick.
-- **Result (2026-11-18):** passage calibration passed (run 2, split bundles). The owner check failed: 10 of 15 matched (12 needed); 6 of 8 agreed flags were confirmed. The owner also called 3 of the 7 unflagged units off, so the readers miss defects the owner sees. From now on the agreed-defect share is reported only and decides nothing; a keep also needs an owner blind pick.
+- **Result (2026-11-18):** passage calibration passed (run 2, split bundles). The owner check failed: 11 of 15 matched (12 needed) after the owner corrected one answer; 6 of 8 agreed flags were confirmed. The owner called 2 of the 7 unflagged units off (one for the bare ratio "highball 1:2"), so the readers miss defects the owner sees. From now on the agreed-defect share is reported only and decides nothing; a keep also needs an owner blind pick.
 
 ## 6. A/A and the decision rule
 - **A/A run first:** the current suite against itself, full dev set. Check that both intervals cover zero (no effect where none exists) and use the run for the owner check and the reader retest.
 - **Decision rule (owner ruling 2026-11-18, after A/A run 2 kept a change against itself at one-sided 90%).** Preference is the only keep trigger; the guards are must-not-worsen checks. All intervals are one-sided 95% t-intervals over dev tasks.
-  - **Batch 1 never keeps.** It reverts when preference is below zero beyond its interval, B has more failing outputs on the hard guards than A, or a noisy guard is worse beyond its interval. Otherwise it needs a second batch.
+  - **Batch 1 never keeps.** It reverts when preference is below zero beyond its interval, B has more structurally failing outputs than A, or limits or a noisy guard are worse beyond their interval. Otherwise it needs a second batch.
   - **Batch 2** is a fresh, independent run (new generations, new reads and judgements; run.json `"pool"` names batch 1). Revert on the same triggers as batch 1. **Keep** when the pooled per-task preference (mean of the two batch scores per task) has a lower bound above zero and batch 2's own mean preference is above zero, followed by an owner blind pick. Otherwise **inconclusive**: the change is not adopted (the suite stays simpler) and the result is recorded as inconclusive, not as a loss.
 - One change per experiment.
 - An experiment with fewer than 10 usable tasks is reported as directional only and cannot keep a change.
